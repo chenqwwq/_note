@@ -2,23 +2,31 @@
 
 > ThreadPoolExecutor就是JDK中的线程池实现。
 
+**池化技术**是重复利用现有资源，减少创建和删除消耗的一种技术，类似的还有内存池，连接池等概念。
 
 
-池化技术是重复利用资源，减少创建和删除消耗的一种技术，类似的还有内存池，连接池等概念。
 
-Java中的线程映射了内核中的一个轻量级线程，所以创建和销毁都需要切换到内核态，都会带来不小的消耗。
+Java中的每个线程都映射了内核中的一个轻量级线程，所以创建和销毁都涉及到用户态到内核态的切换，消耗就不会小。
+
+
 
 以一个线程池的概念，生成并持有多个线程对象，重复利用，就是该类对性能优化的的核心思想。
+
+
 
 在日常开发过程中免不了会与线程池打交道，知晓点源码说不定还能帮我们快速定位线上问题。
 
 
 
+[TOC]
+
+ThreadPoolExecutor是最基础的线程池，没有任何其他附加功能。
+
 ## 源码解析
 
 ### 构造函数
 
-这个基本是面试都会问的问题了吧，非常重要，因为设定不同的入参是我们控制线程池执行方式的最主要的方法。
+这个基本是面试都会问的问题了，非常重要，因为设定不同的入参是我们控制线程池执行方式的最主要的方法。
 
  ![image-20200922220330699](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20200922220330699.png)
 
@@ -41,6 +49,8 @@ Java中的线程映射了内核中的一个轻量级线程，所以创建和销�
 | handler         | 拒绝策略               |
 
 
+
+另外的`Executors`类也帮我们快速的常见特定形式的线程池，比如单个线程的线程池或者无限等待队列的线程池等。
 
 
 
@@ -94,7 +104,7 @@ CAPACITY表示线程的数目上线，也用于求线程数以及线程状态，
 
 #### Worker
 
-Worker是ThreadPoolExecutor的内部类，同时也是**线程池中具体的工作线程的持有者。**
+Worker是ThreadPoolExecutor的内部类，同时也是**线程池中具体的工作线程引用的持有者。**
 
 线程池中的所有工作线程都保存在以下的成员变量中:
 
@@ -110,10 +120,6 @@ Worker作为ThreadPoolExecutor的内部类，自身继承了AbstractQueuedSynchr
 
 除了具体的工作线程Thread外，还有初始任务以及完成的任务计数。
 
-其实Worker本身就是一个Runnable，交由thread来执行，但是它本身又包含了另外需要执行的Runnable，也就是firstTask<font size=2>(这里好像有点乱)</font>。
-
-在添加工作线程的时候可以选择一起添加初始任务(addWorker(runnable,boolean))，那么在runWorker中就会先执行firstTask而不是直接去getTask。
-
 **没有firstTask的调用则表示是直接添加工作线程消费阻塞队列中的任务。(addWorker(null,boolean))**
 
 
@@ -126,9 +132,15 @@ Worker作为ThreadPoolExecutor的内部类，自身继承了AbstractQueuedSynchr
 
 因为本身就是单线程工作所以也不存在竞争的问题，**这里的上锁的更像是表示线程的忙碌标志。**
 
-下文会看到runWorker中在执行某个具体的任务之前都会先上锁，也就表示了线程正在执行一个任务，在忙碌状态。
+这个很关键，下文会看到runWorker中在执行某个具体的任务之前都会先上锁，也就表示了线程正在执行一个任务，在忙碌状态。
+
+正是因为这个忙碌状态会导致其他线程获取锁失败，在类似`interruptIdleWorkers()`方法中就可以区分忙碌和空闲的工作线程。
 
 
+
+
+
+下面是线程池的具体执行逻辑源码。
 
 ### 添加任务入口 - execute
 
@@ -170,14 +182,18 @@ addWorker中也会前置检查，比如当前线程为SHUTDOWN但是因为firstT
 
  <img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/未命名文件 (3).png" style="zoom:57%;" />
 
+
+
 以上就是线程池添加新任务最外层的逻辑，可能也是面试问的最多的地方吧。
 
 添加的任务最终有以下几个去向：
 
 1. 被拒绝策略拒绝
-2. 被放入阻塞队列
+2. 以runnable的形式被放入等待队列
 3. 直接开启新的核心线程执行
 4. 入队失败后尝试开启非核心线程执行
+
+
 
 
 
@@ -186,6 +202,12 @@ addWorker中也会前置检查，比如当前线程为SHUTDOWN但是因为firstT
 ### 添加任务 - addWorker
 
 addWorker方法就是希望添加一个新的工作线程到线程池中。
+
+参数中的firstTask如果为空会在第一次runWorker的时候就尝试从等待中获取任务，
+
+**所以如果希望添加一个工作线程消费等待队列里的任务，就可以直接调用addWorker(null,true | false)来实现**。
+
+core表示是否希望以核心线程添加，true和false仅仅和线程数检查有关。
 
 ```java
 // firstTask表示希望执行的任务
@@ -231,7 +253,7 @@ private boolean addWorker(Runnable firstTask, boolean core) {
         }
     
     	// 上面两个循环，外层循环检查状态，内存循环检查线程数
-    	// 通过之后开始具体的添加逻辑
+    	// 通过之后开始具体的添加工作线程的逻辑
 
     	// 这两个从名字也可以看出来，任务启动和添加是否成功
         boolean workerStarted = false;
@@ -269,6 +291,7 @@ private boolean addWorker(Runnable firstTask, boolean core) {
                 // 线程添加成功
                 if (workerAdded) {
                     // 直接开启线程
+                    // 这里回去执行Worker的run方法
                     t.start();
                     workerStarted = true;
                 }
@@ -284,9 +307,9 @@ private boolean addWorker(Runnable firstTask, boolean core) {
 
 
 
-添加任务的整个逻辑并不复杂，不过有多次的状态检查。
+添加任务的整个逻辑并不复杂，不过有多次的状态检查，因为在线程数检查的时候状态也可能会改变。
 
-前置检查之后会把会把**入参Runnable包装为Worker对象，然后交给Thread对象执行。**
+前置检查之后会把会把**入参Runnable塞入新的Worker对象，然后启动工作线程。**
 
 
 
@@ -347,7 +370,7 @@ private boolean addWorker(Runnable firstTask, boolean core) {
 
  ![image-20200923071519311](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20200923071519311.png)
 
-很干脆的只有调用`runWorker`方法。
+很干脆的只有调用`runWorker`方法，不过会把自身引用当做入参传入。
 
 
 
@@ -412,7 +435,7 @@ private boolean addWorker(Runnable firstTask, boolean core) {
     }
 ```
 
-整个`runWorker()`方法可以看做一个大的while循环，所以是由while中的条件来控制线程的生命周期。
+整个`runWorker()`方法可以看做一个大的while循环，所以**while中的条件完全控制线程的生命周期。**
 
 
 
@@ -439,7 +462,7 @@ private boolean addWorker(Runnable firstTask, boolean core) {
 
 **另一个值得关注的点是锁问题，为什么单线程执行需要w.lock()方法上锁。**
 
-这个其实也和中断有关，在`interruptIdleWorkers`方法中可以看到，线程池中对于空闲的定义就是可以获取到锁，所以这里的上锁也就表明当前工作线程正忙。
+这个上文有提到过，在`interruptIdleWorkers`方法中可以看到，线程池中对于空闲的定义就是可以获取到锁，所以这里的上锁也就表明当前工作线程正忙。
 
 
 
@@ -533,9 +556,12 @@ private void processWorkerExit(Worker w, boolean completedAbruptly) {
             boolean timed = allowCoreThreadTimeOut || wc > corePoolSize;
 			// getTask的返回控制线程是否需要淘汰
             // 1. 线程数超过maximumPoolSize
-            // 2. 
             if ((wc > maximumPoolSize || (timed && timedOut))
                 && (wc > 1 || workQueue.isEmpty())) {
+                // 这里可以看一下和上面两个减去线程数的方法区别
+                // 一个是直接减去，一个是CAS
+                // 因为上面的是状态不对，而下面这个是数目不对
+                // 数目减少之后需要重新检查
                 if (compareAndDecrementWorkerCount(c))
                     return null;
                 continue;
@@ -545,12 +571,16 @@ private void processWorkerExit(Worker w, boolean completedAbruptly) {
                 // 根据
                 // take()方法是可以检测中断的，所以不会造成死等
                 Runnable r = timed ?
+                    // 等带一个超时时间，如果超时时间内没有获取到，则会返回null
+                    // 导致工作线程退出
                     workQueue.poll(keepAliveTime, TimeUnit.NANOSECONDS) :
+                	// 这里要注意take会阻塞直到获取到任务或者发生中断
                     workQueue.take();
                 if (r != null)
                     return r;
                 timedOut = true;
             } catch (InterruptedException retry) {
+                // 如果发生中断也不会使线程退出
                 timedOut = false;
             }
         }
@@ -561,19 +591,22 @@ private void processWorkerExit(Worker w, boolean completedAbruptly) {
 
 获取任务的流程简述如下:
 
-首选检查当前线程池状态是否允许获取，只有RUNNING以及SHUTDOWN的状态才允许获取任务，所以例如STOP或者更高的状态下`getTask`就会获取不到线程，从而导致工作线程的退出。
+首先检查当前线程池状态是否允许获取，**只有RUNNING以及SHUTDOWN的状态才允许获取任务。**
 
-再来会检查当前的线程是否需要淘汰，最后才会获取任务。
+例如STOP或者更高的状态下，`getTask`方法会直接返回null，从而导致工作线程的退出。
+
+接下来是线程的超时判断，有以下几种情况：
+
+1. 当前线程数大于maximumPoolSize，线程肯定需要退出。(具体使工作线程数大于maximumPoolSize的场景未知)
+2. 工作线程数大于corePoolSize或者允许核心线程超时淘汰(allowCoreThreadTimeOut)，且获取超时的时候。(这里的超时在第二次进入循环的时候判断)
+
+通过以上两种检查，最后就是获取任务，以上述第二点的线程数判断为基础，决定获取任务是否带超时时间。
+
+take()会一直阻塞，直到获取到任务或者发生中断的时候。
 
 
 
-工作线程的淘汰的场景如下:
-
-1. 工作线程数直接大于maximumPoolSize
-2. 工作线程大于corePoolSize并且获取任务超时过一次
-3. 核心线程允许淘汰并且当前线程大于1或者工作队列为空
-
-
+从catch的代码中可以看到，即使发生中断也不会直接使线程退出(返回null)，而是再次进入循环判断，所以可以知道主动使工作线程退出的方法，只有改变线程池的状态。
 
 
 
@@ -693,8 +726,6 @@ private void interruptIdleWorkers(boolean onlyOne) {
 
 ThreadPoolExecutor中有很多种关闭线程的方式。
 
-
-
 以下是强制关闭的方法 `shutdownNow()`:
 
  ![image-20200925170630479](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20200925170630479.png)
@@ -720,5 +751,36 @@ drainQueue()会返回所有阻塞队列中的任务。
 相同的检查之外，不同的是将状态变为SHUTDOWN。
 
 SHUTDOWN状态下的线程并不会直接关闭而是会继续消费阻塞队列中的任务，此时只会关闭空闲线程，执行中的线程即使你把它中断了，它也会重置中断标记位。
+
+
+
+
+
+### 剩余方法
+
+剩余的就是一些线程池的补充方法，简单过一遍吧，还有一些从`AbstractExecutorService`继承的方法就以后再说吧。
+
+
+
+#### 预启动核心线程 - prestartCoreThread
+
+ ![image-20201008200931508](/home/chen/Pictures/image-20201008200931508.png)
+
+
+
+#### 预启动所有核心线程 - prestartAllCoreThreads
+
+ ![image-20201008221355464](/home/chen/Pictures/image-20201008221355464.png)
+
+
+
+
+
+#### 删除所有取消的任务 - purge
+
+ ![image-20201008222547802](/home/chen/Pictures/image-20201008222547802.png)
+
+这里可以看到任务也是可以取消的。
+
 
 
