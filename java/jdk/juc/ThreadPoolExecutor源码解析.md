@@ -764,13 +764,13 @@ SHUTDOWN状态下的线程并不会直接关闭而是会继续消费阻塞队列
 
 #### 预启动核心线程 - prestartCoreThread
 
- ![image-20201008200931508](/home/chen/Pictures/image-20201008200931508.png)
+ ![image-20201008200931508](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201008200931508.png)
 
 
 
 #### 预启动所有核心线程 - prestartAllCoreThreads
 
- ![image-20201008221355464](/home/chen/Pictures/image-20201008221355464.png)
+ ![image-20201008221355464](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201008221355464.png)
 
 
 
@@ -778,7 +778,7 @@ SHUTDOWN状态下的线程并不会直接关闭而是会继续消费阻塞队列
 
 #### 删除所有取消的任务 - purge
 
- ![image-20201008222547802](/home/chen/Pictures/image-20201008222547802.png)
+ ![image-20201008222547802](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201008222547802.png)
 
 这里可以看到任务也是可以取消的。
 
