@@ -2,27 +2,29 @@
 
 > ThreadPoolExecutor就是JDK中的线程池实现。
 
-**池化技术**是重复利用现有资源，减少创建和删除消耗的一种技术，类似的还有内存池，连接池等概念。
-
-
-
-Java中的每个线程都映射了内核中的一个轻量级线程，所以创建和销毁都涉及到用户态到内核态的切换，消耗就不会小。
-
-
-
-以一个线程池的概念，生成并持有多个线程对象，重复利用，就是该类对性能优化的的核心思想。
-
-
-
-在日常开发过程中免不了会与线程池打交道，知晓点源码说不定还能帮我们快速定位线上问题。
-
 
 
 [TOC]
 
+## 概述
+
+Java中的每个线程都映射了内核中的一个轻量级线程，所以创建和销毁都涉及到用户态到内核态的切换，消耗就不会小。
+
+而是使用线程成，以一个线程池的概念，生成并持有多个线程对象，重复利用，就可以最大程度上减少线程创建和删除的资源消耗。
+
+该种方式可以称为池化，**池化**就是重复利用现有资源，减少创建和删除消耗的一种技术，类似的还有内存池，连接池等概念。
+
+我们在日常开发过程中免不了会与线程池打交道，知晓点源码说不定还能帮我们快速定位线上问题。
+
+
+
 ThreadPoolExecutor是最基础的线程池，没有任何其他附加功能。
 
-## 源码解析
+## 源码分析
+
+> 基于JDK1.8
+
+
 
 ### 构造函数
 
@@ -50,19 +52,21 @@ ThreadPoolExecutor是最基础的线程池，没有任何其他附加功能。
 
 
 
-另外的`Executors`类也帮我们快速的常见特定形式的线程池，比如单个线程的线程池或者无限等待队列的线程池等。
+另外的`Executors`类也帮我们快速的常见特定形式的线程池，比如单个线程的线程池或者无限等待队列的线程池等。  
+
+简单demo如下：
+
+  ![image-20201016153444173](../../../pic/image-20201016153444173.png)
 
 
 
 
 
-### ctl 线程池状态和线程数
+### 线程池状态和线程数
 
-这里是ThreadPoolExecutor中一个非常亮眼的设计，**以一个32位整型表示了两个线程池参数。**
+这里是ThreadPoolExecutor中一个意想不到的设计，**以一个32位整型表示了两个线程池参数。**
 
 这样的设计使线程池的状态和线程数的设置可以同时进行，保证彼此的关联性，而且位运算的效率也不错。
-
-
 
  ![image-20200922221847131](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20200922221847131.png)
 
@@ -72,17 +76,13 @@ ThreadPoolExecutor是最基础的线程池，没有任何其他附加功能。
 
 COUNT_BITS是表示线程数目的位数，也就是29位，这里也可以看出来，线程池的线程上限就是2^29个。
 
-CAPACITY表示线程的数目上线，也用于求线程数以及线程状态，具体可以看下面`runStateOf`以及`workerCountOf`两个方法。
-
-
+CAPACITY表示线程的数目上限，也用于求线程数以及线程状态，具体可以看下面`runStateOf`以及`workerCountOf`两个方法。
 
 
 
 接下来看线程池的状态:
 
  ![image-20200924233552756](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20200924233552756.png)
-
-
 
 整理如下:
 
@@ -96,23 +96,19 @@ CAPACITY表示线程的数目上线，也用于求线程数以及线程状态，
 
 以上状态非常关键，因为不论是添加任务，执行任务，都需要先检查线程池的状态。
 
-<img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/未命名文件 (4).png" style="zoom:50%;" />
-
 
 
 ### 其他相关组件对象
 
 #### Worker
 
-Worker是ThreadPoolExecutor的内部类，同时也是**线程池中具体的工作线程引用的持有者。**
+Worker是ThreadPoolExecutor的内部类，同时也是**线程池中具体的工作线程的持有者。**
 
 线程池中的所有工作线程都保存在以下的成员变量中:
 
  ![image-20200926222616980](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20200926222616980.png)
 
-
-
-Worker作为ThreadPoolExecutor的内部类，自身继承了AbstractQueuedSynchronizer，并实现了Runnable接口。
+Worker作为ThreadPoolExecutor的内部类，自身**继承了AbstractQueuedSynchronizer**，并实现了Runnable接口。
 
 以下是Worker中的内部变量:
 
@@ -121,8 +117,6 @@ Worker作为ThreadPoolExecutor的内部类，自身继承了AbstractQueuedSynchr
 除了具体的工作线程Thread外，还有初始任务以及完成的任务计数。
 
 **没有firstTask的调用则表示是直接添加工作线程消费阻塞队列中的任务。(addWorker(null,boolean))**
-
-
 
 下面是Worker中有关于AQS的方法实现:
 
@@ -144,23 +138,23 @@ Worker作为ThreadPoolExecutor的内部类，自身继承了AbstractQueuedSynchr
 
 ### 添加任务入口 - execute
 
+
+
 该方法用于向线程池添加新的任务，是ThreadPoolExecutor中最上层的方法。
 
 
 
 方法源码如下:
 
- ![image-20200922221155365](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20200922221155365.png)
+![image-20200922221155365](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20200922221155365.png)
 
 
 
-**第一步获取ctl变量,判断是否可以使用核心线程池**，如果线程池的工作线程数量小于**corePoolSize**，就直接调用addWorker方法添加任务，执行成功就直接return。
+**第一步获取ctl变量,判断是否可以使用核心线程池，如果线程池的工作线程数量小于**corePoolSize**，就直接调用addWorker方法添加任务，执行成功就直接return**。
 
 添加失败或者当前线程数已经大于**corePoolSize**则进入第二步。
 
 **第二步判断当前线程池是否为RUNNING状态**，如果是则尝试将任务添加到工作队列。
-
-<font size=2>(这里我个人一直有一个理解上的误区，最开始以为再超过corePoolSize之后会继续增加线程到maximumPoolSize，才放入workQueue)</font>
 
 任务添加到workQueue成功之后还会再次检查当前线程池的状态，**如果状态不为RUNNING，则移除当前任务，并执行拒绝逻辑。**
 
@@ -168,13 +162,9 @@ Worker作为ThreadPoolExecutor的内部类，自身继承了AbstractQueuedSynchr
 
 当线程数目为0时添加一个不带初始任务的非核心线程去消费阻塞队列中的任务。
 
-**第三步是线程不是RUNNING或者入队列失败的情况，**会直接调用addWorker尝试以非核心线程执行当前任务，如果还失败则执行拒绝策略。
+**第三步在线程不是RUNNING或者入队列失败的情况，**会直接调用addWorker尝试以非核心线程执行当前任务，如果还失败则执行拒绝策略。
 
 addWorker中也会前置检查，比如当前线程为SHUTDOWN但是因为firstTask不为空，所以会直接返回false，然后执行拒绝策略。
-
-
-
-另外的方法中在offer到阻塞队列的前后都会对线程池的状态进行判断。
 
 
 
@@ -186,13 +176,6 @@ addWorker中也会前置检查，比如当前线程为SHUTDOWN但是因为firstT
 
 以上就是线程池添加新任务最外层的逻辑，可能也是面试问的最多的地方吧。
 
-添加的任务最终有以下几个去向：
-
-1. 被拒绝策略拒绝
-2. 以runnable的形式被放入等待队列
-3. 直接开启新的核心线程执行
-4. 入队失败后尝试开启非核心线程执行
-
 
 
 
@@ -201,9 +184,11 @@ addWorker中也会前置检查，比如当前线程为SHUTDOWN但是因为firstT
 
 ### 添加任务 - addWorker
 
-addWorker方法就是希望添加一个新的工作线程到线程池中。
 
-参数中的firstTask如果为空会在第一次runWorker的时候就尝试从等待中获取任务，
+
+addWorker方法的作用就是添加一个新的工作线程到线程池中。
+
+参数中的firstTask表示该工作线程的第一个任务，如果为空会在第一次runWorker的时候就尝试从等待中获取任务。
 
 **所以如果希望添加一个工作线程消费等待队列里的任务，就可以直接调用addWorker(null,true | false)来实现**。
 
@@ -290,8 +275,7 @@ private boolean addWorker(Runnable firstTask, boolean core) {
                 }
                 // 线程添加成功
                 if (workerAdded) {
-                    // 直接开启线程
-                    // 这里回去执行Worker的run方法
+                    // 直接开启线程，这里会去执行Worker的run方法
                     t.start();
                     workerStarted = true;
                 }
@@ -313,9 +297,9 @@ private boolean addWorker(Runnable firstTask, boolean core) {
 
 
 
-**前置检查:**
+**前置检查流程如下:**
 
-增加工作线程的前置检查就更简单了，首先检查状态，状态不对直接就退出了。
+首先检查状态，状态不对直接就退出了。
 
 再来检查当前的线程数，线程数不满足也直接退出了，这里最大的线程数根据入参core来定，如果增加的是核心线程则不能超过corePoolSize。
 
@@ -326,7 +310,7 @@ private boolean addWorker(Runnable firstTask, boolean core) {
 通过前置检查可以确定下面两个情况:
 
 1. 添加工作线程的时机，**只能在线程池状态为RUNNING或者SHUTDOWN但工作线程不为空的情况下。**
-2. **线程数永远不能大于maximumPoolSize**
+2. **线程数永远不能大于maximumPoolSize**。
 
 
 

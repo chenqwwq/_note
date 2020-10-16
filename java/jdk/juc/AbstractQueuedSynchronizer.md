@@ -1,11 +1,17 @@
 ## 		*AbstractQueuedSynchronized*源码阅读 - 同步队列
 
+> JUC的开篇。
+
+[TOC]
 
 
-* `AQS`是用于构造锁和基本同步器的基础框架，是JUC中大部分同步工具实现的基础。
+
+## 概述
+
+* `AQS`是用于构造锁和基本同步器的基础框架，是JUC中大部分同步工具如ReentrantLock等的实现基础。
 
 * `AQS`内部维护的两种队列结构用来存放等待线程:
-  1. 由`AQS`自身的成员变量`head`和`tail`维护,一个**以内部类`Node`为元素的`CLH队列`**，可以称之为**同步队列**,利用`CLH队列`的特性可以完美解决饥饿问题.
+  1. **以内部类`Node`为元素的`CLH队列`**，可以称之为**同步队列**,利用`CLH队列`的特性可以完美解决饥饿问题。
 
   2. 内部类`ConditionObject`实现一个等待条件的双向队列，称之为**条件队列**.由`ConditionObject`中的`firstWaiter`和`lastWaiter`维护.
 
@@ -14,11 +20,14 @@
   2. 可中断模式 - `acquireInterruptibly`
   3. 带超时时间的模式 - `tryAcquireNanos`
 
-* 以下主要讲解的是`CLH同步队列`的实现部分.
 
----
 
-### 1） 成员变量
+
+以下主要讲解的是`CLH同步队列`的实现部分.
+
+
+
+## 成员变量
 
 ```java
 // 底层FIFO队列的头节点	         
@@ -37,18 +46,22 @@ private volatile int state;
 
 - **当前同步状态**,通过`volatile`保证了线程间的可见性。
 
-- `state`可以说是其中最为关键的一个成员变量,在`JUC`不同的实现类中有不同的体现:
+- `state`变量在`JUC`不同的实现类中有不同的含义:
 
-  - **ReentrantLock - 存储重入数**
+  - **ReentrantLock - 重入数**
   - **Semaphore - 许可数**
   - **CountDownLatch - 需要调用countDown的次数**
   - **Future - 存储当前任务的执行状态**
 
   
 
-### 2）  内部类
+## 内部类
+
+
 
 #### Node - 静态内部类
+
+Node就是内部
 
 ```java
     static final class Node {
