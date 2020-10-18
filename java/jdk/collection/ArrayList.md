@@ -1,23 +1,27 @@
-###       ArrayList源码
+# ArrayList源码
 
 > 感觉相比起别的，我还是对数据结构的兴趣大一点~  (๑>︶<๑)
 >
 > 细读所以可能会有很多冗余的注释。
 
+[TOC]
+
 ---
 
-#### ArrayList    <font size=2>extend AbstractList implement List,RandomAccess</font>
+## 概述
 
--  `ArrayList` 是最常用的一个集合，提供随机访问。
+-  `ArrayList` 是最常用的一个集合类，提供随机访问的特性。
 -  `ArrayList` 的底层结构是`数组`，初始化大小为**10**，每次扩容为原来的1.5倍。
-   -  具体的算术代码为：`newCapacity = oldCapacity + (oldCapacity >> 1)`，不明白为什么是1.5+1
+   -  具体的算术代码为：`newCapacity = oldCapacity + (oldCapacity >> 1)`。
 -  `ArrayList`是**非线程安全，且允许空值**。
--  `ArrayList` 在数据的`新增`，`删除`中 都会有`modCount++`，用此控制`迭代器`以及`子列表`与原数组之间的同步性，`checkForComodification()`方法会在`迭代器`和`子列表`的每个方法前面执行判断是否修改。
-
-- 感觉上也可以说`ArrayList`就是一个会`自动扩容的动态数组`。
 
 
-**关键属性**
+
+总的来说`ArrayList`就是一个`自动扩容的动态数组`。
+
+
+
+## 关键属性
 
 ```java
 // 默认的底层数据大小
@@ -30,11 +34,9 @@
 
 
 
-**构造方法**
+## 构造方法
 
 - `ArrayList` 提供三种构造方法，逻辑不复杂，看看就好 ￣ω￣=
-
-  - `public ArrayList(int initialCapacity)`
 
   ```java
   // 根据指定的数组大小初始化底层数组
@@ -50,8 +52,6 @@
       }
   ```
 
-  - `public ArrayList()`
-
   ```java
   // 使用默认的空数组初始化底层数组
       public ArrayList() {
@@ -59,8 +59,6 @@
           this.elementData = DEFAULTCAPACITY_EMPTY_ELEMENTDATA;
       }
   ```
-
-  - `public ArrayList(Collection<? extends E> c)`
 
   ```java
   // 使用已有的`Collection`为初始元素初始化底层数组
@@ -78,11 +76,9 @@
   }
   ```
 
+## 主要逻辑
 
-**主要功能方法**
-
-- 扩容相关方法
-  - 扩容方法可以说是`ArrayList`中最重要的方法了。
+### 扩容相关方法
   - 在每次插入元素的时候调用该方法检查容量是否足够，不足则扩充，才是`ArrayList`的实质。
 
 ```java

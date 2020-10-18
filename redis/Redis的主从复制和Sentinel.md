@@ -4,6 +4,8 @@
 
 <!--more-->
 
+[TOC]
+
 ### 一、Redis的主从复制模式
 
 Redis可以通过`SLAVEOF <ip> <port>`指令或者配置文件`slavof <ip> <port>`的方式，让本服务器去复制另外一个服务器。
