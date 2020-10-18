@@ -2,7 +2,7 @@
 
 >  基于4.1.53.Final版本
 
-![image-20201018222617287](/home/chen/Pictures/image-20201018222617287.png)
+![image-20201018222617287](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201018222617287.png)
 
 
 
@@ -29,7 +29,7 @@ ServerBootstrap中持有了父子Channel的ChannelOption以及AttrbuteMap集合�
 
 
 
-  ![image-20201018220355161](/home/chen/Pictures/image-20201018220355161.png)
+  ![image-20201018220355161](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201018220355161.png)
 
 ServerBootstrap和Bootstrap的类图也非常简单，不做介绍了。
 
@@ -43,7 +43,7 @@ EventLoop就是事件轮询器，而EventLoopGroup就是多个EventLoop的组合
 
 
 
- 		![image-20201018221020963](/home/chen/Pictures/image-20201018221020963.png)
+ 		![image-20201018221020963](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201018221020963.png)
 
 以上是NioEventLoop的基本类图。
 
@@ -53,7 +53,7 @@ EventLoop最初还是继承自JUC中的Executor接口，并不能说他是个线
 
 NioEventLoop继承自SingleThreadEventLoop，所以很显然的，NioEventLoop只会和一个Thread对象绑定。
 
-​		 ![image-20201018221417144](/home/chen/Pictures/image-20201018221417144.png)
+​		 ![image-20201018221417144](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201018221417144.png)
 
 上图是NioEventLoopGroup的。
 
@@ -67,7 +67,7 @@ NioEventLoopGroup通过组合的方式实现了对NioEventLoop的功能扩展。
 
 
 
-![image-20201018221901295](/home/chen/Pictures/image-20201018221901295.png)
+![image-20201018221901295](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201018221901295.png)
 
 next方法就是对Group中单个NIoEventLoop的选择方法，很显然Group的执行逻辑就是选择已有的EventLoop指派执行。
 
@@ -81,13 +81,13 @@ Netty中所有IO都是异步的，所以作为异步结果的接收类，Future�
 
 下图就是Netty中Future的大部分类族。
 
-![image-20201018224213594](/home/chen/Pictures/image-20201018224213594.png)
+![image-20201018224213594](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201018224213594.png)
 
 Netty中并没有直接采用JUC中的Future，因为原生的接口非常简陋不满足Netty的一些功能。
 
 所以Netty自定义了一个Future，最主要的就是增加了**方法回调的API**。
 
-![image-20201018222307691](/home/chen/Pictures/image-20201018222307691.png)
+![image-20201018222307691](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201018222307691.png)
 
 从以上的方法可以很明显的看出Netty的Future接口比原生接口多实现的地方。
 
@@ -101,7 +101,7 @@ Netty中并没有直接采用JUC中的Future，因为原生的接口非常简陋
 
 ChannelFuture的注释中提供了Channel对应不同的完成阶段验证的方法。
 
-![image-20201018224625154](/home/chen/Pictures/image-20201018224625154.png)
+![image-20201018224625154](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201018224625154.png)
 
 如图中所示，如果Future对应的事务执行成功，isDone和isSuccess都为true，失败的话isDone为true但是cause不为空。
 
@@ -113,7 +113,7 @@ ChannelFuture的注释中提供了Channel对应不同的完成阶段验证的方
 
 最后的Promise。
 
-![image-20201018225237042](/home/chen/Pictures/image-20201018225237042.png)
+![image-20201018225237042](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201018225237042.png)
 
 由类的组成可以发现，Promise相对于Future新增了最终状态的设置方法，可以人为手动的设置事件的执行结果。
 
