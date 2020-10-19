@@ -35,7 +35,7 @@ ServerBootstrap和Bootstrap的类图也非常简单，不做介绍了。
 
 
 
-## EventLoop/EventLoopGroup
+## EventLoop & EventLoopGroup
 
 EventLoop就是事件轮询器，而EventLoopGroup就是多个EventLoop的组合。
 
@@ -77,7 +77,7 @@ next方法就是对Group中单个NIoEventLoop的选择方法，很显然Group的
 
 ## Future
 
-Netty中所有IO都是异步的，所以作为异步结果的接收类，Future也是相当重要的。
+Netty中所有IO都是异步的，所以作为**异步结果的接收类**，Future也是相当重要的。
 
 下图就是Netty中Future的大部分类族。
 
@@ -85,7 +85,7 @@ Netty中所有IO都是异步的，所以作为异步结果的接收类，Future�
 
 Netty中并没有直接采用JUC中的Future，因为原生的接口非常简陋不满足Netty的一些功能。
 
-所以Netty自定义了一个Future，最主要的就是增加了**方法回调的API**。
+所以**Netty自定义了一个Future**，最主要的就是增加了**方法回调的API**。
 
 ![image-20201018222307691](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201018222307691.png)
 
@@ -97,7 +97,7 @@ Netty中并没有直接采用JUC中的Future，因为原生的接口非常简陋
 
 
 
-对于ChannelFuture，主要是增加了Channel的绑定方法，用于Channel相关的异步操作。
+**对于ChannelFuture，主要是增加了Channel的绑定方法，用于Channel相关的异步操作。**
 
 ChannelFuture的注释中提供了Channel对应不同的完成阶段验证的方法。
 
@@ -117,4 +117,15 @@ ChannelFuture的注释中提供了Channel对应不同的完成阶段验证的方
 
 由类的组成可以发现，Promise相对于Future新增了最终状态的设置方法，可以人为手动的设置事件的执行结果。
 
-需要注意的是了理论上setFailure()和setSuccess()方法只能执行一个。
+需要注意的是了**理论上setFailure()和setSuccess()方法只能执行一个。**
+
+
+
+## Channel
+
+
+
+## ChannelHandler & ChannelHandlerContext
+
+
+
