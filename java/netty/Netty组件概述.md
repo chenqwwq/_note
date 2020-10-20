@@ -2,7 +2,7 @@
 
 >  基于4.1.53.Final版本
 
-![image-20201018222617287](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201018222617287.png)
+![](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201018222617287.png)
 
 
 
@@ -39,7 +39,7 @@ ServerBootstrap和Bootstrap的类图也非常简单，不做介绍了。
 
 EventLoop就是事件轮询器，而EventLoopGroup就是多个EventLoop的组合。
 
-对于一般的服务端程序来说，会创建单个EventLoop的BossEventLoopGroup负责接受客户端连接请求，有多线程的WorkerEventLoopGroup来负责IO读写的操作。
+对于一般的服务端程序来说，会创建单个EventLoop的BossEventLoopGroup负责接受客户端连接请求，由多线程的WorkerEventLoopGroup来负责IO读写的操作。
 
 
 
@@ -47,7 +47,7 @@ EventLoop就是事件轮询器，而EventLoopGroup就是多个EventLoop的组合
 
 以上是NioEventLoop的基本类图。
 
-EventLoop最初还是继承自JUC中的Executor接口，并不能说他是个线程池，但是它具有执行事件的功能。
+EventLoop最初还是继承自JUC中的Executor接口，不能说它是个线程池，但是它具有执行事件的功能。
 
 不仅仅是执行事件，因为类图中还有ScheduleExecutorService的身影，简单推测EventLoop还存在定时执行的功能。
 
