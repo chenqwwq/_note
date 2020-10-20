@@ -36,7 +36,9 @@ EventExecutor和EventLoop提供parent()方法，获取所属的Group，EventLoop
 
 例如EventLoop继承了EventLoopGroup，并且EventLoopGroup中保存了EventLoop的集合，EventLoopGroup和EventLoop中有相同的方法API，在Group中会通过next()选择一个EventLoop来实现相同的功能。
 
+以下是AbstractEventExecutorGroup的部分源码，感受下组合和继承的实现方式。
 
+![image-20201020213221127](/home/chen/Pictures/image-20201020213221127.png)
 
 
 
