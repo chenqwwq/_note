@@ -182,13 +182,13 @@ newChannel方法会直接去调用具体的Channel类的构造函数，以下就
 
 再来看register0方法：
 
-![image-20201020232753589](/home/chen/Pictures/image-20201020232753589.png)
+![image-20201020232753589](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201020232753589.png)
 
 首先doRegister()方法是个模板方法，真实的注册逻辑会延迟到子类实现。
 
 以下是AbstractNioChannel的实现:
 
-![image-20201020232902821](/home/chen/Pictures/image-20201020232902821.png)
+![image-20201020232902821](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201020232902821.png)
 
 这里的注册就是将Channel注册到Selector上，参数0表示此时并不会关注Channel上任何的事件，并带上当前对象作为attribute。
 
@@ -198,7 +198,7 @@ newChannel方法会直接去调用具体的Channel类的构造函数，以下就
 
 beginRead方法会一步步调用到AbstractNioChannel的doBeginRead方法:
 
-![image-20201020234945923](/home/chen/Pictures/image-20201020234945923.png)
+![image-20201020234945923](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201020234945923.png)
 
 该方法就是为注册到Selector的SelectionKey增加`readInterestOp`的值。
 
@@ -238,6 +238,26 @@ Netty的服务端启动流程在代码上非常简单，因为借助Bootstrap完
 
 
 
-Bootstrap的初始化流程中设置了EventLoopGroup以及ChannelOption和AttrbuteMap。
+整个服务端的启动流程步骤:
 
-在然后在
+1. 创建EventLoopGroup
+
+   EventLoopGroup会自行去创建EventLoop，创建EventLoop的时候也会创建对应的Selector
+
+2. 初始化Bootstrap
+
+   指定两个EventLoopGroup，ChannelOption，ChannelHandler等服务端配置
+
+3. 创建Channel
+
+   Channel是根据Bootstrap中的配置，通过反射创建的，创建之后就会设置为非阻塞模式
+
+4. 初始化Channel
+
+   包括ChannelOption的配置，以及父子Channel的Handler配置。
+
+5. 注册Channel
+
+   这里的注册是指注册到EventLoop绑定的Selector中，并触发ChannelRegistered事件
+
+6. 
