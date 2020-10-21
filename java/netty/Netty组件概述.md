@@ -21,7 +21,7 @@ Netty是用Java实现的高性能网络框架，它所做的事情基本就是�
 
 ## Bootstrap
 
-Bootstrap就是引导类，负责整合其他的相关组件并对外提供服务。
+Bootstrap就是引导类，负责整合其他的相关组件并对外提供服务，可以快速的拉起一个服务。
 
 Netty中ServerBootstrap提供服务端功能，Bootstrap提供客户端功能。
 
