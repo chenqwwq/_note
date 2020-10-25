@@ -21,11 +21,11 @@ Netty是用Java实现的高性能网络框架，它所做的事情基本就是�
 
 ## Bootstrap
 
-Bootstrap就是引导类，负责整合其他的相关组件并对外提供服务，可以快速的拉起一个服务。
+Bootstrap就是引导类，负责整合其他的相关组件并对外提供服务，利用Bootstrap可以快速地拉起一个服务。
 
-Netty中ServerBootstrap提供服务端功能，Bootstrap提供客户端功能。
+在Netty中，ServerBootstrap提供服务端功能，Bootstrap提供客户端功能。
 
-ServerBootstrap中持有了父子Channel的ChannelOption以及AttrbuteMap集合，Bootstrap也保存了自己的一份。
+ServerBootstrap中持有了父子Channel的ChannelOption以及AttrbuteMap集合。
 
 
 
@@ -39,7 +39,7 @@ ServerBootstrap和Bootstrap的类图也非常简单，不做介绍了。
 
 EventLoop就是事件轮询器，而EventLoopGroup就是多个EventLoop的组合。
 
-对于一般的服务端程序来说，会创建单个EventLoop的BossEventLoopGroup负责接受客户端连接请求，由多线程的WorkerEventLoopGroup来负责IO读写的操作。
+对于一般的服务端程序来说，会创建单个EventLoop的BossEventLoopGroup负责接受客户端连接请求，由多个线程的WorkerEventLoopGroup来负责IO读写的操作。
 
 
 
@@ -47,15 +47,17 @@ EventLoop就是事件轮询器，而EventLoopGroup就是多个EventLoop的组合
 
 以上是NioEventLoop的基本类图。
 
-EventLoop最初还是继承自JUC中的Executor接口，不能说它是个线程池，但是它具有执行事件的功能。
+EventLoop还是继承自JUC中的Executor接口，所以也就具有了**执行任务(Runnable)**的功能。
 
 不仅仅是执行事件，因为类图中还有ScheduleExecutorService的身影，简单推测EventLoop还存在定时执行的功能。
 
-NioEventLoop继承自SingleThreadEventLoop，所以很显然的，NioEventLoop只会和一个Thread对象绑定。
+NioEventLoop继承自SingleThreadEventLoop，通过名字可知，NioEventLoop只会和一个Thread对象绑定。
+
+
 
 ​		 ![image-20201018221417144](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201018221417144.png)
 
-上图是NioEventLoopGroup的。
+上图是NioEventLoopGroup的类族结构。
 
 发现NioEventLoopGroup和NioEventLoop继承了基本类似的JUC原生接口，所以NioEventLoopGroup也会有类似于NioEventLoop的API方法。
 
@@ -76,6 +78,8 @@ next方法就是对Group中单个NIoEventLoop的选择方法，很显然Group的
 
 
 ## Future
+
+> Future
 
 Netty中所有IO都是异步的，所以作为**异步结果的接收类**，Future也是相当重要的。
 
@@ -123,9 +127,39 @@ ChannelFuture的注释中提供了Channel对应不同的完成阶段验证的方
 
 ## Channel
 
+> Channel指的是io.netty.channel.Channel，而不是JDK原生的Channel。
+>
+> 以下内容没有特指都是指Netty的Channel。
+
+Channel在Netty中实际连接的抽象类，其中集成了对网络的读写以及关闭等操作。
+
+Netty中对于服务端和客户端也有不同的区分，例如NioServerSocketChannel和NioSocketChannel。
+
+相对于JDK原生的Channel，Netty自定义的Channel会承担更多的职责。
+
+![image-20201025224424993](/home/chen/Pictures/image-20201025224424993.png)
+
+以上是Netty的Channel类的整个结构。
+
+首先Channel类中包含了一个Unsafe的接口，里面定义了bind，register等偏向底层的操作，是作为上层业务开发人员不需要去管的地方。
+
+其次它继承了AttributeMap，也就获得了属性的配置能力。
+
+另外实现了ChannelOutboundInvoker，表明Channel可以用来处理各类出站事件。
+
+之后就是各种的方法了：
+
+1. eventLoop提供了时间轮询器的获取功能，Netty中Channel都需要注册到一个EventLoop上，来完成自身IO事件处理。
+2. parent提供了一个Channel间的层级关系，对于NioServerSocketChannel来说，它的parent就为空，而对于客户端的Channel来说，他的父类就是对应的ServerSocketChannel。
+3. pipeline用来获取IO事件的处理管道，Channel上所有的事件都会经过全部或者部分的Pipeline来实现。
+4. metadata就是同来存储Channel的属性。
+
+## ChannelHandler & ChannelHandlerContext & ChannelPipeline
 
 
-## ChannelHandler & ChannelHandlerContext
 
 
+
+
+## Netty相关流程
 

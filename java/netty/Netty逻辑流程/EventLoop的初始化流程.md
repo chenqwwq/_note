@@ -1,8 +1,6 @@
-# EventLoopGroup的初始化
+# EventLoopGroup的初始化流程
 
 > Netty作为一种事件驱动的网络框架，EventLoop事件轮询器就是它的核心组成。
->
-> 本文以NioEventLoop为主要目标分析整个的初始化流程。
 
 
 
@@ -12,9 +10,11 @@
 
 [EventLoop相关的部分内容](./Netty组件概述.md/#EventLoop)
 
-Netty中，每个NioEventLoop都会绑定一个线程已处理其上绑定的对象所产生的事件。
+EventLoop是Netty中较为核心的组件之一，所有的Channel都需要绑定一个EventLoop去执行自身的IO事件。
 
-每个NioEventLoop都会绑定至少一个的Channel，并且启动一个Selector(Nio底层的轮询器)去监视Channel上就绪的事件，在事件发生后又会发起IO的读写操作或者建立新Channel。
+每个EventLoop都会持有一个Selector轮询器，Channel绑定到EventLoop上核心就是绑定到Selector上，并且由EventLoop循环获取Selector上的事件并处理。
+
+EventLoopGroup就是EventLoop的集合，他们的关系类似于线程池和线程。
 
 
 
