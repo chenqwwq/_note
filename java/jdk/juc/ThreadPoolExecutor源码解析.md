@@ -598,6 +598,10 @@ take()会一直阻塞，直到获取到任务或者发生中断的时候。
 
 
 
+另外获取任务最终还是调用的workQueue的poll和take方法。
+
+
+
 ### 尝试终止 - tryTerminate
 
 该方法在类中很多地方都会调用,比如addWorker失败，worker线程退出等等情况。
