@@ -93,7 +93,7 @@ next方法就是对Group中单个NIoEventLoop的选择方法，很显然Group的
 
 ## Future
 
-> Future
+> Future是Netty基于JDK的Future接口扩展实现的异步接收接口。
 
 Netty中所有IO都是异步的，所以作为**异步结果的接收类**，Future也是相当重要的。
 
