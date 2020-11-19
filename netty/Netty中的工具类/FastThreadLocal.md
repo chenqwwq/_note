@@ -4,36 +4,17 @@
 
 ## 概述
 
-FastThreadLocal是Netty中实现的一个线程局部变量，是对ThreadLocal的优化，其实就是重新写了一种ThreadLocal的方式。
+原生的ThreadLocal主要原理就是在Thread对象上个上绑定的一个ThreadLocalMap结构。
 
-FastThreadLocal需要搭配FastThreadLocalThread使用，如果线程仍然是原生的Thread类，那么就会走原生的ThreadLocal。
+每个线程都会从各自的线程中获取这个Map，并以ThreadLocal对象为Key，所以每个线程间的变量不会冲突。
 
-
-
-Netty实现的FastThreadLocal其实还包括了另外一些相关类:
-
-1. FastThreadLocalThread
-2. InternalThreadLocalMap
-3. FastThreadLocalRunnable
+总得来说，也就是空间换时间的概念，来解决共享变量的冲突。
 
 
 
+FastThreadLocal并不是基于ThreadLocal的优化，而是直接重新实现了一种。
 
-
-## FastThreadLocal的get流程
-
-以下是FastThreadLocal的
-
-![image-20201119001005945](/home/chen/github/_note/pic/image-20201119001005945.png)
+这里的重新实现是指新的数组组织形式，原来的ThreadLocal以一个Map的形式存储所有数据，而FastThreadLocal则是以数组的形式，数组良好的随机访问性能也就保证了FastThreadLocal的访问速度会优于ThreadLocal。
 
 
 
-
-
-
-
-## InternalThreadLocalMap
-
-原生的ThreadLocal的实现方式重点就是在Thread类中添加了一个ThreadLocalMap类，以存放对应的数据。
-
-同样的先看FastThreadLocalThread
