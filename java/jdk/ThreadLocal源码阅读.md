@@ -8,7 +8,7 @@
 
 ### ThreadLocal
 
-- `线程局部变量`是我一直对他的叫法，刚开始接触是用来保存`jdbc`的连接<font size="2">(这样想想我接触的还挺早的)</font>
+- `线程局部变量`，刚开始接触是用来保存`jdbc`的连接<font size="2">(这样想想我接触的还挺早的)</font>
 - 作用是**为每个线程保存线程私有的变量**.以空间换时间,也能保证数据的安全性.
 - `ThreadLocal`并不是底层的集合类，而是一个工具类，所有的线程私有数据都被保存在各个`Thread`对象中一个叫做`threadLocals`的`ThreadLocalMap`的成员变量里,`ThreadLocal`也只是操作这些变量的工具类.
 - 也就是说每个`Thread`都会存有一个`ThreadLocalMap`的对象供多个`ThreadLocal`的类调用，所以你可以发现多个`ThreadLocal`操作的`Map`会是同一个，而当`ThreadLocal`作为`key`的发生哈希碰撞时,会从当前位置开始向后环型遍历,找到一个空位置,这方法我们可以称之为**线性探测法**.

@@ -1,4 +1,4 @@
-## Redis作为缓存相关的问题
+## Redis缓存相关
 
 
 
@@ -78,7 +78,7 @@ canal负责解析MySQL的binlog，并将解析结果推送到消息队列(kafka,
 
 
 
-#### 缓存击穿https://github.com/liukelin/canal_mysql_nosql_sync
+#### 缓存击穿
 
 热点key失效之后，同一时间有大量请求进来，所以就全部打到了数据库上。
 
@@ -94,7 +94,7 @@ canal负责解析MySQL的binlog，并将解析结果推送到消息队列(kafka,
 
 2. 永远不过期
 
-   可以直接直接去除热点key的过期时间。https://github.com/liukelin/canal_mysql_nosql_sync
+   可以直接直接去除热点key的过期时间。
 
 
 

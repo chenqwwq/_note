@@ -27,7 +27,7 @@ transient Node<E> last;
   - `Node`类非常简单，但是是底层链表的基础结构。
   - 除了存储数据之外，`Node`还需要记录前驱和后继节点，串联成一个`双向链表`。
 
-  ```
+  ```java
   // Node就是`LinkedList`底层链表的节点。
   // item记录具体内容,next表示后继节点，prev为前驱节点
       private static class Node<E> {
