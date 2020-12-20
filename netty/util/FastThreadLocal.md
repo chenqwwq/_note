@@ -4,19 +4,19 @@
 
 [TOC]
 
-## 回顾
+## ThreadLocal回顾
 
 回顾下ThreadLocal的实现原理。
 
-首先ThreadLocal，中文可以叫做线程局部变量，以空间换时间的方式，将变量和线程绑定，不同的线程使用不同的变量，以此来解决共享变量的争用问题。
+首先ThreadLocal，中文可以叫做线程局部变量，**以空间换时间的方式，将变量和线程绑定，不同的线程使用不同的变量，以此来解决共享变量的争用问题。**
 
-这里的绑定形式就是在Thread类中增加可以一个ThreadLocalMap的数据结构。
+这里的绑定形式就是在**Thread类中增加可以一个ThreadLocalMap的数据结构。**
 
-这个数据结构是懒加载的，只有在第一次使用的时候初始化，是个Map实现，以ThreadLocal对象作为Key，具体数据作为Value，使用开放寻址法确定元素下标。
+这个数据结构是懒加载的，只有在第一次使用的时候初始化，是个Map实现，**以ThreadLocal对象作为Key，具体数据作为Value，使用开放寻址法确定元素下标。**
 
 调用ThreadLocal.get()会获取当前的Thread对象并获取ThreadLocalMap，此种实现就保证了不同的线程也就是Thread使用的是不同的对象。
 
-有一个问题，就是内存泄露的问题，个人认为ThreadLocal的内存泄露主要还是Thread对象和ThreadLocal对象的生命周期的不同，Thread对象需要当前的调用链结束，或者在线程池中Thread对象被回收，但在这之前可能ThreadLocal的对象已经被回收了，此时按照正常的get方法，ThreadLocalMap中的对应数据已经是不可见了。
+有一个问题，就是内存泄露的问题，ThreadLocal的内存泄露主要还是Thread对象和ThreadLocal对象的生命周期的不同<font size=2>(个人理解)</font>，Thread对象需要当前的调用链结束，或者在线程池中Thread对象被回收，但在这之前可能ThreadLocal的对象已经被回收了，此时按照正常的get方法，ThreadLocalMap中的对应数据已经是不可见了。
 
 ThreadLocal解决内存泄漏的方式很暴力，就是增加检查次数，时不时就检查一下，但是这个只是治标不治本，ThreadLocal的回收和ThreadLocalMap中对应的Value的回收还是会有差异。
 
@@ -287,7 +287,7 @@ FastThreadLocal好像并没有提供太好的可以帮助开发者解决内存�
 
 
 
-## FastThreadLocal的优化
+## 总结
 
 在我的理解中，FastThreadLocal对原生的ThreadLocal的优化可能就在于以下几点:
 
