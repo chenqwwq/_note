@@ -1,8 +1,4 @@
-
-
-
-
-# ThreadPoolExecutor
+# ThreadPoolExecutor源码解析
 
 > ThreadPoolExecutor就是JDK中的线程池实现。
 
@@ -12,13 +8,24 @@
 
 ## 概述
 
-Java中的每个线程都映射了内核中的一个轻量级线程，所以创建和销毁都涉及到用户态到内核态的切换，消耗就不会小。
+线程池是常见的池化实现之一，**重复使用现有的线程资源减少线程创建和销毁的消耗**，类似的池化还有内存池连接池等。
 
-而是使用线程成，以一个线程池的概念，生成并持有多个线程对象，重复利用，就可以最大程度上减少线程创建和删除的资源消耗。
 
-该种方式可以称为池化，**池化**就是重复利用现有资源，减少创建和删除消耗的一种技术，类似的还有内存池，连接池等概念。
 
-我们在日常开发过程中免不了会与线程池打交道，知晓点源码说不定还能帮我们快速定位线上问题。
+Java中的线程(Thread)借由内核线程来实现，也就是说在Java中的每个Thread对象都会对应内核中的一个轻量级进程。
+
+> 进程和线程的区别:
+>
+> 1. 进程是CPU资源分配的基本单位，而线程是CPU调度的基本单位。
+> 2. 一个进程可以包含多个线程，多个线程共享同一个进程下的内存等资源
+> 3. 进程间的切换CPU需要保存线程，切换执行环境消耗会比线程大的多
+> 4. 想起来在写
+
+**另一方面来说线程池也是线程资源的统一管理**，例如在一个消息队列的消费场景中，我就可以指定固定线程数的线程池来完成，而不需要手动去控制消费线程的创建。
+
+
+
+
 
 
 
@@ -56,7 +63,7 @@ ThreadPoolExecutor是最基础的线程池，没有任何其他附加功能。
 
 
 
-另外的`Executors`类也帮我们快速的常见特定形式的线程池，比如单个线程的线程池或者无限等待队列的线程池等。  
+另外的`Executors`类也帮我们快速的常见特定形式的线程池，比如单个线程的线程池或者无限等待队列的线程池等。	  
 
 简单demo如下：
 
@@ -100,6 +107,10 @@ CAPACITY表示线程的数目上限，也用于求线程数以及线程状态，
 
 以上状态非常关键，因为不论是添加任务，执行任务，都需要先检查线程池的状态。
 
+> 区分`SHUTDOWN`和`STOP`的状态，两种状态都表示线程池即将关闭，但不是完全关闭的状态。
+>
+> 两种状态都不会继续接受新的任务提交，但`SHUTDOWN`状态下会继续执行已提交的任务，而`STOP`会中断并取消任务。
+
 
 
 ### 其他相关组件对象
@@ -126,13 +137,17 @@ Worker作为ThreadPoolExecutor的内部类，自身**继承了AbstractQueuedSync
 
  ![image-20200926225406590](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20200926225406590.png)
 
-可以看到这里的上锁和解锁就是state在0,1之间的变化。
+`Worker`的上锁和解锁就是state在0,1之间的变化。
 
 因为本身就是单线程工作所以也不存在竞争的问题，**这里的上锁的更像是表示线程的忙碌标志。**
 
 这个很关键，下文会看到runWorker中在执行某个具体的任务之前都会先上锁，也就表示了线程正在执行一个任务，在忙碌状态。
 
-正是因为这个忙碌状态会导致其他线程获取锁失败，在类似`interruptIdleWorkers()`方法中就可以区分忙碌和空闲的工作线程。
+**正是因为这个忙碌状态会导致其他线程获取锁失败，在类似`interruptIdleWorkers()`方法中就可以区分忙碌和空闲的工作线程。**
+
+> 任务提交到线程池中是单线程执行的，也就说是并不会有竞态问题，所以这个锁的作用自然不是保证线程安全。
+>
+> 这个`lock()`方法指示工作线程`Worker`的忙碌状态，供外界判断。
 
 
 
@@ -140,9 +155,7 @@ Worker作为ThreadPoolExecutor的内部类，自身**继承了AbstractQueuedSync
 
 下面是线程池的具体执行逻辑源码。
 
-### 添加任务入口 - execute
-
-
+### 添加任务入口 - execute()
 
 该方法用于向线程池添加新的任务，是ThreadPoolExecutor中最上层的方法。
 
@@ -158,7 +171,9 @@ Worker作为ThreadPoolExecutor的内部类，自身**继承了AbstractQueuedSync
 
 添加失败或者当前线程数已经大于**corePoolSize**则进入第二步。
 
-**第二步判断当前线程池是否为RUNNING状态**，如果是则尝试将任务添加到工作队列。
+
+
+**第二步判断当前线程池是否为RUNNING状态，如果是则尝试将任务添加到工作队列。**
 
 任务添加到workQueue成功之后还会再次检查当前线程池的状态，**如果状态不为RUNNING，则移除当前任务，并执行拒绝逻辑。**
 
@@ -166,15 +181,25 @@ Worker作为ThreadPoolExecutor的内部类，自身**继承了AbstractQueuedSync
 
 当线程数目为0时添加一个不带初始任务的非核心线程去消费阻塞队列中的任务。
 
+
+
 **第三步在线程不是RUNNING或者入队列失败的情况，**会直接调用addWorker尝试以非核心线程执行当前任务，如果还失败则执行拒绝策略。
 
 addWorker中也会前置检查，比如当前线程为SHUTDOWN但是因为firstTask不为空，所以会直接返回false，然后执行拒绝策略。
 
 
 
+> 简单总结以下三个阶段:
+>
+> 1. 线程数小于corePoolSize，直接启动线程执行
+> 2. 大于corePoolSize，入阻塞队列
+> 3. 入队列失败，或者状态检查失败，直接拒绝策略
+
+
+
 以下为线程池整体的任务添加逻辑:
 
- <img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/未命名文件 (3).png" style="zoom:57%;" />
+ <img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/未命名文件 (3).png" style="zoom: 50%;" />
 
 
 
@@ -188,9 +213,7 @@ addWorker中也会前置检查，比如当前线程为SHUTDOWN但是因为firstT
 
 ### 添加任务 - addWorker
 
-
-
-addWorker方法的作用就是添加一个新的工作线程到线程池中。
+> addWorker方法的作用就是添加一个新的工作线程到线程池中，包括核心和非核心线程都是通过该方法添加的。
 
 参数中的firstTask表示该工作线程的第一个任务，如果为空会在第一次runWorker的时候就尝试从等待中获取任务。
 
@@ -297,30 +320,46 @@ private boolean addWorker(Runnable firstTask, boolean core) {
 
 添加任务的整个逻辑并不复杂，不过有多次的状态检查，因为在线程数检查的时候状态也可能会改变。
 
-前置检查之后会把会把**入参Runnable塞入新的Worker对象，然后启动工作线程。**
-
-
+> 整个添加的流程就是
+>
+> 1.前置循环检查 2.添加工作线程
 
 **前置检查流程如下:**
 
-首先检查状态，状态不对直接就退出了。
+首先**检查状态**，状态不对直接就退出了。corePool
+
+> 可以添加线程的状态有以下两种:
+>
+> 1. 线程为RUNNING状态
+> 2. 线程为SHUTDOWN状态，并且任务队列不为空
+>
+> 需要注意的是在SHUTDOWN状态下不允许携带初始任务创建工作线程，因为SHUTDOWN状态不允许添加新任务。
 
 再来检查当前的线程数，线程数不满足也直接退出了，这里最大的线程数根据入参core来定，如果增加的是核心线程则不能超过corePoolSize。
 
+> 如果添加的核心线程(core=true)，那么线程数上限为`corePoolSize`。
+>
+> 如果添加的是非核心线程，那么线程数上限为`maximumPoolSize`。
+
 线程数检查通过之后会CAS增加线程数，失败重新检查线程数，成功后需要再次检查线程状态，线程状态改变需要重新检查线程状态。
 
+**整个前置检查的逻辑主要检查线程池状态以及线程数。**
 
 
-通过前置检查可以确定下面两个情况:
 
-1. 添加工作线程的时机，**只能在线程池状态为RUNNING或者SHUTDOWN但工作线程不为空的情况下。**
-2. **线程数永远不能大于maximumPoolSize**。
+在经过前置检查之后，会将firstTask包装为Worker，以下是Worker的构造函数。
 
+![image-20201229222659333](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201229222659333.png)
 
+> 这里有一个细节，就是会现将状态变为-1，此时`Woker#lock()`方法就不会成功，等同于忙碌状态。
+
+另外就是通过ThreadFactory成员变量创建一个新的线程，最后将新建的Worker对象添加到workers集合，然后启动线程。
 
 对于workers集合来说，它保存的是已经创建的Worker对象，而在executor方法中的workerQueue中保存的是未包装的Runnable对象。
 
 
+
+> addWorker的最后会直接调用`Thread.start()`方法，此时线程就已经启动。
 
 #### 添加失败收尾 - addWorkerFailed
 
@@ -366,11 +405,12 @@ private boolean addWorker(Runnable firstTask, boolean core) {
 
 ```java
     final void runWorker(Worker w) {
+        // 获取当前线程
         Thread wt = Thread.currentThread();
         // 取出任务并置空原任务。
         Runnable task = w.firstTask;
         w.firstTask = null;
-        // 允许中断
+        // 允许中断，这里是+1，抵消掉了初始化Worker时的-1
         w.unlock(); // allow interrupts
         boolean completedAbruptly = true;
         try {
@@ -442,19 +482,17 @@ private boolean addWorker(Runnable firstTask, boolean core) {
 
 整个任务执行流程中值得关注的就是Worker对中断的处理。
 
-**第一个确保的就是具体的任务执行期间是不允许中断的。**
-
-**另外的保证就是只有STOP状态下，工作线程才会在获取到任务的状态下主动退出。**
+> **首先要明确的就是具体的任务执行期间是不允许中断的。**
+>
+> **另外的保证就是只有STOP状态下，工作线程才会在获取到任务的状态下主动退出，SHUTDOWN状态仍然要执行完任务。**
 
 
 
 **另一个值得关注的点是锁问题，为什么单线程执行需要w.lock()方法上锁。**
 
-这个上文有提到过，在`interruptIdleWorkers`方法中可以看到，线程池中对于空闲的定义就是可以获取到锁，所以这里的上锁也就表明当前工作线程正忙。
+这个上文有提到过，在`interruptIdleWorkers()`方法中可以看到，线程池中对于空闲的定义就是可以获取到锁，所以这里的上锁也就表明当前工作线程正忙。
 
-
-
-如果firstTask为空并且getTask也没有获取到任务(不一定是阻塞队列为空)，那么工作线程就会进入退出流程。
+> 如果firstTask为空并且getTask也没有获取到任务(不一定是阻塞队列为空)，那么工作线程就会进入退出流程。
 
 #### Worker退出流程
 
@@ -508,7 +546,11 @@ private void processWorkerExit(Worker w, boolean completedAbruptly) {
 1. 核心线程空闲时是否需要回收，不需要的话，线程数就要大于corePoolSize，此时需要替换一个新Worker
 2. 阻塞队列中是否还留有任务，还有的话就必须要留下一个线程来执行。
 
-可以看到的是在线程非正常退出的时候，如果线程池状态正常就会添加一个新的线程。
+可以看到的是在线程非正常退出的时候，如果线程池状态正常就会补偿一个新的线程。
+
+> 在线程退出的时候
+
+
 
 
 
@@ -524,7 +566,7 @@ private void processWorkerExit(Worker w, boolean completedAbruptly) {
     private Runnable getTask() {
         boolean timedOut = false; // Did the last poll() time out?
 
-        for (;;) {
+        for (;;) {		// 循环获取
             int c = ctl.get();
             int rs = runStateOf(c);
 
@@ -575,13 +617,16 @@ private void processWorkerExit(Worker w, boolean completedAbruptly) {
     
 ```
 
-
-
 获取任务的流程简述如下:
 
 首先检查当前线程池状态是否允许获取，**只有RUNNING以及SHUTDOWN的状态才允许获取任务。**
 
 例如STOP或者更高的状态下，`getTask`方法会直接返回null，从而导致工作线程的退出。
+
+> 线程池中的线程主动退出的情况有以下两种:
+>
+> 1. 线程状态大于SHUTDOWN
+> 2. 线程状态为SHUTDOWN，并且任务队列为空
 
 接下来是线程的超时判断，有以下几种情况：
 
@@ -591,14 +636,6 @@ private void processWorkerExit(Worker w, boolean completedAbruptly) {
 通过以上两种检查，最后就是获取任务，以上述第二点的线程数判断为基础，决定获取任务是否带超时时间。
 
 take()会一直阻塞，直到获取到任务或者发生中断的时候。
-
-
-
-从catch的代码中可以看到，即使发生中断也不会直接使线程退出(返回null)，而是再次进入循环判断，所以可以知道主动使工作线程退出的方法，只有改变线程池的状态。
-
-
-
-另外获取任务最终还是调用的workQueue的poll和take方法。
 
 
 
@@ -710,7 +747,9 @@ private void interruptIdleWorkers(boolean onlyOne) {
 
 
 
-**这里再次强调在线程池中的线程还在执行任务时，是无法被中断的，因为`tryLock`方法会失败。**
+> **这里再次强调在线程池中的线程还在执行任务时，是无法被中断的，因为`tryLock`方法会失败。**
+>
+> 另外工作线程是否空闲的依据就是上锁是否成功(lock()是否返回为true)。
 
 
 
@@ -746,6 +785,10 @@ SHUTDOWN状态下的线程并不会直接关闭而是会继续消费阻塞队列
 
 
 
+> 直观的对比`shutdown()`和`shutdownNow()`就是在状态的设置上。
+>
+> STOP为`shutdownNow()`也就是立即关闭，而SHUTDOWN对应的是`shutdown()`
+
 
 
 ### 剩余方法
@@ -776,3 +819,46 @@ SHUTDOWN状态下的线程并不会直接关闭而是会继续消费阻塞队列
 
 
 
+
+
+## 总结
+
+> 添加工作线程的几个要求
+
+1. 状态必须为RUNNING或者SHUTDOWN，为SHUTDOWN时还需要任务队列不为空
+2. 添加核心线程要求线程数小于`corePoolSize`，添加非核心线程时要求线程数小于`maximumPoolSize`
+
+
+
+> 工作线程主动退出的情况:
+
+1. 线程状态大于SHUTDOWN，或者为SHUTDOWN时任务队列为空
+2. 当线程数大于`maximumPoolSize`时，队列为空的情况(在队列不为空时，即使线程数超标都不会管)
+3. 线程数大于`corePoolSize`的情况下获取任务失败一次，并且任务队列为空。
+4. 配置`allowCoreThreadTimeOut`为true后，获取任务失败一次，并且线程数大于0。
+
+从以上情况的总结：**状态正常且任务队列不为空的情况下，几乎不会淘汰任何线程。**
+
+
+
+`allowCoreThreadTimeOut`需要自己调用对应方法配置。
+
+![image-20201229232837660](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201229232837660.png)
+
+在配置为true后，会立即清理一波空闲的工作线程。
+
+
+
+> 线程池的状态
+
+线程池的状态在ThreadPoolExecutor中显得格外重要，每个方法都会或多或少的检查一下。
+
+正常的运行状态为RUNNING，调用`shutdown()`之后变为`SHUTDOWN`，此时仍然会执行剩余的任务，调用`shutdownNow`后会变为`STOP`此时会中断所有的线程。
+
+`SHUTDOWN`和`STOP`都是一种关闭中的状态，真正处于关闭的状态是`TIDYING`以及`TERMINATED`。
+
+`TIDYING`也是一种过渡的状态，在执行完`terminated()`方法之后才会变为`TERMINATED`。
+
+
+
+<img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201229233942444.png" alt="image-20201229233942444" style="zoom: 50%;" />
