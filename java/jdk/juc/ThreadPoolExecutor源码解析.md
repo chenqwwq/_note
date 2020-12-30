@@ -8,24 +8,17 @@
 
 ## 概述
 
-线程池是常见的池化实现之一，**重复使用现有的线程资源减少线程创建和销毁的消耗**，类似的池化还有内存池连接池等。
+线程池是常见的池化实现之一，旨在**重复使用现有的线程资源，已减少线程创建和销毁的消耗**，类似的池化还有内存池连接池等。
 
-
-
-Java中的线程(Thread)借由内核线程来实现，也就是说在Java中的每个Thread对象都会对应内核中的一个轻量级进程。
+Java中的线程(Thread)借由内核线程来实现，也就是说在Java中的每个Thread对象都会对应内核中的一个轻量级进程，线程的创建，销毁和调度都由内核完成。
 
 > 进程和线程的区别:
 >
 > 1. 进程是CPU资源分配的基本单位，而线程是CPU调度的基本单位。
 > 2. 一个进程可以包含多个线程，多个线程共享同一个进程下的内存等资源
 > 3. 进程间的切换CPU需要保存线程，切换执行环境消耗会比线程大的多
-> 4. 想起来在写
 
 **另一方面来说线程池也是线程资源的统一管理**，例如在一个消息队列的消费场景中，我就可以指定固定线程数的线程池来完成，而不需要手动去控制消费线程的创建。
-
-
-
-
 
 
 
@@ -761,7 +754,7 @@ ThreadPoolExecutor中有很多种关闭线程的方式。
 
  ![image-20200925170630479](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20200925170630479.png)
 
-该方法通过将线程池的状态置为STOP来关闭线程池，并且会中断所有的线程，最后返回阻塞队列中的任务，但是不包含正在执行的任务。
+该方法通过将线程池的状态置为`STOP`来关闭线程池，会中断所有执行中线程，最后返回阻塞队列中的任务，但是不包含正在执行的任务。
 
 `interruptWorkers()`方法会遍历调用Worker的`interruptIfStarted()`方法。
 
@@ -772,6 +765,10 @@ ThreadPoolExecutor中有很多种关闭线程的方式。
 其他线程不需要获取锁强制执行中断方法，可能会影响到正在执行中的任务。
 
 drainQueue()会返回所有阻塞队列中的任务。
+
+
+
+> 这个中断会
 
 
 
@@ -793,29 +790,66 @@ SHUTDOWN状态下的线程并不会直接关闭而是会继续消费阻塞队列
 
 ### 剩余方法
 
-剩余的就是一些线程池的补充方法，简单过一遍吧，还有一些从`AbstractExecutorService`继承的方法就以后再说吧。
-
-
+剩余的就是一些线程池的补充方法。
 
 #### 预启动核心线程 - prestartCoreThread
 
  ![image-20201008200931508](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201008200931508.png)
 
-
+该方法会新建最多一个核心线程，如果不满足添加核心线程的要求就不会添加。
 
 #### 预启动所有核心线程 - prestartAllCoreThreads
 
  ![image-20201008221355464](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201008221355464.png)
 
-
-
-
+该方法最多新建`corePoolSize`个线程，准确说是`corePoolSize - workerCountOf(ctl.get())`个线程。
 
 #### 删除所有取消的任务 - purge
 
  ![image-20201008222547802](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201008222547802.png)
 
 这里可以看到任务也是可以取消的。
+
+### 任务队列
+
+任务队列就是阻塞队列(BlockingQueue<Runnabke>)，在线程池中暂存任务的地方。
+
+> 任务队列在线程池中的作用如下:
+>
+> **在提交任务时，如果当前线程数大于`corePoolSize`，任务就会尝试放入阻塞队列。**
+>
+> **线程执行完`firstTask`之后，就会尝试从阻塞队列中获取任务，获取是否成功决定了线程是否退出。**
+
+常用的阻塞队列有以下几种:
+
+#### ArrayBlockingQueue
+
+使用该类队列可以管理最大的等待任务数，到达任务数上限之后会尝试开启非核心线程，失败执行拒绝策略。
+
+内部和ArrayList一样使用数组实现。
+
+#### LinkedBlockingQueue
+
+该队列默认容量为`Integer.MAX_VALUE`，也可以指定固定的容量，一般来说使用默认容量作为无界队列。
+
+内部和LinkedList一样使用链表实现。
+
+
+
+
+
+### 拒绝策略
+
+拒绝策略是提交的任务实在无法执行的情况下的回调策略，在`ThreadPoolExecutor`中的接口定义如下:
+
+![image-20201230175138763](../../../pic/image-20201230175138763.png)
+
+
+
+> 执行拒绝策略的情况:
+>
+> 1. 工作线程大于`corePoolSize`的时候，入队列失败。
+> 2. 入队列成功之后，状态发生改变，变成非`RUNNING`状态。
 
 
 
@@ -826,13 +860,21 @@ SHUTDOWN状态下的线程并不会直接关闭而是会继续消费阻塞队列
 > 添加工作线程的几个要求
 
 1. 状态必须为RUNNING或者SHUTDOWN，为SHUTDOWN时还需要任务队列不为空
-2. 添加核心线程要求线程数小于`corePoolSize`，添加非核心线程时要求线程数小于`maximumPoolSize`
+2. 添加核心线程要求线程数小于`corePoolSize`
+3. 添加非核心线程时要求线程数小于`maximumPoolSize`
 
 
 
-> 工作线程主动退出的情况:
+> 在满足状态的情况下，添加工作线程的情况(addWorker方法):
 
-1. 线程状态大于SHUTDOWN，或者为SHUTDOWN时任务队列为空
+1. 当前工作线程数小于corePoolSize时，添加任务直接创建新线程执行
+2. 线程数大于corePoolSize，并且此时入队列失败
+
+
+
+> 工作线程主动退出的情况(getTask方法):
+
+1. 线程状态大于SHUTDOWN，或者为SHUTDOWN时任务队列为空时
 2. 当线程数大于`maximumPoolSize`时，队列为空的情况(在队列不为空时，即使线程数超标都不会管)
 3. 线程数大于`corePoolSize`的情况下获取任务失败一次，并且任务队列为空。
 4. 配置`allowCoreThreadTimeOut`为true后，获取任务失败一次，并且线程数大于0。
@@ -841,7 +883,7 @@ SHUTDOWN状态下的线程并不会直接关闭而是会继续消费阻塞队列
 
 
 
-`allowCoreThreadTimeOut`需要自己调用对应方法配置。
+`allowCoreThreadTimeOut`需要开发者调用对应方法配置，源码如下:
 
 ![image-20201229232837660](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201229232837660.png)
 
