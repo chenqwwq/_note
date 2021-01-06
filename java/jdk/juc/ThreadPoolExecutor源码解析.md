@@ -8,9 +8,9 @@
 
 ## 概述
 
-线程池是常见的池化技术实现之一，旨在**重复使用现有的线程资源，已减少线程创建和销毁的消耗**，类似的池化还有内存池连接池等。
+线程池是常见的池化技术实现之一，旨在**重复使用现有的线程资源，已减少线程创建和销毁的消耗**，类似的池化还有内存池，连接池等。
 
-Java中的线程(Thread)借由内核线程来实现，也就是说在Java中的每个Thread对象都会对应内核中的一个轻量级进程，线程的创建，销毁和调度都由内核完成，因此就出现了一个问题线程的创建和销毁消耗都不小，而且状态的切换也涉及到了用户态到内部态的切换。
+Java中的线程(Thread)借由内核线程来实现，也就是说在Java中的每个Thread对象都会对应内核中的一个轻量级进程，线程的创建，销毁和调度都由内核完成，因此对于线程的创建和销毁消耗都不小，而且线程状态的切换同时也需要用户态到内部态的切换。
 
 > 进程和线程的区别:
 >
@@ -28,7 +28,7 @@ ThreadPoolExecutor是最基础的线程池，没有任何其他附加功能。
 
 > 基于JDK1.8
 
-### 	w构造函数
+### 	构造函数
 
 这个基本是面试都会问的问题了，非常重要，因为设定不同的入参是我们控制线程池执行方式的最主要的方法。
 
@@ -122,11 +122,13 @@ Worker作为ThreadPoolExecutor的内部类，自身**继承了AbstractQueuedSync
 
 除了具体的工作线程Thread外，还有初始任务以及完成的任务计数。
 
-**没有firstTask的调用则表示是直接添加工作线程消费阻塞队列中的任务。(addWorker(null,boolean))**
+**addWorker方法中没有firstTask的调用则表示是直接添加工作线程消费阻塞队列中的任务。(addWorker(null,boolean))**
 
 下面是Worker中有关于AQS的方法实现:
 
  ![image-20200926225406590](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20200926225406590.png)
+
+
 
 `Worker`的上锁和解锁就是state在0,1之间的变化。
 
@@ -149,8 +151,6 @@ Worker作为ThreadPoolExecutor的内部类，自身**继承了AbstractQueuedSync
 ### 添加任务入口 - execute()
 
 该方法用于向线程池添加新的任务，是ThreadPoolExecutor中最上层的方法。
-
-
 
 方法源码如下:
 
@@ -195,10 +195,6 @@ addWorker中也会前置检查，比如当前线程为SHUTDOWN但是因为firstT
 
 
 以上就是线程池添加新任务最外层的逻辑，可能也是面试问的最多的地方吧。
-
-
-
-
 
 
 
@@ -313,11 +309,13 @@ private boolean addWorker(Runnable firstTask, boolean core) {
 
 > 整个添加的流程就是
 >
-> 1.前置循环检查 2.添加工作线程
+> 1.前置循环检查
+>
+>  2.添加工作线程
 
 **前置检查流程如下:**
 
-首先**检查状态**，状态不对直接就退出了。corePool
+首先**检查状态**，状态不对直接就退出了。
 
 > 可以添加线程的状态有以下两种:
 >
@@ -344,13 +342,11 @@ private boolean addWorker(Runnable firstTask, boolean core) {
 
 > 这里有一个细节，就是会现将状态变为-1，此时`Woker#lock()`方法就不会成功，等同于忙碌状态。
 
-另外就是通过ThreadFactory成员变量创建一个新的线程，最后将新建的Worker对象添加到workers集合，然后启动线程。
-
-对于workers集合来说，它保存的是已经创建的Worker对象，而在executor方法中的workerQueue中保存的是未包装的Runnable对象。
-
-
+另外就是通过ThreadFactory创建一个新的线程，最后将新建的Worker对象添加到workers集合，然后启动线程。
 
 > addWorker的最后会直接调用`Thread.start()`方法，此时线程就已经启动。
+
+
 
 #### 添加失败收尾 - addWorkerFailed
 
@@ -560,10 +556,6 @@ private void processWorkerExit(Worker w, boolean completedAbruptly) {
 
 
 > 核心线程的超时退出是指线程在长时间没有执行任务也就是空闲的时候需不需要退出，以节省资源。
-
-
-
-
 
 
 
@@ -812,7 +804,7 @@ SHUTDOWN状态下的线程并不会直接关闭而是会继续消费阻塞队列
 
 > 直观的对比`shutdown()`和`shutdownNow()`就是在状态的设置上。
 >
-> STOP为`shutdownNow()`也就是立即关闭，而SHUTDOWN对应的是`shutdown()`
+> STOP为`shutdownNow()`也就是立即关闭，而SHUTDOWN对应的是`shutdown()`。
 
 
 
