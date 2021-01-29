@@ -18,7 +18,7 @@ BeanDefinitionLoader的主要功能就是加载BeanDefinition。
 
 下面是类的注解：
 
- ![image-20200501002314836](../../pic/image-20200501002314836.png)
+ ![image-20200501002314836](../../../../pic/image-20200501002314836.png)
 
 从sources中加载BeanDefinition，包括XML和JavaConfig类。
 
@@ -48,7 +48,7 @@ BeanDefinitionLoader的主要功能就是加载BeanDefinition。
 
 类的成员变量如下：
 
- ![image-20200501002557051](../../pic/image-20200501002557051.png)
+ ![image-20200501002557051](../../../../pic/image-20200501002557051.png)
 
 可以看到BeanDefinitionLoader会持有上面三个类的引用，
 
@@ -66,13 +66,13 @@ BeanDefinitionLoader的主要功能就是加载BeanDefinition。
 
 构造函数如下：
 
- ![image-20200501002941182](../../pic/image-20200501002941182.png)
+ ![image-20200501002941182](../../../../pic/image-20200501002941182.png)
 
 配置sources属性，并初始化三个底层工具类
 
 sources就是等等需要加载进来的BeanDefinition，类似下图：
 
- ![image-20200506225209802](../../pic/image-20200506225209802.png)
+ ![image-20200506225209802](../../../../pic/image-20200506225209802.png)
 
 最后还会在ClassPathBeanDefinitionScanner中记录已经加载过源。
 
@@ -101,7 +101,7 @@ load(context, sources.toArray(new Object[0]));
 
 下面是BeanDefinitionLoader的方法列表：
 
- ![image-20200501233442059](../../pic/image-20200501233442059.png)
+ ![image-20200501233442059](../../../../pic/image-20200501233442059.png)
 
 看这一溜的load重载，你怕不怕？
 
