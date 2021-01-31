@@ -1,14 +1,22 @@
-ConcurrentHashMap源码阅读
+# ConcurrentHashMap源码阅读
+
+---
+
+[TOC]
+
+---
 
 ![稍微有点粗糙的图片](https://chenbxxx.oss-cn-beijing.aliyuncs.com/ConcurrentHashMap.png)
 
 ​                    						<font size="2">稍微有点粗糙的图片</font>
 
-- `ConcurrentHashMap`是属于Java并发包,可以称之为是线程安全的`HashMap.`<font size="2">(以下简称`CHM`)</font>
+- `ConcurrentHashMap`是Java中线程安全的HashMap。
 
-- 总所周知,`HashMap`有良好的存取性能,但并不支持并发环境,`HashTable`支持并发环境,但在存取方法上直接加`Synchronized`的方式会使性能明显下降,尽管`Synchronize`在`JDK1.6`之后进行了大量的优化,但依旧不是最优选.
+- 总所周知,`HashMap`有良好的存取性能,但并不支持并发环境，`HashTable`支持并发环境,但在存取方法上直接加`synchronized`的方式太过粗暴会使性能明显暴跌，即使在JDK1.6的优化之后。
 
-- 在`HashMap`中**数组+链表/红黑树**的结构基础上,区别于`HashTable`中的对整个数组对象上锁,`ConcurrentHashMap`使用了**分段锁**<font size=2>(我理解的:桶=段)</font>机制,为数组中的每个桶上锁<font size="2">(`JDK1.7`采用的是segment,1.8的代码中虽然保留了但非常简短仅为兼容)</font>
+  
+
+- 在`ConcurrentHashMap`中，所有的锁都是针对其中的某个桶，也就是数组的某个节点的，而非全局上锁，锁的粒度小，自然性能就高。
 
   
 

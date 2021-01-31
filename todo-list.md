@@ -9,6 +9,14 @@
 - 优先级队列`PriorityQueue`就是优先级队列(大顶堆,小顶堆)，使用的就是堆排序
   - 堆排序的简单实现
 
+### Spring事务
+
+### Spring的AOP源码实现
+
+### SpringBoot 初始化以及Bean创建周期的整理
+
+
+
 ### 不同的阻塞队列
 
 
@@ -22,16 +30,6 @@
 
 
 ### Spring的IOC梳理
-
-
-
-
-
-### Spring的AOP源码实现
-
-
-
-### Spring事务
 
 
 

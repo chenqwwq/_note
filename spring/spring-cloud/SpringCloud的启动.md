@@ -1,0 +1,5 @@
+# SpringCloud的启动流程
+
+SpringCloud的启动依赖于Springboot，SpringBoot在创建完Environment的时候，在prepareEnvironment的时候会触发`BootsratpApplicationListener`，启动一个新的ApplicationContext，并以此作为`parent ApplicationContext`，
+
+调用它的`run`方法。
