@@ -192,6 +192,8 @@ Spring中的任何代理类都可以从该接口中获取。(我也不知道翻�
 
 
 > 通常情况下，所有的Object类的方法都不会被Spring的AOP代理。
+>
+> 在5.x版本的Spring中除了纯接口，类似CurdRep这种，其他的都是以CGLIB形式进行代理。
 
 
 
@@ -300,3 +302,8 @@ Spring默认提供了以下默认实现:
 
 
 
+
+
+### AnnotationAwareAspectJAutoProxyCreator
+
+最终的代理自动创建类。
