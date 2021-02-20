@@ -71,7 +71,7 @@ synchronized根据不同的上锁形式会有不同的实现方式。
 
 2. **在修饰方法(包括静态方法)时由方法调用指令读取运行时常量池方法中的`ACC_SYNCHRONIZED`隐式实现**
 
-     ![image-20210220102424150](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/QQ图片20210220155120.png)
+      ![image-20210220102424150](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/QQ图片20210220155120.png)
 
 
 
