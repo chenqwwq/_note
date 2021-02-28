@@ -1,6 +1,6 @@
-## 		*AbstractQueuedSynchronized*源码阅读 - 同步队列
+# AbstractQueuedSynchronizer
 
-> JUC的开篇。
+---
 
 [TOC]
 
@@ -8,26 +8,24 @@
 
 ## 概述
 
-* `AQS`是用于构造锁和基本同步器的基础框架，是JUC中大部分同步工具如ReentrantLock等的实现基础。
+AbstractQueuedSynchronizer是用于构造锁和基本同步器的基础框架，是JUC中大部分同步工具如ReentrantLock等的实现基础。
 
-* `AQS`内部维护的两种队列结构用来存放等待线程:
-  1. **以内部类`Node`为元素的`CLH队列`**，可以称之为**同步队列**,利用`CLH队列`的特性可以完美解决饥饿问题。
+AbstractQueuedSynchronizer内部维护了两种队列结构用来存放相关的线程:
 
-  2. 内部类`ConditionObject`实现一个等待条件的双向队列，称之为**条件队列**.由`ConditionObject`中的`firstWaiter`和`lastWaiter`维护.
+- CLH队列(同步队列)
+- 条件队列
 
-* `AQS`提供**独占和共享**各三种上锁模式:
-  1. 普通模式 - `acquire`
-  2. 可中断模式 - `acquireInterruptibly`
-  3. 带超时时间的模式 - `tryAcquireNanos`
+> CLH队列锁是自旋锁的一种简单实现，确保了线程无饥饿，也可以保证锁等待的FIFO。
 
+AbstractQueuedSynchronizer提供**独占和共享**各三种上锁模式:
 
-
-
-以下主要讲解的是`CLH同步队列`的实现部分.
+1. 普通模式 - `acquire`
+2. 可中断模式 - `acquireInterruptibly`
+3. 带超时时间的模式 - `tryAcquireNanos`
 
 
 
-## 成员变量
+## 变量
 
 ```java
 // 底层FIFO队列的头节点	         
@@ -36,17 +34,19 @@ private transient volatile Node head;
 private transient volatile Node tail;           
 ```
 
-- `head`,`tail`用来维护AQS内部的CLH队列.
+- head,tail用来维护AbstractQueuedSynchronizer内部的CLH队列.
 
 
 
-```
+```java
 private volatile int state;       
 ```
 
-- **当前同步状态**,通过`volatile`保证了线程间的可见性。
+- **该变量表示当前同步状态**
 
-- `state`变量在`JUC`不同的实现类中有不同的含义:
+- 通过`volatile`保证了线程间的可见性
+
+- state变量在JUC不同的实现类中有不同的含义:
 
   - **ReentrantLock - 重入数**
   - **Semaphore - 许可数**
@@ -55,91 +55,11 @@ private volatile int state;
 
   
 
-## 内部类
+## 获取锁资源
 
+### 独占锁的获取
 
-
-#### Node - 静态内部类
-
-Node就是内部
-
-```java
-    static final class Node {
-            // 共享模式
-            static final Node SHARED = new Node();
-            // 独占模式
-            static final Node EXCLUSIVE = null;        
-            // CANCELLED  表示当前的线程被取消
-            // SIGNAL     表示当前节点的后继节点(包含的线程)需要运行
-            // CONDITION  表示当前节点在等待condition
-            // PROPAGATE  表示当前场景下后续的acquireShared能够得以执行
-            // 值为0，表示当前节点在sync队列中，等待着获取锁
-        	// 后面会有许多状态大于0的判断,就是判断是否取消
-            static final int CANCELLED =  1; 
-            static final int SIGNAL    = -1;
-            static final int CONDITION = -2;
-            static final int PROPAGATE = -3;        
-            // 结点状态
-            volatile int waitStatus;        
-            // 前驱结点
-            volatile Node prev;    
-            // 后继结点
-            volatile Node next;        
-            // 结点所对应的线程
-            volatile Thread thread;        
-            // 下一个等待者
-            Node nextWaiter;
-            // 结点是否在共享模式下等待
-            final boolean isShared() {
-                return nextWaiter == SHARED;
-            }
-            // 获取前驱结点，若前驱结点为空，抛出异常
-            final Node predecessor() throws NullPointerException {
-                // 保存前驱结点
-                Node p = prev; 
-                if (p == null) // 前驱结点为空，抛出异常
-                    throw new NullPointerException();
-                else // 前驱结点不为空，返回
-                    return p;
-            }
-            // 无参构造函数
-            Node() {    // Used to establish initial head or SHARED marker
-            }
-            // 构造函数
-             Node(Thread thread, Node mode) {    // Used by addWaiter
-                this.nextWaiter = mode;
-                this.thread = thread;
-            }
-            // 构造函数
-            Node(Thread thread, int waitStatus) { // Used by Condition
-                this.waitStatus = waitStatus;
-                this.thread = thread;
-            }
-        }
-```
-
-- **以`Node`实例作为共享或者独占模式的表示。（Node.SHARED | Node.EXCLUSIVE）**
-- 同步状态具体如下表所示：
-
-| 状态 | 含义 | 数值 |
-| :----:  | :----:   | :----: |
-| CANCELLED  | 等待队列中的线程被中断或者超时,会变为取消状态 | 1 |
-| SIGNAL     | 表示该节点的后继节点等待唤醒，在完成该节点后会唤醒后继节点|-1|
-| CONDITION  | 该节点位于条件等待队列,当其他线程调用了`condition.signal()`方法后会被唤醒进入同步队列 | -2|
-| PROPAGATE  | 共享模式中，该状态的节点处于Runnable状态            | -3 |
-| 初始状态    | 初始化状态                                          | 0 |
-
-** 表格第二行的短横少加一个竟然就不能显示为表格  (╬◣д◢)**
-
----
-
-### 3） 锁资源的获取/释放逻辑
-
-####  独占锁的获取
-
-##### 1. 上层的锁获取方法 - acquire & tryAcquire
-
-
+#### acquire
 
 ```java
     /**
@@ -166,17 +86,59 @@ Node就是内部
     }
 ```
 
-- `JDK`的源码中经常会用到逻辑运算的**短路特性**。
-- 加锁的逻辑时可以直接从`acquire`中的if判断中看出个大概:
-  1. `tryAcquire` - 尝试获取锁资源
-  2. `addWaiter` - 加入到等待队列
-  3. `acquireQueued` - 已经加入队列后的等待
-- `tryAcquire`采用的`模板模式`在源码中也比较常见，除了`AQS`之外还有在`LinkedHashMap`中，子类通过对父类方法的不同实现进而在父类中有不同的代码逻辑。
-- `tryAcquire`中会尝试获取资源，若果失败则进入`addWaiter`方法。
+<font size=2>JDK的源码中经常会用到逻辑运算的**短路特性**。</font>
+
+加锁的逻辑时可以直接从acquire()中看出个大概:
+
+1. `tryAcquire` - 尝试获取锁资源
+2. `addWaiter` - 获取失败，加入到等待队列
+3. `acquireQueued` - 已经加入队列后的等待
 
 
 
-##### 2. 入队列方法
+#### tryAcquire
+
+tryAcquire()是模板方法，具体的实现在各个实现类中，例如ReentrantLock类。
+
+```java
+/**
+ * ReentrantLock中Fair的tryAcquire实现
+ */
+protected final boolean tryAcquire(int acquires) {
+    final Thread current = Thread.currentThread();
+    // 获取当前状态
+    int c = getState();
+    // 0表示锁空闲状态
+    if (c == 0) {
+        // 查看是否有前驱节点，公平的体现，如果有前驱会获取锁失败，继续等待
+        if (!hasQueuedPredecessors() &&
+            // 无前驱只有获取成功
+            compareAndSetState(0, acquires)) {
+            setExclusiveOwnerThread(current);
+            return true;
+        }
+    }
+    // 以下是重入的部分
+    else if (current == getExclusiveOwnerThread()) {
+        int nextc = c + acquires;
+        if (nextc < 0)
+            throw new Error("Maximum lock count exceeded");
+        setState(nextc);
+        return true;
+    }
+    return false;
+}
+```
+
+tryAcquire()如果返回true表示获取锁成功，也就不需要进入同步队列等待。
+
+> 在ReentrantLock中AQS的state变量表示的就是重入次数。
+
+`tryAcquire`中会尝试获取资源，若果失败则进入`addWaiter`方法。
+
+
+
+#### addWaiter
 
 ###### addWaiter  -  争锁失败节点的首次入队列
 
@@ -425,11 +387,9 @@ final boolean acquireQueued(final Node node, int arg) {
 
    -  当前节点状态为`SIGNAL`,表示后继节点需要锁资源
    -  当前节点状态为`CANCELLED`,表示后继节点不再需要锁资源.
+   -  
 
-
-
-
-#### 独占锁的释放
+### 独占锁的释放
 
 - 相对于锁的获取来说,释放锁简单许多.
 
@@ -580,7 +540,69 @@ final boolean acquireQueued(final Node node, int arg) {
 
 - 共享形式和独占形式在代码上大同小异,**在共享模式的获取锁完成之后会尝试唤醒别的线程**,主要还是四种线程状态的判断。
 
----
+## Node类
+
+> Node类就是CLH同步队列以及条件队列的节点类。
+
+```java
+static final class Node {  
+	// 共享模式
+    static final Node SHARED = new Node();
+    // 独占模式
+    static final Node EXCLUSIVE = null;      
+```
+
+- 以特殊的Node实例对象表示共享或者独占模式。（Node.SHARED | Node.EXCLUSIVE）
+
+```java
+// CANCELLED  表示当前的线程被取消
+// SIGNAL     表示当前节点的后继节点(包含的线程)需要运行
+// CONDITION  表示当前节点在等待condition
+// PROPAGATE  表示当前场景下后续的acquireShared能够得以执行
+// 值为0，表示当前节点在sync队列中，等待着获取锁
+// 后面会有许多状态大于0的判断,就是判断是否取消     
+static final int CANCELLED =  1; 
+static final int SIGNAL    = -1;
+static final int CONDITION = -2;
+static final int PROPAGATE = -3;        
+// 结点状态
+volatile int waitStatus;     
+```
+
+waitStatus表示当前节点的状态，其上就是四种不同的节点状态。
+
+- 同步状态具体如下表所示：
+
+|   状态    |                             含义                             | 数值 |
+| :-------: | :----------------------------------------------------------: | :--: |
+| CANCELLED |        等待队列中的线程被中断或者超时,会变为取消状态         |  1   |
+|  SIGNAL   |  表示该节点的后继节点等待唤醒，在完成该节点后会唤醒后继节点  |  -1  |
+| CONDITION | 该节点位于条件等待队列,当其他线程调用了`condition.signal()`方法后会被唤醒进入同步队列 |  -2  |
+| PROPAGATE |           共享模式中，该状态的节点处于Runnable状态           |  -3  |
+| 初始状态  |                          初始化状态                          |  0   |
+
+
+
+```java
+// 前驱结点
+volatile Node prev;    
+// 后继结点
+volatile Node next; 
+// 结点所对应的线程
+volatile Thread thread;     
+```
+
+在同步队列中会使用前驱和后继节点组成一个双端队列，而thread则直接保存对应的线程对象。
+
+```java
+// 下一个等待者
+Node nextWaiter;
+```
+nextWaiter是在条件队列中使用的变量。
+
+>AQS中同步队列以双端队列的形式，而条件队列则是单向的。
+
+
 
 ## AbstractOwnableSynchonizer
 

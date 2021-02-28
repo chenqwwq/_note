@@ -1,122 +1,149 @@
-
-
-- 在`趣链`的面试中被问到`ThreadLocal`的相关问题，被问的一脸懵*,所以有次总结.
-
----
+# ThreadLocal
 
 
 
-### ThreadLocal
-
-- `线程局部变量`，刚开始接触是用来保存`jdbc`的连接<font size="2">(这样想想我接触的还挺早的)</font>
-- 作用是**为每个线程保存线程私有的变量**.以空间换时间,也能保证数据的安全性.
-- `ThreadLocal`并不是底层的集合类，而是一个工具类，所有的线程私有数据都被保存在各个`Thread`对象中一个叫做`threadLocals`的`ThreadLocalMap`的成员变量里,`ThreadLocal`也只是操作这些变量的工具类.
-- 也就是说每个`Thread`都会存有一个`ThreadLocalMap`的对象供多个`ThreadLocal`的类调用，所以你可以发现多个`ThreadLocal`操作的`Map`会是同一个，而当`ThreadLocal`作为`key`的发生哈希碰撞时,会从当前位置开始向后环型遍历,找到一个空位置,这方法我们可以称之为**线性探测法**.
+> 在`趣链`的面试中被问到`ThreadLocal`的相关问题，被问的一脸懵*,所以有次总结.
+>
+> 2020/2/21 - 整理相关问题
 
 ---
 
+[TOC]
 
 
-#### ThreadLocalMap
 
-- `ThreadLocalMap`出人意料的并没有继承任何一个类或接口，是完全独立的类。
+## 概述
+
+ThreadLocal（线程局部变量），作用是**为每个线程对象中保存该线程的私有变量**。
+
+> 真实的数据并不会存在ThreadLocal中，而是在Thread对象中Thread#threadLocals这个成员变量中，所以一定程度上ThreadLocal只是一个操作该集合的工具类。
+
+以下就是ThreadLocalMap在Thread中的声明:
+
+ ![image-20210221153908595](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210221153908595.png)
+
+>threadLocals是给ThreadLocal用的，该类只能访问当前线程中的数据。
+>
+>inheritableThreadLocal是给InheritableThreadLocal用的，子线程可以访问到父线程的数据。
 
 
-##### 成员变量
+
+## ThreadLocalMap
+
+ThreadLocalMap类似于HashMap是使用Hash算法定位存取的数据结构，ThreadLocal作为Map中的Key。
+
+> 只要有Key就能获取数据，因为数据都保存在Thread.currentThread()#threadLocals中。
+
+`ThreadLocalMap`出人意料的并没有继承任何一个类或接口，是完全独立的类，作为一个Map内部存放的是K/V形式的数据，以ThreadLocal对象为Key。
+
+
+
+### 成员变量
 
   ```java
-   		// 默认的初始容量 一定要是二的次幂
-          private static final int INITIAL_CAPACITY = 16;
-          // 元素数组/条目数组
-          private Entry[] table;
-         	// 大小,用于记录数组中实际存在的Entry数目
-          private int size = 0;
-  		// 阈值
-          private int threshold; // Default to 0 构造方法
+// 默认的初始容量 一定要是二的次幂
+private static final int INITIAL_CAPACITY = 16;
+// 元素数组/条目数组
+private Entry[] table;
+// 大小,用于记录数组中实际存在的Entry数目
+private int size = 0;
+// 阈值
+private int threshold; // Default to 0 构造方法
   ```
 
+> ThreadLocalMap的底层数据结构是Entry的数组。
 
-##### 构造方法
+以下为Entry对象的声明形式：
 
-  ```java
-         	// 默认访问权限的初始化方法
-          ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
-              // 使用默认的`容量`初始化数组
-              table = new Entry[INITIAL_CAPACITY];
-              // 以`ThreadLocal`的`HashCode`计算下标
-              // 这里和HashMap中的计算方式一样,都用与运算
-              int i = firstKey.threadLocalHashCode & (INITIAL_CAPACITY - 1);
-              // 赋值 修改大小并计算阈值
-              table[i] = new Entry(firstKey, firstValue);
-              size = 1;
-              // `setThreshold`方法也特别简单，就是2/3的容量。
-              setThreshold(INITIAL_CAPACITY);
-          }
-  ```
+ ![image-20210221154222208](/home/chen/github/_note/pic/image-20210221154222208.png)
+
+> WeakReference就是Java中的弱引用，以ThreadLocal作为弱引用对象。
+>
+> 对象在被GC扫描到之后，发现该对象仅仅只有弱引用指向它，那么它就会被回收。
 
 
 
-##### 元素获取相关方法
+### 元素获取
 
-###### getEntry
+#### getEntry(ThreadLocal<?> key) 
 
-- 以`ThreadLocal`为`Key`获取对应的`Entry`。
-
-- 因为`ThreadLocalMap`底层也是使用数组作为数据结构，所以该方法也**借鉴了`HashMap`中求元素下标的方式**.
-- 在获取的元素为空的时候还会调用`getEntryAfterMiss`做后续处理.
+通过ThreadLocal对象获取对应的数据。
 
 ```java
 private Entry getEntry(ThreadLocal<?> key) {
-         	// 和HashMap中一样的下标计算方式
-            int i = key.threadLocalHashCode & (table.length - 1);
-            Entry e = table[i];
-    		// 获取到对应的Entry之后就分两步
-            if (e != null && e.get() == key)
-                // 1. e不为空且threadLocal相等
-                return e;		
-            else														
-                // 2. e为空或者threadLocal不相等				
-                return getEntryAfterMiss(key, i, e);
-        }
+    // 和HashMap中一样的下标计算方式
+    int i = key.threadLocalHashCode & (table.length - 1);
+    Entry e = table[i];
+    // 获取到对应的Entry之后就分两步
+    if (e != null && e.get() == key)
+        // 1. e不为空且threadLocal相等
+        return e;		
+    else														
+        // 2. e为空或者threadLocal不相等				
+        return getEntryAfterMiss(key, i, e);
+}
 ```
 
-###### getEntryAfterMiss
+因为`ThreadLocalMap`底层也是使用数组作为数据结构，所以该方法也**借鉴了`HashMap`中求元素下标的方式**.
+
+> ThreadLocal的HashCode和HashMap中的直接调用hashCode()方法不同，ThreadLocal是采用递增的形式。
+>
+> ```java
+> private final int threadLocalHashCode = nextHashCode();
+> private static AtomicInteger nextHashCode = new AtomicInteger();  
+> private static int nextHashCode() {
+>  return nextHashCode.getAndAdd(HASH_INCREMENT);
+> }
+> ```
+> 以上就是Key的获取方式，Key是以类变量的方式递增获取，相对于直接调用hashCode()可以更好的减少hash冲突，也有hash冲突的解决方式的不同。
+
+
+
+如果hash计算出来的下标存在想要的元素就直接返回，如果获取元素为空还会再调用`getEntryAfterMiss`做后续处理.
+
+#### getEntryAfterMiss(ThreadLocal<?> key, int i, Entry e)
 
 - 该方法是在直接按照`Hash`计算下标后，没获取到对应的`Entry`对象的时候调用。
-- 通过遍历整个数组的方式获取相同`key`表示的`Entry`对象。
 
 ```java
-
-            Entry[] tab = table;
-            int len = tab.length;
-			// 此时注意如果从上面情况`2.`进来时,
-       		// e为空则直接返回null,不会进入while循环
-       		// 只有e不为空且e.get() != key时才会进while循环
-            while (e != null) {
-                ThreadLocal<?> k = e.get();
-                // 找到相同的k,返回得到的Entry,get操作结束
-                if (k == key)
-                    return e;
-                // 若此时的k为空,那么e则被标记为`Stale`需要被`expunge`
-                if (k == null)
-                    expungeStaleEntry(i);
-                else	// 下面两个都是遍历的相关操作
-                    i = nextIndex(i, len);
-                e = tab[i];
-            }
-            return null;
+private Entry getEntryAfterMiss(ThreadLocal<?> key, int i, Entry e) {
+        Entry[] tab = table;
+        int len = tab.length;
+        // 此时注意如果从上面情况`2.`进来时,
+        // e为空则直接返回null,不会进入while循环
+        // 只有e不为空且e.get() != key时才会进while循环
+        while (e != null) {
+            ThreadLocal<?> k = e.get();
+            // 找到相同的k,返回得到的Entry,get操作结束
+            if (k == key)
+                return e;
+            // 若此时的k为空,那么e则被标记为`Stale`需要被`expunge`
+            if (k == null)
+                expungeStaleEntry(i);
+            else	// 下面两个都是遍历的相关操作
+                // nextIndex就是+1判断是否越界
+                i = nextIndex(i, len);
+            e = tab[i];
         }
+        return null;
+}
 ```
 
-###### expungeStaleEntry
+> 在发生Hash冲突导致Key并不在计算出来的下标之后，直接采用的遍历数组的形式查找所有的Key，从预算的下标开始找到第一个空缺的位置。
+
+
+
+#### expungeStaleEntry(int staleSlot)
 
 - 该方法用来清除`staleSlot`位置的Entry对象,并且会**清理当前节点到下一个`null`节点中间的过期`Entry`.**
-- 是消除`内存泄漏`威胁的主力方法,在整个`ThreadLocalMap`中会多次调用.
+
+> 如果将ThreadLocal的内存泄露问题分成两个部分来看，一个是Key，另外一个就是Value。
+>
+> Key的部分依靠弱引用清除，而Value的部分则靠该方法反复清除。
 
 ```java
    /** 
      * 清空旧的Entry对象
-     
      * @param staleSlot: 清理的起始位置
      * @param return: 返回的是第一个为空的Entry下标
      */
@@ -159,11 +186,11 @@ private Entry getEntry(ThreadLocal<?> key) {
 
 
 
-##### Set相关方法
+### 元素添加
 
-###### set
+#### set(ThreadLocal<?> key, Object value)
 
-- 因为`ThreadLocalMap`底层结构和`HashMap`一样也是数组,也是通过`hash`确定下标,也一样会发生`Hash碰撞`,我们知道在`HashMap`中为了解决`Hash碰撞`的问题选择了拉链法,但对于`ThreadLocalMap`并没有那么高的复杂度,所以此处选择的是`开放地址法`.
+- 该方法就是添加元素的方法。
 - 从下方源码也可以看出来,`Entry`再确定数组位置之后直接就开始了遍历,如果`key`不匹配就往后遍历找到`key`匹配的元素覆盖,或者`key == null`的替换.
 
 ```java
@@ -197,7 +224,7 @@ private void set(ThreadLocal<?> key, Object value) {
         }
 ```
 
-###### replaceStaleEntry
+#### replaceStaleEntry
 
 - 源码中只有从上面`1.`处进入该方法,用于**替换`key`为空的`Entry`节点,顺带清除数组中的过期节点.**
 
@@ -254,7 +281,7 @@ private void replaceStaleEntry(ThreadLocal<?> key, Object value,
 
 ```
 
-###### cleanSomeSlots
+#### cleanSomeSlots
 
 - 该方法的功能是就是清除数组中的过期`Entry`
 - 首次清除从`i`向后开始遍历`log2(n)`次,如果之间发现过期`Entry`会直接将`n`扩充到`len`可以说全数组范围的遍历.发现过期`Entry`就调用`expungeStaleEntry`清除直到未发现`Entry`为止.
@@ -290,9 +317,9 @@ private boolean cleanSomeSlots(int i, int n) {
 
 
 
-##### 扩容调整方法
+### 扩容调整方法、
 
-###### rehash
+#### rehash
 
 - 容量调整的先驱方法,先清理过期`Entry`,并做是否需要`resize`的判断
 - 调整的条件是**当前size大于阈值的3/4**就进行扩容
@@ -307,7 +334,7 @@ private boolean cleanSomeSlots(int i, int n) {
         }
 ```
 
-###### resize
+#### resize
 
 - 扩容的实际方法.
 
@@ -426,39 +453,53 @@ private boolean cleanSomeSlots(int i, int n) {
  }
 ```
 
-##### 工具方法
+## 相关问题
 
-###### getMap(Thraed t)
+### 为什么Entry要使用弱引用
 
-- 获取`t`中保留的`ThreadLocalMap`类型的对象
+弱引用的特点就是如果一个对象**只存在弱引用**，那么在被GC扫描到之后就会被回收。
 
-```java
- ThreadLocalMap getMap(Thread t) {
-        return t.threadLocals;
-    }
-```
+在ThreadLocalMap中效果就是这样，因为Thread对象和ThreadLocalMap中K/V数据的生命周期可能不同，往往是Thread对象还在但是Map中数据已经无用。
 
----
-#### ThreadLocal相关问题
+但这时候Map中却还保存在ThreadLocal对象的强引用，因此就使得GC无法回收无用数据，造成内存泄露。
 
-##### ThreadLocal的内存泄漏问题
+> 使用弱引用的原因在我总结来看就是避免ThreadLocalMap中强引用干扰到ThreadLocal对象的回收。
 
-###### 内存泄漏的原因
-
-- 首先对于对作为`key`的`ThreadLocal`对象,因为是弱引用我们完全不用担心,强引用断开之后自然会被`GC`回收.
-
-- 再来看`value`,按照上面所说的作为成员变量存储在每个`Thread`实例的`threadLocals`才是存储数据的对象,那么它的生命周期是和`Thread`相同的,即使将`ThreadLocal`被`GC`回收, 但对应的`value`对象仍然存在`thread -> threadLocals -> value引用 -> value对象`的引用关系,所以`GC`会认为它可达,并不会做回收处理,但在我们现有的代码中并没有能够跳过`key`去获取`value`的,也就是说实际上`value`已经不可达了.这样就造成了**内存泄漏**.
-
-###### 内存泄漏的处理方法
-
-- 究其根本还是断开`value`的引用关系,就是讲`value`引用置`null`.
-- 可以看到`ThreadLcoalMap`的方法多处调用了`expungeStaleEntry`,`cleanSomeSlots`检查数组中的`Entry`对象是否过期,也就是`key`是否为空.
+在ThreadLocal对象被回收之后，通过判断Key是否还存在也可以进一步清除无用的Value。
 
 
 
-##### ThreadLocal的并发性问题
+### ThreadLocal如何解决内存泄漏
 
-- 首先`并发问题`在我理解中就是**多线程情况下对共享资源的合理使用**,像是`ReentrantLock`,`Synchronized`都是帮我们解决**共享资源**的使用问题.
-- `ThreadLocal`则帮我们提供了另外一种思路,就是在每一个线程中保留副本,就是上文有提到的以**空间换时间**的形式保证资源的合理有序使用,所以我觉得也是解决并发问题的一种思路.
+首先内存泄露的原因就是上述的原因:
 
-- 以上仅仅是理论....具体的例子明天再看看吧 妈蛋 又熬夜了.
+> Key/Value数据的生命周期和Thread对象的生命周期之间的差异，在Thread对象未被回收前，如果没有弱引用ThreadLocalMap就一直持有着Key，Value的引用，Key/Value的生命周期被迫和Thread对象一致。
+
+解决的方法就是采用弱引用。
+
+另外的在每次获取或者添加数据的时候都会判断Key是否被回收，如果Key被回收就表明该数据的生命周期已经过了，所以会连带清理Value对象。
+
+
+
+
+
+### ThreadLocalMap如何解决Hash冲突
+
+> Hash冲突是使用Hash类算法都会遇到的问题，不同的Key计算得到一样的数值。
+
+HashMap解决Hash冲突的方法就是**拉链法**，底层的数组中保存的不是单一的数据，而是一个集合(链表/红黑树)，冲突之后下挂。
+
+采用拉链法的结果就是在Hash冲突严重时会严重影响时间复杂度，因为就算是红黑树查询的事件复杂度都是O(Log2n)。
+
+ThreadLocalMap并没有采用这种方法，而是使用的**开放寻址法**，如果已经有数据存在冲突点，就在数组中往下遍历找到第一个空着的位置。
+
+
+
+### ThreadLocalMap和HashMap的异同
+
+两个都是采用Hash定位的数据结构，底层都是以数组的形式。
+
+但是HashCode的获取方式不同，HashMap调用对象的hashCode()方法，而ThreadLocalMap中的Key就是ThreadLocal，ThreadLocal的HashCode是递增分配的。
+
+另外处理Hash冲突的方式不同，ThreadLocalMap采用的开放寻址法，而HashMap采用的是拉链法。
+
