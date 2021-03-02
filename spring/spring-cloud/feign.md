@@ -6,6 +6,16 @@
 
 
 
+## Feign 对象的注册过程
+
+Feign 的启动注解为 EnableFeignClients，标记该注解之后借由 Import 注解，开始执行 FeignClientsRegistrar 类。·
+
+<img src="/home/chen/github/_note/pic/image-20210301224037710.png" alt="image-20210301224037710" style="zoom:67%;" />
+
+> Import 注解由 ConfigurationClassPostProcessor 类解析。
+
+
+
 
 
 
