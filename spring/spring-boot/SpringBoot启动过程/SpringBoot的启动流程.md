@@ -12,9 +12,9 @@
 
 [TOC]
 
+---
 
-
-## 外层调用链
+## 上层调用
 
 ```java
 @SpringBootApplication
@@ -52,15 +52,15 @@ public SpringApplication(ResourceLoader resourceLoader, Class<?>... primarySourc
 }
 ```
 
+包含流程如下：
 
-
-### 应用初始化器
+### ApplicationContextInitializer - 初始化器
 
 通过 spring.factories 文件的 SPI 机制获取到所有 ApplicationContextinitializer 的实现类。
 
 ApplicationContextInitializer 作为应用初始化器，在 prepareContext 阶段中调用，用来完成部分初始化流程。
 
- <img src="/home/chen/github/_note/pic/image-20210301235004087.png" alt="image-20210301235004087" style="zoom:67%;" />
+<img src="/home/chen/github/_note/pic/image-20210301235004087.png" style="zoom:67%;" />
 
 initialize(C applicationContext) 方法就初始化方法，参数为正在创建的 ApplicationContext。
 
@@ -68,23 +68,17 @@ initialize(C applicationContext) 方法就初始化方法，参数为正在创�
 
 
 
-### 监听器
+### ApplicationListener - 监听器
 
 通过 spring.factories 文件的 SPI 机制获取到所有 ApplicationListener 的实现类。
 
-ApplicationListener 用于监听某个事件，这里采用的是观察者模式，所以被观察者需要持有所有观察者的引用。
+这里采用的是观察者模式，所以被观察者 ApplicationCopntext 需要持有所有观察者 ApplicationListener 的引用。
 
- <img src="/home/chen/github/_note/pic/image-20210301235318332.png" alt="image-20210301235318332" style="zoom:67%;" />
+<img src="/home/chen/github/_note/pic/image-20210301235318332.png" style="zoom:67%;" />
 
 ApplicationListener 继承与 JDK 的EventListener类，监听某个 ApplicationEvent。
 
 > 在容器初始化的各个阶段都会发布不同类型的事件，借助监听器可以在特定的事件执行自定义操作。
-
-#### 使用实例
-
-**ConfigFileApplicationListener** 会响应 ApplicationEnvironmentPreparedEvent 和 ApplicationPreparedEvent 事件,加载各类配置文件。
-
-**BootstrapApplicationListener** 也会响应 ApplicationEnvironmentPreparedEvent，创建 Bootstrap 的 应用上下文。
 
 
 
@@ -110,8 +104,9 @@ mainApplicationClass的推断过程很有意思，直接构造一个RuntimeExcep
 
 ## Run()方法
 
-- run方法是启动的核心方法，包含了环境准备，监听事件的发布，上下文的刷新及后续处理等等。
-- 执行方法的结果就是返回一个可使用的 ConfigurationApplicationContext ，也可以理解为就是应用上下文的装配过程.
+run方法是启动的核心方法，包含了环境准备，监听事件的发布，上下文的刷新及后续处理等等。
+
+执行方法的结果就是返回一个可使用的 ConfigurationApplicationContext ，也可以理解为就是应用上下文的装配过程.
 
 ```java
 	public ConfigurableApplicationContext run(String... args) {
@@ -203,8 +198,6 @@ public void start(String taskName) throws IllegalStateException {
 
 上钟，计时开始。
 
-会记录当前的技师名字 currentTaskName，和开始时间 startTimeNanos。
-
 
 
 ### 2. 配置Headless
@@ -240,15 +233,13 @@ private SpringApplicationRunListeners getRunListeners(String[] args) {
 
 这里获取的监听器和之前构造函数中的不同，这里获取的是 SpringApplicationRunListener 的实现类，并包装为 SpringApplicationRunListeners。
 
-> **Spring中的事件发布一般是通过 ApplicationContext 实现，但是此时并没有准备好应用上下文，所以会以SpringApplicationRunListeners 这个工具类的形式发布事件**
+> **Spring中的事件发布一般是通过 ApplicationContext 实现，但是此时并没有准备好应用上下文，所以会以SpringApplicationRunListeners 这个临时工具类的形式发布事件**
 
 SpringApplicationRunListener 是对应用运行期内事件监听，从下图可知，应用上下文创建期会发布的各类**基础事件**。
 
- ![image-20200518230122762](../../../pic/image-20200518230122762.png)
+![image-20200518230122762](../../../pic/image-20200518230122762.png)
 
-SpringApplicationRunListener 其默认的实现只有 EventPublishingRunListener。
-
-以下为EventPublishingRunListener的构造函数：
+SpringApplicationRunListener 其默认的实现只有 EventPublishingRunListener，以下为EventPublishingRunListener的构造函数：
 
 ```java
 // EventPublishingRunListener的构造函数
@@ -256,21 +247,20 @@ public EventPublishingRunListener(SpringApplication application, String[] args) 
         this.application = application;
         this.args = args;
         this.initialMulticaster = new SimpleApplicationEventMulticaster();
+    	// 获取 SpringApplication 中的所有监听器，并添加到内部的 Multicaster 中
         for (ApplicationListener<?> listener : application.getListeners()) {
             	this.initialMulticaster.addApplicationListener(listener);
         }
 }
 ```
 
-EventPublishingRunListener 是对应用运行期的监听者，但是响应事件的方式是包装被广播相对应的事件，如下图
+EventPublishingRunListener 是对应用运行期的监听者，但处理事件的方式是包装被广播相对应的事件并进一步广播，如下图
 
 <img src="/home/chen/github/_note/pic/image-20210302000737616.png" alt="image-20210302000737616" style="zoom:67%;" />
 
 
 
 > 另外值得注意的是，在 contextLoaded 事件之后事件的发布又是使用 ApplicationContext 来完成的。
-
-详细的可以看[Spring的事件模型](../SpringBoot功能特性/SpringBoot的事件模型 .md)
 
 
 
@@ -282,17 +272,39 @@ NOOP。
 
 ### 4. 创建并准备环境容器
 
-创建环境容器,并加载.
-
 ```java
-ConfigurableEnvironment environment = prepareEnvironment(listeners, applicationArguments);
+// SpringApplication#prepareEnvironment 
+private ConfigurableEnvironment prepareEnvironment(SpringApplicationRunListeners listeners,
+                                                   ApplicationArguments applicationArguments) {
+    // 创建或者获取一个 ConfigurationEnvironment 对象	
+    ConfigurableEnvironment environment = getOrCreateEnvironment();
+    // 配置 Profiles 和 PropertySource
+    configureEnvironment(environment, applicationArguments.getSourceArgs());
+    ConfigurationPropertySources.attach(environment);
+    // 发布环境准备就绪的事件，进一步加载配置
+    listeners.environmentPrepared(environment);
+    bindToSpringApplication(environment);
+    if (!this.isCustomEnvironment) {
+        environment = new EnvironmentConverter(getClassLoader()).convertEnvironmentIfNecessary(environment, deduceEnvironmentClass());
+    }
+    ConfigurationPropertySources.attach(environment);
+    return environment;
+}
 ```
 
-[SpringBoot启动过程中的环境准备](./SpringBoot启动过程中的环境准备.md)
+该方法中首先创建了 Environment，并且进一步配置了部分 PropertySources 以及 Profile 属性。
 
-**该方法中主要配置了Property以及Profile属性**
+> profile 属性就只活跃的环境，例如项目中往往存在 application-dev.yml 以及 application-test.yml 两种环境的配置文件。
 
-**涉及到ApplicationEnvironmentPreparedEvent事件的发布，响应的ConfigFileApplicationListener中回去读取配置文件的内容。**
+PropertySource 主要是对项目启动参数的包装，以及在初始化的时候带有的一些系统级的 PropertySource
+
+> PropertySource 简单来说就是一个 K/V 的配置属性。
+
+简单配置之后发布了 ApplicationEnvironmentPreparedEvent 。
+
+> **ConfigFileApplicationListener 会监听该事件并读取配置文件，Consul 等远程配置中心的配置并不会在这是读取。**
+>
+> **BootstrapApplicationListener 会监听该事件，插队创建 SpringCloud 的 bootstrap 应用上下文。**
 
 **并在该时间的响应中通过`ConfigFileApplicationListener`读取了配置文件的所有配置。**
 
@@ -306,15 +318,13 @@ public static final String IGNORE_BEANINFO_PROPERTY_NAME = "spring.beaninfo.igno
 // SpringApplication
 private void configureIgnoreBeanInfo(ConfigurableEnvironment environment) {
         if (System.getProperty(CachedIntrospectionResults.IGNORE_BEANINFO_PROPERTY_NAME) == null) {
-                Boolean ignore = environment.getProperty("spring.beaninfo.ignore", Boolean.class, Boolean.TRUE);
-                System.setProperty(CachedIntrospectionResults.IGNORE_BEANINFO_PROPERTY_NAME, ignore.toString());
+    Boolean ignore = environment.getProperty("spring.beaninfo.ignore", Boolean.class, Boolean.TRUE);
+    System.setProperty(CachedIntrospectionResults.IGNORE_BEANINFO_PROPERTY_NAME, ignore.toString());
         }
 }
 ```
 
-方法逻辑很简单，就是在系统配置中没有`spring.beaninfo.ignore`时，将当前环境容器中的对应属性塞进去。
-
-`spring.beaninfo.ignore`的作用待补充。
+方法逻辑很简单，就是在系统配置中没有 spring.beaninfo.ignore 时，将当前环境容器中的对应属性塞进去。
 
 
 
@@ -332,22 +342,15 @@ Banner printedBanner = printBanner(environment);
 
 逻辑很简单，**根据不同的Web应用类型创建对应的上下文类**，具体对应关系如下：
 
-- Default - `AnnotationConfigApplicationContext`
-- Servlet - `AnnotationConfigServletWebServerApplicationContext`
-- Reactive - `AnnotationConfigReactiveWebServerApplicationContext`
+| 环境类型 |                      上下文类                       |
+| :------: | :-------------------------------------------------: |
+| Default  |         AnnotationConfigApplicationContext          |
+| Servlet  | AnnotationConfigServletWebServerApplicationContext  |
+| Reactive | AnnotationConfigReactiveWebServerApplicationContext |
 
-推断应用类型也是在SpringApplication的构造函数中实现的。
 
-以下是`AnnotationConfigServletWebServerApplicationContext`的构造函数：
 
-```java
-public AnnotationConfigServletWebServerApplicationContext() {
-        this.reader = new AnnotatedBeanDefinitionReader(this);
-        this.scanner = new ClassPathBeanDefinitionScanner(this);
-}
-```
-
-可以看到初始化的时候顺带初始化了BeanDefinitionReader和BeanDefinitionScanner
+应用类型是在 SpringApplication 的构造函数中推断出来的。
 
 
 
@@ -358,54 +361,182 @@ exceptionReporters = getSpringFactoriesInstances(SpringBootExceptionReporter.cla
                                                  new Class[] { ConfigurableApplicationContext.class }, context);
 ```
 
-getSpringFactoriesInstances应该熟得不能再熟了，就是通过工厂加载机制获取实现类的方法。
+getSpringFactoriesInstances 应该熟得不能再熟了，就是通过工厂加载机制获取实现类的方法。
 
-获取的exceptionReporters会在catch的逻辑里使用，来报告出现的异常情况。
+获取的 exceptionReporters 会在 catch 的逻辑里使用，来报告出现的异常情况。
 
 
 
 ### 9. 准备上下文
 
 ```java
-prepareContext(context, environment, listeners, applicationArguments, printedBanner);
+// SpringApplication@prepareContext
+private void prepareContext(ConfigurableApplicationContext context, ConfigurableEnvironment environment,SpringApplicationRunListeners listeners, ApplicationArguments applicationArguments, Banner printedBanner) {
+    // 配置 Environment 到应用上下文
+    context.setEnvironment(environment);
+    // 配置一些必要的Bean
+    postProcessApplicationContext(context);
+    // 应用所有初始化器
+    applyInitializers(context);
+    // 发布上下文准备就绪事件
+    listeners.contextPrepared(context);
+    if (this.logStartupInfo) {
+        logStartupInfo(context.getParent() == null);
+        logStartupProfileInfo(context);
+    }
+    // 注册相关Bean，这些为什么不一起扔到 postProcessApplicationContext 方法呢？
+    ConfigurableListableBeanFactory beanFactory = context.getBeanFactory();
+    beanFactory.registerSingleton("springApplicationArguments", applicationArguments);
+    if (printedBanner != null) {
+        beanFactory.registerSingleton("springBootBanner", printedBanner);
+    }
+    if (beanFactory instanceof DefaultListableBeanFactory) {
+        ((DefaultListableBeanFactory) beanFactory)
+        .setAllowBeanDefinitionOverriding(this.allowBeanDefinitionOverriding);
+    }
+    if (this.lazyInitialization) {
+        context.addBeanFactoryPostProcessor(new LazyInitializationBeanFactoryPostProcessor());
+    }
+    // Load the sources
+    Set<Object> sources = getAllSources();
+    Assert.notEmpty(sources, "Sources must not be empty");
+    // 加载所有的 BeanDefinition
+    load(context, sources.toArray(new Object[0]));
+    // 发布上下文已加载完毕事件
+    listeners.contextLoaded(context);
+}
 ```
 
-该方法主要作用如下：
+该方法首先配置了环境，而后最主要的就是应用了所有的 ApplicationContextInitializer 类。
 
-1. **执行所有的ApplicationContextInitializer类**
-2. **发布ApplicationContextInitializedEvent**
-3. **加载sources中的BeanDefinition**
-4. **发布ApplicationPreparedEvent**
+> BootstrapApplicationListener#AncestorInitializer 作用就是将 SpringCloud 的 bootstrap 上下文设置为当前的父上下文。
+>
+> PropertySourceBootstrapConfiguration 作用是加载远程的配置文件。
 
-中间还会穿插一些对应用上下文的配置
+之后是调用 load 加载 BeanDefinition，如下图所示：
 
-具体可以看下面的文章：
+<img src="/home/chen/_note/pic/image-20210303233808309.png" alt="image-20210303233808309" style="zoom: 50%;" />
 
-[SpringBoot启动过程中的上下文准备](./SpringBoot启动过程中的上下文准备.md)
+所有的 BeanDefinition 都是通过 BeanDefinitionLoader 获取的。
+
+> 这里的 BeanDefinition 并不会对 Import 等做扩展，可能仅仅注册了 Bootstrap 类。
 
 
 
 ###  10.刷新应用上下文
 
-```
-refreshContext(context);
+<img src="/home/chen/_note/pic/image-20210303234454959.png" alt="image-20210303234454959" style="zoom:67%;" />
+
+该方法层层往上最终会调用到 AbstractApplicationContext#refresh 方法，如下图：
+
+```java
+@Override
+public void refresh() throws BeansException, IllegalStateException {
+    synchronized (this.startupShutdownMonitor) {
+        // Prepare this context for refreshing.
+        prepareRefresh();
+
+        // Tell the subclass to refresh the internal bean factory.
+        ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
+
+        // Prepare the bean factory for use in this context.
+        prepareBeanFactory(beanFactory);
+
+        try {
+            // Allows post-processing of the bean factory in context subclasses.
+            postProcessBeanFactory(beanFactory);
+
+            // Invoke factory processors registered as beans in the context.
+            // 应用所有的 BeanFactoryPostProcessor
+            invokeBeanFactoryPostProcessors(beanFactory);
+
+            // Register bean processors that intercept bean creation.
+            // 注册所有的 BeanPostProcessor
+            registerBeanPostProcessors(beanFactory);
+
+            // Initialize message source for this context.
+            initMessageSource();
+
+            // Initialize event multicaster for this context.
+            initApplicationEventMulticaster();
+
+            // Initialize other special beans in specific context subclasses.
+            onRefresh();
+
+            // Check for listener beans and register them.
+            registerListeners();
+
+            // Instantiate all remaining (non-lazy-init) singletons.
+            finishBeanFactoryInitialization(beanFactory);
+
+            // Last step: publish corresponding event.
+            finishRefresh();
+        }
+
+        catch (BeansException ex) {
+            if (logger.isWarnEnabled()) {
+                logger.warn("Exception encountered during context initialization - " +
+                            "cancelling refresh attempt: " + ex);
+            }
+
+            // Destroy already created singletons to avoid dangling resources.
+            destroyBeans();
+
+            // Reset 'active' flag.
+            cancelRefresh(ex);
+
+            // Propagate exception to caller.
+            throw ex;
+        }
+
+        finally {
+            // Reset common introspection caches in Spring's core, since we
+            // might not ever need metadata for singleton beans anymore...
+            resetCommonCaches();
+        }
+    }
+
 ```
 
-这个流程简直不要太重要！！！
+
 
 该方法的主要流程：
 
-1. 进一步配置BeanFactory，可能会伴随着BeanFactory的刷新
-2. 调用所有的BeanFactoryPostProcessor，其中会有ConfigurationClassPostProcessor的调用，加载所有的BeanDefinition
-3. 注册所有BeanPostProcessor
-4. 初始国际化消息
-5. 初始化广播器，并注册监听器，从此之后事件由应用上下文发布
-6. 初始化所有BeanDefinition
-7. **发布ContextRefreshedEvent**
+1. 调用所有的 BeanFactoryPostProcessor
 
-具体可以看下面的文章：
+> ConfigurationClassPostProcessor 该类用来加载所有的配置类
+>
+> RefreshSchpe 
+>
+> PropertySourcesPlaceholderConfigurer 
 
-[SpringBoot启动过程中的上下文刷新](./SpringBoot启动过程中的上下文刷新.md)
+2. 注册 BeanPostProcessor
+
+> ConfigurationPropertiesBindingPostProcessor
+>
+> CommonAnnotationBeanPostProcessor
+>
+> AutowiredAnnotationBeanPostProcessor
+>
+> AnnotationAwareAspectJAutoProxyCreator
+>
+> MethodValidationPostProcessor
+>
+> PersistenceExceptionTranslationPostProcessor
+>
+> WebServerFactoryCustomizerBeanPostProcessor
+>
+> ConfigurationPropertiesBeans
+
+3. 加载所有必要的 Bean 对象，在 finishRefresh 中
+
+
+
+> 如果是 SpringMVC 的应用，在 onRefresh 方法中会创建内置的 Tomcat 服务。
+
+以下是 ServletWebServerApplicationContext#onRefresh() 的源码实现:
+
+<img src="/home/chen/_note/pic/image-20210304000521337.png" alt=" " style="zoom:67%;" />
 
 
 
@@ -459,9 +590,7 @@ public void started(ConfigurableApplicationContext context) {
 
 可以看到，在刷新过程中准备好上下文中的事件发布器之后，事件发布开始由ApplicationContext发布。
 
-响应的监听器如下：
 
- ![image-20200518233627311](/home/chen/github/_java/pic/image-20200518233627311.png)
 
 
 

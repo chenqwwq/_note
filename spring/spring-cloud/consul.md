@@ -4,6 +4,8 @@
 
 [TOC]
 
+---
+
 ## 以Consul作为配置中心
 
 > 以 Consul 作为微服务的配置中心，实现统一的配置管理，以及配置的动态更新。
@@ -70,14 +72,14 @@
 >
 >按照上述逻辑，一个应用采用多个配置中心也是可以的，使用不同的PropertySourceLocator
 
-PropertySourceLocator 用于定位具体的资源位置，每个配置中心都可以继承该类，来获取自己的 PropertySourceLocator。
+PropertySourceLocator 用于定位具体的资源位置，获取资源并解析为 PropertySource，每个配置中心都可以继承该类，来获取自己的资源类型。
 
 ConsulPropertySourceLocator 继承了 PropertySourceLocator，用来定位 consul 中的配置信息，使用的目录如下：
 
 - ${spring.cloud.config.consul.prefix}/application
 - ${spring.cloud.config.consul.prefix}/${spring.application.name}
 
-以上两种再加上分别遍历profiles的结果类似:
+以上两种再加上分别遍历 profiles 的结果类似:
 
 ${spring.cloud.config.consul.prefix}/application,dev/。
 
@@ -89,9 +91,11 @@ ${spring.cloud.config.consul.prefix}/application,dev/。
 
 > Enviroment继承了PropertyResolver，所以可以使用类似`environment.resolvePlaceholders("${logging.config:}")`的方式直接获得占位符的实际值。
 
+
+
+
+
 > 在SpringBoot启动的最后阶段，`finishRefresh`中，会初始化`LifecycleProcessor`，并调用其中的`onRefresh`方法。
-
-
 
 ### 配置动态更新
 
@@ -103,11 +107,11 @@ ${spring.cloud.config.consul.prefix}/application,dev/。
 
 <img src="/home/chen/github/_note/pic/image-20210225234033567.png" alt="image-20210225234033567" style="zoom:50%;" />
 
-发出的 RefreshEvent 由 RefreshEventListener 接收，并继续下一步调用。
+发出的 RefreshEvent 包含此时此时的应用上下文，并由 RefreshEventListener 接收：
 
 <img src="/home/chen/github/_note/pic/image-20210225234127932.png" alt="image-20210225234127932" style="zoom:50%;" />
 
-方法中，直接调用了 ContextRefresher#refresh() 方法，在这之前判断的 ready 变量是在 ApplicationReadyEvent 的事件处理中置为 true的。
+接收方法中，直接调用了 ContextRefresher#refresh() 方法，在这之前判断的 ready 变量是在 ApplicationReadyEvent 的事件处理中置为 true 的。
 
 <img src="/home/chen/github/_note/pic/image-20210225234316580.png" alt="image-20210225234316580" style="zoom:50%;" />
 
