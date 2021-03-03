@@ -1,24 +1,20 @@
-# ConcurrentHashMap源码阅读
+# ConcurrentHashMap(1.8)
 
 ---
 
 [TOC]
 
----
+## 概述
 
-![稍微有点粗糙的图片](https://chenbxxx.oss-cn-beijing.aliyuncs.com/ConcurrentHashMap.png)
+ConcurrentHashMap 是 Java 中线程安全的 HashMap，1.8的实现中，内部采用了 CAS 以及 synchronized 实现并发安全。
 
-​                    						<font size="2">稍微有点粗糙的图片</font>
+![](https://chenbxxx.oss-cn-beijing.aliyuncs.com/ConcurrentHashMap.png)
 
-- `ConcurrentHashMap`是Java中线程安全的HashMap。
+> HashMap 有良好的存取性能，但并不支持并发环境，`HashTable`支持并发环境,但在存取方法上直接加`synchronized`的方式太过粗暴会使性能明显暴跌，即使在JDK1.6的优化之后。
 
-- 总所周知,`HashMap`有良好的存取性能,但并不支持并发环境，`HashTable`支持并发环境,但在存取方法上直接加`synchronized`的方式太过粗暴会使性能明显暴跌，即使在JDK1.6的优化之后。
+在`ConcurrentHashMap`中，所有的锁都是针对其中的某个桶，也就是数组的某个节点的，而非全局上锁，锁的粒度小，自然性能就高。
 
-  
 
-- 在`ConcurrentHashMap`中，所有的锁都是针对其中的某个桶，也就是数组的某个节点的，而非全局上锁，锁的粒度小，自然性能就高。
-
-  
 
 ---
 

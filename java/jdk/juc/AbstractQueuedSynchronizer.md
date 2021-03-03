@@ -4,106 +4,165 @@
 
 [TOC]
 
-
+---
 
 ## 概述
 
-AbstractQueuedSynchronizer是用于构造锁和基本同步器的基础框架，是JUC中大部分同步工具如ReentrantLock等的实现基础。
+AbstractQueuedSynchronizer 是用于构造锁和基本同步器的基础框架，是 JUC 中大部分同步工具的实现基础。
 
-AbstractQueuedSynchronizer内部维护了两种队列结构用来存放相关的线程:
+> AbstractQueueSynchronizer 可以同 Monitor 机制比较，只是 AQS 是通过 Java 语言实现的，Monitor 是通过 JVM 使用 C语言实现的。
 
-- CLH队列(同步队列)
+AbstractQueuedSynchronizer内部维护了两种队列结构用来存放相关的等待线程:
+
+- CLH等待队列(同步队列)
 - 条件队列
 
-> CLH队列锁是自旋锁的一种简单实现，确保了线程无饥饿，也可以保证锁等待的FIFO。
+> CLH队列锁是自旋锁的一种简单实现，但可以确保线程无饥饿，也可以保证锁等待的FIFO。
 
-AbstractQueuedSynchronizer提供**独占和共享**各三种上锁模式:
+**AbstractQueueSynchronizer 的上锁形式又可以分为独占锁和共享锁。**
 
-1. 普通模式 - `acquire`
-2. 可中断模式 - `acquireInterruptibly`
-3. 带超时时间的模式 - `tryAcquireNanos`
+## 成员变量
 
 
 
-## 变量
+![image-20210303153222596](../../../../../github/_note/pic/image-20210303153222596.png)
+
+head，tail 分别是等待队列的头，尾节点，而 state 表示的是同步器当前的状态。
+
+state 在 JUC 不同的实现类中有不同的含义:
+
+|     实现类     |   state 的含义   |
+| :------------: | :--------------: |
+| ReentrantLock  |     重入计数     |
+|   Semaphore    |      许可数      |
+| CountDownLatch |     初始计数     |
+| CyclicBarrier  | 需要等待的线程数 |
+
+
+
+
+
+## 内部类 - Node
+
+> Node类就是CLH同步队列以及条件队列的节点类。
 
 ```java
-// 底层FIFO队列的头节点	         
-private transient volatile Node head;    
-// 尾节点
-private transient volatile Node tail;           
+static final class Node {  
+// 共享模式
+static final Node SHARED = new Node();
+// 独占模式
+static final Node EXCLUSIVE = null;      
 ```
 
-- head,tail用来维护AbstractQueuedSynchronizer内部的CLH队列.
+- 以特殊的Node实例对象表示共享或者独占模式。（Node.SHARED | Node.EXCLUSIVE）
+
+```java
+// CANCELLED  表示当前的线程被取消
+// SIGNAL     表示当前节点的后继节点(包含的线程)需要运行
+// CONDITION  表示当前节点在等待condition
+// PROPAGATE  表示当前场景下后续的acquireShared能够得以执行
+// 值为0，表示当前节点在sync队列中，等待着获取锁
+// 后面会有许多状态大于0的判断,就是判断是否取消     
+static final int CANCELLED =  1; 
+static final int SIGNAL    = -1;
+static final int CONDITION = -2;
+static final int PROPAGATE = -3;        
+// 结点状态
+volatile int waitStatus;     
+```
+
+waitStatus表示当前节点的状态，其上就是四种不同的节点状态。
+
+- 同步状态具体如下表所示：
+
+|   状态    |                             含义                             | 数值 |
+| :-------: | :----------------------------------------------------------: | :--: |
+| CANCELLED |        等待队列中的线程被中断或者超时,会变为取消状态         |  1   |
+|  SIGNAL   |  表示该节点的后继节点等待唤醒，在完成该节点后会唤醒后继节点  |  -1  |
+| CONDITION | 该节点位于条件等待队列,当其他线程调用了`condition.signal()`方法后会被唤醒进入同步队列 |  -2  |
+| PROPAGATE |           共享模式中，该状态的节点处于Runnable状态           |  -3  |
+| 初始状态  |                          初始化状态                          |  0   |
 
 
 
 ```java
-private volatile int state;       
+// 前驱结点
+volatile Node prev;    
+// 后继结点
+volatile Node next; 
+// 结点所对应的线程
+volatile Thread thread;     
 ```
 
-- **该变量表示当前同步状态**
+在同步队列中会使用前驱和后继节点组成一个双端队列，而thread则直接保存对应的线程对象。
 
-- 通过`volatile`保证了线程间的可见性
+```java
+// 下一个等待者
+Node nextWaiter;
+```
 
-- state变量在JUC不同的实现类中有不同的含义:
+nextWaiter是在条件队列中使用的变量。
 
-  - **ReentrantLock - 重入数**
-  - **Semaphore - 许可数**
-  - **CountDownLatch - 需要调用countDown的次数**
-  - **Future - 存储当前任务的执行状态**
+>AQS中同步队列以双端队列的形式，而条件队列则是单向的。
 
-  
 
-## 获取锁资源
+
+## 获取锁
+
+AbstractQueueSynchronizer 支持的获取锁的方式有很多：
+
+|                      方法名                       |             获取形式             |
+| :-----------------------------------------------: | :------------------------------: |
+|                 acquire(int arg)                  | 获取独占锁，必要时等待，无法中断 |
+|           acquireInterruptibly(int arg)           |  获取独占锁，必要时等待，可中断  |
+|    tryAcquireNanos(int arg, long nanosTimeout)    |       获取独占锁，超时等待       |
+|              acquireShared(int arg)               | 获取共享锁，必要时等待，无法中断 |
+|        acquireSharedInterruptibly(int arg)        |  获取共享锁，必要时等待，可中断  |
+| tryAcquireSharedNanos(int arg, long nanosTimeout) |       获取共享锁，超时等待       |
+
+
 
 ### 独占锁的获取
 
-#### acquire
+#### acquire(int)  - 获取独占锁
 
 ```java
-    /**
-      *  尝试以独占形式获取锁
-      *  在ReentrantLock中是锁已经被占用的情况下调用
-      */
-    public final void acquire(int arg) {
+		// AbstractQueueSynchronizer#acquire
+		public final void acquire(int arg) {
         // tryAcquire仅为模板函数,需要在子类中实现获取锁的逻辑
         // 获取锁失败之后才会执行&&后面的代码
         if (!tryAcquire(arg) &&	   
             // addWaiter中以独占模式入CLH队列
             // acquireQueued是在入队列之后挂起线程
             acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
+            // 中断当前线程
             selfInterrupt();	
     }
 
     /**
-     * 受保护的类,tryAcquire顾名思义为尝试获取资源， true表示获取成功,false为获取失败
-     * 在AbstractQueuedSunchronizer中仅仅是抛出错误，具体的获取逻辑在子类中实现
-     * 类似于模板模式
+     * Convenience method to interrupt current thread.
      */
-    protected boolean tryAcquire(int arg) {
-            throw new UnsupportedOperationException();
+    static void selfInterrupt() {
+        Thread.currentThread().interrupt();
     }
 ```
 
-<font size=2>JDK的源码中经常会用到逻辑运算的**短路特性**。</font>
+> 需要先理解逻辑判断的短路特性，上图如果 tryAcquire(arg) 为 true 就会直接退出方法。
 
-加锁的逻辑时可以直接从acquire()中看出个大概:
-
-1. `tryAcquire` - 尝试获取锁资源
-2. `addWaiter` - 获取失败，加入到等待队列
-3. `acquireQueued` - 已经加入队列后的等待
+方法首先调用 tryAcquire 尝试快速获取锁，失败时调用 addWaiter 添加到阻塞队列，最后调用 acquireQueued 挂起线程，异常退出中断当前线程。
 
 
 
-#### tryAcquire
+#### tryAcquire(int) - 尝试获取锁资源
 
-tryAcquire()是模板方法，具体的实现在各个实现类中，例如ReentrantLock类。
+![image-20210303155510179](../../../../../github/_note/pic/image-20210303155510179.png)
+
+以上是 AbstractQueuedSynchronizer#tryAcquire() 的源码，arg 可以理解为希望获取的资源数，返回 true 即为上锁成功。
+
+tryAcquire() 是模板方法，具体的实现在各个实现类中，以下是 ReentrantLock$Fair#tryAcquire() 的源码实现:
 
 ```java
-/**
- * ReentrantLock中Fair的tryAcquire实现
- */
+// ReentrantLock中Fair的tryAcquire实现
 protected final boolean tryAcquire(int acquires) {
     final Thread current = Thread.currentThread();
     // 获取当前状态
@@ -130,91 +189,91 @@ protected final boolean tryAcquire(int acquires) {
 }
 ```
 
-tryAcquire()如果返回true表示获取锁成功，也就不需要进入同步队列等待。
-
-> 在ReentrantLock中AQS的state变量表示的就是重入次数。
-
-`tryAcquire`中会尝试获取资源，若果失败则进入`addWaiter`方法。
+**在 ReentrantLock 中 AQS 的 state 表示的就是重入次数，**为0时就表示空闲状态并没有上锁，所以一顿操作之后返回 true。
 
 
 
-#### addWaiter
+#### addWaiter(Node) - 争锁失败节点的首次入队列
 
-###### addWaiter  -  争锁失败节点的首次入队列
+以下为 AbstractQueuedSynchronizer#addWaiter 的源码实现：
 
 ```java
-	/**
-      * 该方法用于以指定模式添加当前线程到等待队列
-      * params： mode -> 共享还是私有模式
-      * return:  返回实际入队节点
-      */
-     private Node addWaiter(Node mode) {
-            // 创建node实例
-            Node node = new Node(Thread.currentThread(), mode);
-            // Try the fast path of enq; backup to full enq on failure
-            // 获得尾节点
-            Node pred = tail;
-            // 如果尾节点不为空，在此处尝试入队列
-            if (pred != null) {
-                // 当前节点的上一个节点指向尾节点
-                node.prev = pred;
-                // CAS操作，将node置为尾节点，同时只能有一个线程操作成功，其他失败的进入enq方法
-                if (compareAndSetTail(pred, node)) {
-                    // pred下一个节点指向当前节点
-                    pred.next = node;
-                    return node;	// 直接返回就不调用enq方法
-                }
-            }
-            // 此处调用enq是在首次入队失败之后
-            enq(node);
-            return node;
+/**
+  * 该方法用于以指定模式添加当前线程到等待队列
+  * params： mode -> 共享还是私有模式
+  * return:  返回实际入队节点
+  */
+private Node addWaiter(Node mode) {
+    // 创建node实例，包装当前线程入队列
+    Node node = new Node(Thread.currentThread(), mode);
+    // Try the fast path of enq; backup to full enq on failure
+    // 获得尾节点
+    Node pred = tail;
+    // 如果尾节点不为空，在此处尝试入队列
+    // 尾节点为空表示等待队列未创建，在 enq 中新建
+    if (pred != null) {
+        // 当前节点的上一个节点指向尾节点
+        node.prev = pred;
+        // CAS操作，将node置为尾节点，同时只能有一个线程操作成功，其他失败的进入enq方法
+        if (compareAndSetTail(pred, node)) {
+            // pred下一个节点指向当前节点
+            pred.next = node;
+            return node;	// 直接返回就不调用enq方法
         }
+    }
+    // 此处调用enq是在首次入队失败之后
+    enq(node);
+    return node;
+}
 ```
 
-- 整个方法**仅做一次入队列尝试**，失败则会调用`enq`完成后续操作。
-- `Node`节点的创建也是在`addWaiter`中。
-- `addWaiter`的**作用可能就是减少动作指令**，在失败之后才会进入`enq`中的无限循环.
+addWaiter 方法只做了一次入队列尝试，失败则会调用 enq 完成后续入队列的动作，包括初始化链表节点。
 
 
 
-###### enq  -  CAS入队列 || 新建CLH队列
+###### enq  -  节点循环入队
 
 ```java
-	 /**
-      *  return： 返回入队节点的前驱节点
-      */
-     private Node enq(final Node node) {
-            // 无限循环确保成功入队列
-            for (;;) {
-                // 获取尾部节点
-                Node t = tail;
-                // 尾节点为空时表示队列未初始化，必须创建!!
-                if (t == null) { // Must initialize
-                    // 此处注意!!!是以一个空的节点作为头节点
-                    if (compareAndSetHead(new Node()))
-                        // 首尾一致,此时CLH中只有一个元素
-                        tail = head;
-                } else {    // 头节点不为空时
-                	// 挂在尾节点的后面
-                    node.prev = t;
-                    // CAS操作将当前节点置换为尾节点
-                    if (compareAndSetTail(t, node)) {
-                        // 尾节点的下一个节点为当前节点
-                        t.next = node;
-                        return t;	// 在成功后返回入队节点，否则为无限循环
-                    }
-                }
+/**
+ *  node:   目标入队列的节点
+ *  return： 返回入队节点的前驱节点
+ */
+private Node enq(final Node node) {
+    // 自旋 
+    for (;;) {
+        // 获取尾部节点
+        Node t = tail;
+        // 尾节点为空时表示队列未初始化，必须创建!!
+        if (t == null) { // Must initialize
+            // 此处注意!!!是以一个空的节点作为头节点
+            if (compareAndSetHead(new Node()))
+                // 首尾一致,此时CLH中只有一个元素
+                tail = head;
+        } else {    // 头节点不为空时
+            // 挂在尾节点的后面
+            node.prev = t;
+            // CAS操作将当前节点置换为尾节点
+            if (compareAndSetTail(t, node)) {
+                // 尾节点的下一个节点为当前节点
+                t.next = node;
+                return t;	// 在成功后返回入队节点，否则为无限循环
             }
         }
+    }
+}
 ```
 
-- 将node入队的逻辑方法，**在第一次入队失败或者队列未初始化时调用，有自旋操作保证入队列尾成功**.
+该方法负责初始化等待队列中的头尾节点，也包括循环 CAS 入队列。
+
+> 在锁竞争激烈的时候，可能同时有多个线程准备入队列，此时依靠 CAS + 自旋保证了并发安全，
 
 
 
-##### 3. 挂起线程方法
 
-###### acquireQueued  -  挂起线程的主方法
+
+到此时，获取锁失败的线程已经进入了等待队列。
+
+#### acquireQueued  -  挂起线程
 
 ```java
 final boolean acquireQueued(final Node node, int arg) {
@@ -250,8 +309,9 @@ final boolean acquireQueued(final Node node, int arg) {
         }	
 ```
 
-- 挂起入参节点线程,此时经过`addWaiter`和`enq`已经确保当前线程节点入队列.
-- 打破无限循环的关键还是先尝试获取锁,**只有在有当前节点的前驱节点为头节点的时候才会尝试获取锁**.
+该方法还是以自旋包着整个逻辑，如果在前驱节点为队列的头节点时，会尝试获取锁，获取锁成功就退出。
+
+如果前驱节点不为头节点，或获取锁失败，就开始准备挂起当前线程，不浪费CPU。
 
 
 
@@ -539,70 +599,6 @@ final boolean acquireQueued(final Node node, int arg) {
 ```
 
 - 共享形式和独占形式在代码上大同小异,**在共享模式的获取锁完成之后会尝试唤醒别的线程**,主要还是四种线程状态的判断。
-
-## Node类
-
-> Node类就是CLH同步队列以及条件队列的节点类。
-
-```java
-static final class Node {  
-	// 共享模式
-    static final Node SHARED = new Node();
-    // 独占模式
-    static final Node EXCLUSIVE = null;      
-```
-
-- 以特殊的Node实例对象表示共享或者独占模式。（Node.SHARED | Node.EXCLUSIVE）
-
-```java
-// CANCELLED  表示当前的线程被取消
-// SIGNAL     表示当前节点的后继节点(包含的线程)需要运行
-// CONDITION  表示当前节点在等待condition
-// PROPAGATE  表示当前场景下后续的acquireShared能够得以执行
-// 值为0，表示当前节点在sync队列中，等待着获取锁
-// 后面会有许多状态大于0的判断,就是判断是否取消     
-static final int CANCELLED =  1; 
-static final int SIGNAL    = -1;
-static final int CONDITION = -2;
-static final int PROPAGATE = -3;        
-// 结点状态
-volatile int waitStatus;     
-```
-
-waitStatus表示当前节点的状态，其上就是四种不同的节点状态。
-
-- 同步状态具体如下表所示：
-
-|   状态    |                             含义                             | 数值 |
-| :-------: | :----------------------------------------------------------: | :--: |
-| CANCELLED |        等待队列中的线程被中断或者超时,会变为取消状态         |  1   |
-|  SIGNAL   |  表示该节点的后继节点等待唤醒，在完成该节点后会唤醒后继节点  |  -1  |
-| CONDITION | 该节点位于条件等待队列,当其他线程调用了`condition.signal()`方法后会被唤醒进入同步队列 |  -2  |
-| PROPAGATE |           共享模式中，该状态的节点处于Runnable状态           |  -3  |
-| 初始状态  |                          初始化状态                          |  0   |
-
-
-
-```java
-// 前驱结点
-volatile Node prev;    
-// 后继结点
-volatile Node next; 
-// 结点所对应的线程
-volatile Thread thread;     
-```
-
-在同步队列中会使用前驱和后继节点组成一个双端队列，而thread则直接保存对应的线程对象。
-
-```java
-// 下一个等待者
-Node nextWaiter;
-```
-nextWaiter是在条件队列中使用的变量。
-
->AQS中同步队列以双端队列的形式，而条件队列则是单向的。
-
-
 
 ## AbstractOwnableSynchonizer
 

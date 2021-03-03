@@ -210,3 +210,4 @@ for(int i = 0;i < 10;i++){
 - [深入理解Java并发之synchronized实现原理](https://blog.csdn.net/javazejian/article/details/72828483)
 - [Java并发——关键字synchronized解析](https://juejin.im/post/5b42c2546fb9a04f8751eabc)
 - [HashCode和偏向锁](https://blog.csdn.net/saintyyu/article/details/108295657)
+- [synchronized的源码级理解](https://mp.weixin.qq.com/s?__biz=MzkxNTE3NjQ3MA==&mid=2247488192&idx=1&sn=85fa12be29fef85d41c571b2c853de5d&chksm=c1627fb9f615f6af30d979b3e69bd7223e9e5e3e801a59f12cd492d00ea32623d55177f5e523&mpshare=1&scene=24&srcid=03027ZCVnPeq49L3bb4hjg9z&sharer_sharetime=1614644481827&sharer_shareid=22f066e400946fcffb59089626c6a1f2#rd)
