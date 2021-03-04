@@ -105,15 +105,15 @@ ${spring.cloud.config.consul.prefix}/application,dev/。
 
 > RefreshEvent 是整个配置刷新流程的开端。
 
-<img src="/home/chen/github/_note/pic/image-20210225234033567.png" alt="image-20210225234033567" style="zoom:50%;" />
+<img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210225234033567.png" alt="image-20210225234033567" style="zoom:50%;" />
 
 发出的 RefreshEvent 包含此时此时的应用上下文，并由 RefreshEventListener 接收：
 
-<img src="/home/chen/github/_note/pic/image-20210225234127932.png" alt="image-20210225234127932" style="zoom:50%;" />
+<img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210225234127932.png" alt="image-20210225234127932" style="zoom:50%;" />
 
 接收方法中，直接调用了 ContextRefresher#refresh() 方法，在这之前判断的 ready 变量是在 ApplicationReadyEvent 的事件处理中置为 true 的。
 
-<img src="/home/chen/github/_note/pic/image-20210225234316580.png" alt="image-20210225234316580" style="zoom:50%;" />
+<img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210225234316580.png" alt="image-20210225234316580" style="zoom:50%;" />
 
 先是刷新 Environment。
 
@@ -153,15 +153,17 @@ public synchronized Set<String> refreshEnvironment() {
 
 
 
-AbstractAutoServiceRegistration#start() 中基本包含了完整的注册逻辑。
+AbstractAutoServiceRegistration#start() 中基本包含了完整的注册逻辑，以下是 start 方法中的部分源码:
 
-<img src="/home/chen/github/_note/pic/image-20210225224815368.png" alt="image-20210225224815368" style="zoom: 67%;" />
+<img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210304214711556.png" alt="image-20210304214711556" style="zoom:67%;" />
+
+
 
 > 在服务注册的前后发布了 InstancePreRegisteredEvent 和 InstanceRegisteredEvent
 
 后续就是 register() 方法中，调用了 serviceRegistry#register 方法: 
 
-<img src="/home/chen/github/_note/pic/image-20210225224955758.png" alt="image-20210225224955758" style="zoom: 50%;" />
+<img src="/home/chen/_note/pic/image-20210304214940999.png" alt="image-20210304214940999" style="zoom:67%;" />
 
 在 Consul 中，就是 ConsulServiceRegistry，以下是 ConsulServiceRegistry#register 的源码:
 
@@ -204,7 +206,7 @@ public void add(String instanceId) {
 
 以下是心跳任务:
 
-![image-20210225230155968](/home/chen/github/_note/pic/image-20210225230155968.png)
+<img src="/home/chen/_note/pic/image-20210225230155968.png" alt="image-20210225230155968" style="zoom:67%;" />
 
 
 
