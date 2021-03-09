@@ -10,7 +10,7 @@
 
 AbstractQueuedSynchronizer 是用于构造锁和基本同步器的基础框架，是 JUC 中大部分同步工具的实现基础。
 
-> AbstractQueueSynchronizer 可以同 Monitor 机制比较，只是 AQS 是通过 Java 语言实现的，Monitor 是通过 JVM 使用 C语言实现的。
+> AbstractQueueSynchronizer 可以同 Monitor 机制类比，AQS 是通过 Java 语言实现的同步模型，Monitor 是通过 JVM 使用 C语言实现的。
 
 AbstractQueuedSynchronizer内部维护了两种队列结构用来存放相关的等待线程:
 
@@ -23,9 +23,7 @@ AbstractQueuedSynchronizer内部维护了两种队列结构用来存放相关的
 
 ## 成员变量
 
-
-
-![image-20210303153222596](../../../../../github/_note/pic/image-20210303153222596.png)
+<img src="/home/chen/_note/pic/image-20210309220315479.png" alt="image-20210309220315479" style="zoom:50%;" />
 
 head，tail 分别是等待队列的头，尾节点，而 state 表示的是同步器当前的状态。
 
@@ -44,7 +42,7 @@ state 在 JUC 不同的实现类中有不同的含义:
 
 ## 内部类 - Node
 
-> Node类就是CLH同步队列以及条件队列的节点类。
+> Node类就是CLH同步队列以及条件队列的节点类，它就是组成两种队列的元素。
 
 ```java
 static final class Node {  
@@ -54,14 +52,14 @@ static final Node SHARED = new Node();
 static final Node EXCLUSIVE = null;      
 ```
 
-- 以特殊的Node实例对象表示共享或者独占模式。（Node.SHARED | Node.EXCLUSIVE）
+以特殊的Node实例对象表示共享或者独占模式（Node.SHARED | Node.EXCLUSIVE）。
 
 ```java
 // CANCELLED  表示当前的线程被取消
 // SIGNAL     表示当前节点的后继节点(包含的线程)需要运行
-// CONDITION  表示当前节点在等待condition
-// PROPAGATE  表示当前场景下后续的acquireShared能够得以执行
-// 值为0，表示当前节点在sync队列中，等待着获取锁
+// CONDITION  表示当前节点在等待 condition
+// PROPAGATE  表示当前场景下后续的 acquireShared 能够得以执行
+// 值为0，表示当前节点在 sync 队列中，等待着获取锁
 // 后面会有许多状态大于0的判断,就是判断是否取消     
 static final int CANCELLED =  1; 
 static final int SIGNAL    = -1;
@@ -80,7 +78,7 @@ waitStatus表示当前节点的状态，其上就是四种不同的节点状态�
 | CANCELLED |        等待队列中的线程被中断或者超时,会变为取消状态         |  1   |
 |  SIGNAL   |  表示该节点的后继节点等待唤醒，在完成该节点后会唤醒后继节点  |  -1  |
 | CONDITION | 该节点位于条件等待队列,当其他线程调用了`condition.signal()`方法后会被唤醒进入同步队列 |  -2  |
-| PROPAGATE |           共享模式中，该状态的节点处于Runnable状态           |  -3  |
+| PROPAGATE |       共享模式中，表示下次的获取锁资源后应该无条件传播       |  -3  |
 | 初始状态  |                          初始化状态                          |  0   |
 
 
@@ -103,11 +101,13 @@ Node nextWaiter;
 
 nextWaiter是在条件队列中使用的变量。
 
->AQS中同步队列以双端队列的形式，而条件队列则是单向的。
+>AQS中同步队列以双端队列的形式，队列中每个 Node 都持有前驱和后继两个节点，AQS 持有队头和队尾元素。
+>
+>但条件队列则是单向的。
 
 
 
-## 获取锁
+## 上锁形式
 
 AbstractQueueSynchronizer 支持的获取锁的方式有很多：
 
@@ -122,40 +122,40 @@ AbstractQueueSynchronizer 支持的获取锁的方式有很多：
 
 
 
-### 独占锁的获取
+## 独占锁
 
-#### acquire(int)  - 获取独占锁
+### acquire(int)  - 获取独占锁
 
 ```java
-		// AbstractQueueSynchronizer#acquire
-		public final void acquire(int arg) {
-        // tryAcquire仅为模板函数,需要在子类中实现获取锁的逻辑
-        // 获取锁失败之后才会执行&&后面的代码
-        if (!tryAcquire(arg) &&	   
-            // addWaiter中以独占模式入CLH队列
-            // acquireQueued是在入队列之后挂起线程
-            acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
-            // 中断当前线程
-            selfInterrupt();	
-    }
+// AbstractQueueSynchronizer#acquire
+public final void acquire(int arg) {
+    // tryAcquire仅为模板函数,需要在子类中实现获取锁的逻辑
+    // 获取锁失败之后才会执行&&后面的代码
+    if (!tryAcquire(arg) &&	   
+        // addWaiter中以独占模式入CLH队列
+        // acquireQueued是在入队列之后阻塞线程
+        acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
+        // 中断当前线程
+        selfInterrupt();	
+}
 
-    /**
-     * Convenience method to interrupt current thread.
-     */
-    static void selfInterrupt() {
-        Thread.currentThread().interrupt();
-    }
+/**
+ * Convenience method to interrupt current thread.
+ */
+static void selfInterrupt() {
+    Thread.currentThread().interrupt();
+}
 ```
 
 > 需要先理解逻辑判断的短路特性，上图如果 tryAcquire(arg) 为 true 就会直接退出方法。
 
-方法首先调用 tryAcquire 尝试快速获取锁，失败时调用 addWaiter 添加到阻塞队列，最后调用 acquireQueued 挂起线程，异常退出中断当前线程。
+方法首先调用 tryAcquire 尝试快速获取锁，失败时调用 addWaiter 添加到阻塞队列，最后调用 acquireQueued 阻塞线程，异常退出中断当前线程。
 
 
 
 #### tryAcquire(int) - 尝试获取锁资源
 
-![image-20210303155510179](../../../../../github/_note/pic/image-20210303155510179.png)
+<img src="/home/chen/_note/pic/image-20210309221820230.png" alt="image-20210309221820230" style="zoom: 67%;" />
 
 以上是 AbstractQueuedSynchronizer#tryAcquire() 的源码，arg 可以理解为希望获取的资源数，返回 true 即为上锁成功。
 
@@ -190,6 +190,8 @@ protected final boolean tryAcquire(int acquires) {
 ```
 
 **在 ReentrantLock 中 AQS 的 state 表示的就是重入次数，**为0时就表示空闲状态并没有上锁，所以一顿操作之后返回 true。
+
+如果返回的 false，就进入等待队列，首先调用的就是 addWaiter 方法。
 
 
 
@@ -227,11 +229,11 @@ private Node addWaiter(Node mode) {
 }
 ```
 
-addWaiter 方法只做了一次入队列尝试，失败则会调用 enq 完成后续入队列的动作，包括初始化链表节点。
+**addWaiter 方法只做了一次入队列尝试，失败则会调用 enq 完成后续入队列的动作，包括初始化链表节点。**
 
 
 
-###### enq  -  节点循环入队
+##### enq  -  节点循环入队
 
 ```java
 /**
@@ -247,7 +249,7 @@ private Node enq(final Node node) {
         if (t == null) { // Must initialize
             // 此处注意!!!是以一个空的节点作为头节点
             if (compareAndSetHead(new Node()))
-                // 首尾一致,此时CLH中只有一个元素
+                // 首尾一致,此时CLH队列中中只有一个元素
                 tail = head;
         } else {    // 头节点不为空时
             // 挂在尾节点的后面
@@ -265,340 +267,442 @@ private Node enq(final Node node) {
 
 该方法负责初始化等待队列中的头尾节点，也包括循环 CAS 入队列。
 
-> 在锁竞争激烈的时候，可能同时有多个线程准备入队列，此时依靠 CAS + 自旋保证了并发安全，
-
-
+> 在锁竞争激烈的时候，可能同时有多个线程准备入队列，此时依靠 CAS + 自旋保证了并发安全，只有一个节点可以置换成功。
 
 
 
 到此时，获取锁失败的线程已经进入了等待队列。
 
-#### acquireQueued  -  挂起线程
+
+
+#### acquireQueued  -  阻塞线程
 
 ```java
+// AbstractQueueSynchronizer#acquireQueued
 final boolean acquireQueued(final Node node, int arg) {
-            // 失败标识
-            boolean failed = true;
-            try {
-                // 是否中断标志
-                boolean interrupted = false;
-                for (;;) {              // 自旋 无限循环 ！
-                    // 获取前驱节点
-                    final Node p = node.predecessor();
-                    // 重点 ！！！ 在前驱节点变为头节点时，才再次尝试获取锁.
-                    if (p == head && tryAcquire(arg)) {
-                        // 将该节点置为头结点 表示成功获取到锁
-                        setHead(node);  
-                        // 头结点的next为空 帮助GC回收	
-                        p.next = null; // help GC
-                        failed = false;
-                        // 获取成功时返回 
-                        return interrupted;  
-                    }
-                    //  !!! 重点 获取失败之后的准备操作，将前驱节点变为SIGNAL等
-                    if (shouldParkAfterFailedAcquire(p, node) &&
-                        // 调用park***方法后会park当前线程，等待unpark
-                        parkAndCheckInterrupt()) 
-                        // 在前驱状态为SIGNAL，且线程暂停成功之后，置true
-                        interrupted = true; 
-                }
-            } finally {    
-                if (failed)
-                    cancelAcquire(node);
+    // 失败标识
+    boolean failed = true;
+    try {
+        // 是否中断标志
+        boolean interrupted = false;
+        for (;;) {              // 自旋 无限循环 ！
+            // 获取前驱节点
+            final Node p = node.predecessor();
+            // 重点 ！！！ 在前驱节点变为头节点时，才再次尝试获取锁.
+            if (p == head && tryAcquire(arg)) {
+                // 将该节点置为头结点 表示成功获取到锁
+                setHead(node);  
+                // 头结点的next为空 帮助GC回收	
+                p.next = null; // help GC
+                failed = false;
+                // 获取成功时返回 
+                return interrupted;  
             }
-        }	
-```
-
-该方法还是以自旋包着整个逻辑，如果在前驱节点为队列的头节点时，会尝试获取锁，获取锁成功就退出。
-
-如果前驱节点不为头节点，或获取锁失败，就开始准备挂起当前线程，不浪费CPU。
-
-
-
-###### shouldParkAfterFailedAcquire  -  线程挂起前的准备逻辑
-
-```java
-     /**
-	  * params：分别为前驱节点，当前节点
-	  * returns: 是否准备完成,前驱节点状态为SIGNAL表示准备完成
-	  */
-     private static boolean shouldParkAfterFailedAcquire(Node pred, Node node) {
-            int ws = pred.waitStatus;   // 获取前驱节点的状态
-            // 前驱节点的状态为Signal
-            if (ws == Node.SIGNAL)  
-                return true;	
-            // 如前面提示>0就表示节点是取消
-         	if (ws > 0) {
-                // 循环遍历找到不是取消状态的节点,取消表示前驱不在尝试获取锁
-                // 从后往前遍历找到第一个不是取消的锁,并牌子啊他的后面
-                do {
-                    node.prev = pred = pred.prev;
-                } while (pred.waitStatus > 0);
-                // 找到前一个不在取消的锁并排在他的后面
-                pred.next = node;
-            } else {
-                // 如果前驱状态不是取消，则改变前驱状态为Signal，即表示本节点需要锁
-                // 此处将前驱节点置为SIGNAL,再经过acquireQueued再一次进入时,
-                // 会在第一个判断直接返回true
-                compareAndSetWaitStatus(pred, ws, Node.SIGNAL);
-            }
-            return false;
-     }
-```
-
-- 在线程挂起前的准备逻辑,包括:
-  1. 将前驱节点的节点状态变为`Node.SIGNAL`.
-  2. 清除状态为`Node.CANCELLED`的无用节点.
-- 如果前驱状态为`SIGNAL`则直接成功,否则需要两次循环才能成功.
-
-
-
-###### parkAndCheckInterrupt  -  直接挂起线程的方法
-
-```java
-      /**
-        *  挂起线程,并在被唤醒后返回中断状况
-        */
-     private final boolean parkAndCheckInterrupt() {
-            LockSupport.park(this);		 //调用park()使线程进入waiting状态
-            return Thread.interrupted();
+            //  !!! 重点 获取失败之后的准备操作，将前驱节点变为SIGNAL等
+            if (shouldParkAfterFailedAcquire(p, node) &&
+                // 调用park***方法后会park当前线程，等待unpark
+                parkAndCheckInterrupt()) 
+                // 在前驱状态为SIGNAL，且线程暂停成功之后，置true
+                interrupted = true; 
         }
-```
-
-- 可以看到`AQS`挂起线程使用的是`LockSupport`
-
-
-
-###### cancelAcquire - 取消获取
-
-```java
-	  /**
-		*   取消获取锁,acquireQueued方法的fianlly内进入
-		*      保证不会是因为错误无限循环 浪费系统资源
-		*  params：获取锁失败的节点
-		*/
-   private void cancelAcquire(Node node) {
-        // Ignore if node doesn't exist
-        if (node == null)
-            return;
-        node.thread = null;
-        // Skip cancelled predecessors
-        Node pred = node.prev;
-        while (pred.waitStatus > 0)			// 前驱节点状态为取消时，直接删除该节点
-            node.prev = pred = pred.prev;
-        Node predNext = pred.next;	// 获取后继节点.. 是被跳过的节点
-        // 修改前驱节点状态为取消
-        node.waitStatus = Node.CANCELLED;	
-        // node为尾节点，将该节点前驱变为tail，并将前驱节点的next置空
-        if (node == tail && compareAndSetTail(node, pred)) {
-            compareAndSetNext(pred, predNext, null);
-        } else {
-            int ws;
-            // 不为头结点 执行下面判断CANCELLED
-            if (pred != head &&	
-                // 赋值并判断 不为SIGNAL进行下面判断
-                ((ws = pred.waitStatus) == Node.SIGNAL ||	
-                 // 非取消状态就将状态改为SIGNAL，使用CAS保证并发		
-                 (ws <= 0 && compareAndSetWaitStatus(pred, ws, Node.SIGNAL))) &&	
-                 // 此判断会将前驱节点全变为SIGNAL状态
-                pred.thread != null) {  
-                 // 当前节点的后继节点
-                Node next = node.next;   
-                // 后继不为空，且状态不为取消
-                if (next != null && next.waitStatus <= 0)	
-                    // 在同步队列中删除当前节点
-                    compareAndSetNext(pred, predNext, next);
-            } else {
-                // 唤醒方法在释放流程中
-                unparkSuccessor(node);		
-            }
-
-            node.next = node; // help GC
-        }
+    } finally {    
+        if (failed)
+            cancelAcquire(node);
     }
+}	
 ```
 
-- 在获取锁未成功的情况下意外退出时调用该方法,意外退出之后的后续操作.包括:
-  1. 将前驱节点状态变为`CANCELLED`
-  2. 从同步队列中删除当前节点
-  3. 保证后继节点可靠
+该方法是节点在等待队列中的自旋过程，只有在前驱节点为头节点时，才会尝试获取锁。
+
+自旋两次失败之后，调用 LockSupport#park 方法阻塞线程。
 
 
 
-##### 4. 整个获取流程梳理及关键点
+##### shouldParkAfterFailedAcquire  -  线程阻塞前的准备逻辑
+
+```java
+/**
+ * params：分别为前驱节点，当前节点
+ * returns: 是否准备完成,前驱节点状态为SIGNAL表示准备完成
+ */
+private static boolean shouldParkAfterFailedAcquire(Node pred, Node node) {
+    int ws = pred.waitStatus;   // 获取前驱节点的状态
+    // 前驱节点的状态为Signal
+    if (ws == Node.SIGNAL)  
+        return true;	
+    // 如前面提示>0就表示节点是取消
+    if (ws > 0) {
+        // 循环遍历找到不是取消状态的节点,取消表示前驱不在尝试获取锁
+        // 从后往前遍历找到第一个不是取消的锁,并牌子啊他的后面
+        do {
+            node.prev = pred = pred.prev;
+        } while (pred.waitStatus > 0);
+        // 找到前一个不在取消的锁并排在他的后面
+        pred.next = node;
+    } else {
+        // 如果前驱状态不是取消，则改变前驱状态为Signal，即表示本节点需要锁
+        // 此处将前驱节点置为SIGNAL,再经过acquireQueued再一次进入时,
+        // 会在第一个判断直接返回true
+        compareAndSetWaitStatus(pred, ws, Node.SIGNAL);
+    }
+    return false;
+}
+```
+
+在线程阻塞前的准备逻辑,包括:
+- 将前驱节点的节点状态变为 SIGNAL.
+
+- 清除状态为 Node.CANCELLED 的无用节点.
+
+在前驱节点为 SIGNAL 的时候直接成功，成功之后回到 acquireQueued的逻辑调用 parkAndCheckInterrupt 方法阻塞线程。
+
+
+
+##### parkAndCheckInterrupt  -  直接阻塞线程的方法
+
+```java
+/**
+ *  阻塞线程,并在被唤醒后返回中断状况
+ */
+private final boolean parkAndCheckInterrupt() {
+    LockSupport.park(this);		 //调用park()使线程进入waiting状态
+    return Thread.interrupted();
+}
+```
+
+使用 LockSupport#park 直接阻塞当前线程，此时线程就进入了阻塞状态。
+
+阻塞状态被唤醒之后，通过 Thread#interrupted 方法获取了当前线程的终端状态，并且返回。
+
+
+
+在 acquireQueued 方法中，获取锁失败却退出了自旋，就表示当前线程放弃了锁竞争，就进入了取消流程。
+
+##### cancelAcquire - 取消获取
+
+```java
+/**
+ *   取消获取锁,acquireQueued方法的fianlly内进入
+ *  保证不会是因为错误无限循环 浪费系统资源
+ *  params：获取锁失败的节点
+ */
+private void cancelAcquire(Node node) {
+    // Ignore if node doesn't exist
+    if (node == null)
+        return;
+    node.thread = null;
+    // Skip cancelled predecessors
+    Node pred = node.prev;
+    // 前驱节点状态为取消时，直接删除前驱节点
+    while (pred.waitStatus > 0)			
+        node.prev = pred = pred.prev;
+    Node predNext = pred.next;	// 获取后继节点.. 是被跳过的节点
+    // 修改前驱节点状态为取消
+    node.waitStatus = Node.CANCELLED;	
+    // node为尾节点，将该节点前驱变为tail，并将前驱节点的next置空
+    if (node == tail && compareAndSetTail(node, pred)) {
+        compareAndSetNext(pred, predNext, null);
+    } else {
+        int ws;
+        // 不为头结点 执行下面判断CANCELLED
+        if (pred != head &&	
+            // 赋值并判断 不为SIGNAL进行下面判断
+            ((ws = pred.waitStatus) == Node.SIGNAL ||	
+             // 非取消状态就将状态改为SIGNAL，使用CAS保证并发		
+             (ws <= 0 && compareAndSetWaitStatus(pred, ws, Node.SIGNAL))) &&	
+            // 此判断会将前驱节点全变为SIGNAL状态
+            pred.thread != null) {  
+            // 当前节点的后继节点
+            Node next = node.next;   
+            // 后继不为空，且状态不为取消
+            if (next != null && next.waitStatus <= 0)	
+                // 在同步队列中删除当前节点
+                compareAndSetNext(pred, predNext, next);
+        } else {
+            // 唤醒方法在释放流程中
+            unparkSuccessor(node);		
+        }
+
+        node.next = node; // help GC
+    }
+}
+```
+
+cancelAcquire 可以看作是放弃锁竞争的流程，流程如下：
+
+1. 往前删除所有取消状态的节点
+2. 将当前节点置为取消状态
+3. 当前节点是尾节点，将前驱置换成尾节点并置空其后继节点
+4. 当前节点是头节点，直接唤醒后继节点
+5. 当前节点不是头节点，并且前驱节点已经为 SIGNAL(该状态表示后续节点在等待锁)，如果前驱不是 SIGNAL，就将其置为SIGNAL，然后从队列中删除当前节点(就是拿后继节点置换前驱的后继)。
+
+### 独占锁获取总结
 
 > 整个获取独占锁的的流程
-> 1. 首先调用`tryAcquire`方法尝试获取锁
-> 2. 获取锁失败之后,先调用`addWaiter`方法以独占方式将锁加入到等待队列末尾
->    1. `addWaiter`中会首次尝试入队,失败后调用`enq`
->    2. `enq`内自旋，负责初始化队列以及保证线程入队尾
-> 3. `acquireQueued`负责获取锁以及在失败之后挂起线程
+
+1. 首先调用 tryAcquire 方法尝试直接获取锁资源
+
+2. 获取锁失败之后,先调用 addWaiter 方法以独占方式将锁加入到等待队列末尾
+   - addWaiter 中会尝试单次直接入队，失败后调用 enq 自旋入队
+
+3. acquireQueued 负责自旋等待锁，将前驱置为 SIGNAL，并阻塞当前线程
+
+   - 自旋的过程中只有前驱节点为头节点，才会尝试获取锁
+
+   - 使用 **LockSupport类** 阻塞阻塞线程
+
+4. 锁获取失败之后，将节点状态改为 CANCELLED，并从队列中剔除当前节点
+
+5. 阻塞被唤醒之后，如果获取锁成功，则将当前节点置为头节点。
+
+### release(int) - 独占锁的释放
+
+```java
+public final boolean release(int arg) {
+    // 尝试释放锁 失败进入if代码
+    if (tryRelease(arg)) {
+        // 获取头节点
+        Node h = head;      
+        // 如果头节点不为空 且想头节点的状态不是等待获取锁
+        if (h != null && h.waitStatus != 0)
+            // 唤醒队列中下一个等待的线程
+            unparkSuccessor(h);
+        return true;
+    }
+    return false;
+}
+```
+
+#### tryRelease(int) - 尝试释放锁
+
+<img src="/home/chen/_note/pic/image-20210309225912867.png" alt="image-20210309225912867" style="zoom:67%;" />
+
+同样的，这里也是模板方法，真实逻辑在子类中实现，以下是 tryRelease 在 ReentrantLock#Sync 中的实现：
+
+<img src="/home/chen/_note/pic/image-20210309230030350.png" alt="image-20210309230030350" style="zoom:67%;" />
+
+tryRelease 只是将 releases 加回到 state 中，如果最终的 state 为0，表示资源完全释放，返回 true。
+
+>只有资源完全释放的时候返回 true，在重入锁 ReentrantLock 中，如果重入两次仅释放一次，锁资源也不是完全释放，tryRelease 方法返回的仍然是 false。
+
+#### upparkSuccessor - 唤醒后继有效节点
+
+```java
+/**
+ *  唤醒等待队列中下一个线程  
+ * 		入参: 希望唤醒的节点的前驱节点
+ */
+private void unparkSuccessor(Node node) {
+    ws = node.waitStatus;
+    // 判断并置0当前线程状态(取消状态不论)
+    if (ws < 0)
+        compareAndSetWaitStatus(node, ws, 0);
+    // 获取后继节点
+    Node s = node.next;
+    // 1. 后继节点为空 或者 后继节点的状态为取消 
+    if (s == null || s.waitStatus > 0) {
+        s = null;
+        // 从队尾开始向前找第一个有效节点
+        for (Node t = tail; t != null && t != node; t = t.prev)
+            // 判断是否是有效节点
+            if (t.waitStatus <= 0)    
+                s = t;
+    }
+    // 2. 不为空时直接唤醒后继节点
+    if (s != null)
+        LockSupport.unpark(s.thread);
+}
+
+```
+
+### 独占锁的释放总结
+
+> 独占锁的释放流程：
+
+1. tryRelease 中尝试释放锁资源，通常就是 state 的修改
+2. 唤醒队列中等待的后继有效节点(非取消状态的节点)，只会唤醒一个。
+
+
+
+
+
+## 共享锁
+
+### acquireShared - 获取共享锁
+
+以下是 AQS#acquireShared 的方法源码:
+
+<img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210309231606765.png" alt="image-20210309231606765" style="zoom:67%;" />
+
+同样的以 tryAcquireShared 这个模板方法尝试获取锁资源。
+
+
+
+#### tryAcquireShared - 尝试获取共享锁
+
+<img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210309231719390.png" alt="image-20210309231719390" style="zoom:67%;" />
+
+> 在独占锁中以 bool 类型表示是否成功获取锁，但在共享锁中，获取锁大于等于0表示锁获取成功。
 >
->    1. 自旋判断前驱节点,为头节点时才会尝试获取资源，失败时候进入挂起流程
->    2. `shouldParkAfterFailedAcquire`方法是**线程挂起前的准备操作**，将前驱节点状态变为`SIGNAL`,表示后继节点等待锁资源.
->    3. `parkAndCheckInterrupt`调用**LockSupport类**挂起当前线程,并在唤醒后返回中断信息.
->    4. `acquireQueued`的finally代码块保证了异常或中断退出时的资源释放,该代码会调用`cancelAcquire`出队并释放后继节点
+> **更进一步的，tryAcquireShared 返回的是目前的锁资源**。
 
- - `acquireQueued`中的获取锁失败之后的挂起流程
-    1. 第一次循环时前驱不为头结点或者尝试获取锁失败,此时会进入`shouldParkAfterFailedAcquire`方法,将前驱节点状态变为`SIGNAL`,并返回false,开始第二次循环.
-    2. 第二次获取失败之后,也是进入`shouldParkAfterFailedAcquire`方法,但因为第一次时前驱节点已经被为`SIGNAL`状态,此次直接返回true,之后就进入`parkAndCheckInterrupt`方法挂起当前线程.
+以下是在 CountDownLatch 中对于 tryAcquireShared 的具体实现:
 
-- 获取过程中`CLH队列`中,节点状态是为后继节点的状态.
+<img src="/home/chen/_note/pic/image-20210309232239454.png" alt="image-20210309232239454" style="zoom:67%;" />
 
-   -  当前节点状态为`SIGNAL`,表示后继节点需要锁资源
-   -  当前节点状态为`CANCELLED`,表示后继节点不再需要锁资源.
-   -  
+当前的 state 为0即为获取成功，连修改都没有。
 
-### 独占锁的释放
+> 对于 CountDownLatch 来说，await 方法相当于上锁，countDown 方法相当于释放锁。
+>
+> 所以初始化 CountDownLatch 为 n 的时候，getState() 返回不是0，则获取锁失败返回-1，线程进入阻塞队列。
 
-- 相对于锁的获取来说,释放锁简单许多.
 
-##### release  -  释放锁的上层方法
 
-- release()方法是独占模式下释放锁的入口.
-
-> release的流程
-> 1. `tryRelease`尝试释放资源,若释放成功返回true
-> 2. 释放成功之后调用`unparkSuccessor`唤醒队列中下一个等待线程
-- **tryRelease()**的返回值可以分为三种情况,分别是**负值表示获取失败,0表示获取成功但无剩余资源,正值表示获取成功且有剩余资源.**
+#### doAcquireShared(int) - 共享节点入队列
 
 ```java
-    public final boolean release(int arg) {
-        // 尝试释放锁 失败进入if代码
-        if (tryRelease(arg)) {
-            // 获取头节点
-            Node h = head;      
-            // 如果头节点不为空 且想头节点的状态不是等待获取锁
-            if (h != null && h.waitStatus != 0)
-                // 唤醒队列中下一个等待的线程
+/**
+ * Acquires in shared uninterruptible mode.
+ * @param arg the acquire argument
+ */
+private void doAcquireShared(int arg) {
+    // 直接以 SHARED 模式入队列
+    // addWaiter 中包含了 enq，会有队列的初始化逻辑
+    final Node node = addWaiter(Node.SHARED);
+    boolean failed = true;
+    try {
+        boolean interrupted = false;
+        // 自旋
+        for (;;) {
+            // 获取前驱节点
+            final Node p = node.predecessor();
+            // 前驱为头节点
+            if (p == head) {
+                // 再次尝试获取资源
+                int r = tryAcquireShared(arg);
+                // 获取成功，则进入退出阶段
+                // 在获取失败的时候，头节点的下一个节点无限自旋
+                if (r >= 0) {
+                    // 将当前节点置为头节点并进行传播
+                    setHeadAndPropagate(node, r);
+                    // p 已经不再是头节点了，node 才是
+                    p.next = null; // help GC
+                    if (interrupted)
+                        selfInterrupt();
+                    failed = false;
+                    return;
+                }
+            }
+            // 将前驱状态改为 SIGNAL，并阻塞当前节点
+            if (shouldParkAfterFailedAcquire(p, node) &&
+                parkAndCheckInterrupt())
+                interrupted = true;
+        }
+    } finally {
+        if (failed)
+            cancelAcquire(node);
+    }
+}
+```
+
+
+
+#### setHeadAndPropagate(Node, int)  -  设置头节点并传播
+
+```java
+private void setHeadAndPropagate(Node node, int propagate) {
+    // 设置头节点
+    Node h = head; // Record old head for check below
+    setHead(node);
+    // propagate 就是 tryAcquireShared 的返回值
+    if (propagate > 0 || h == null || h.waitStatus < 0 ||
+        (h = head) == null || h.waitStatus < 0) {
+        Node s = node.next;
+        // 后继节点为空或者后继为共享节点，则继续释放共享锁
+        if (s == null || s.isShared())
+            doReleaseShared();
+    }
+}
+```
+
+
+
+#### doReleaseShared - 传播（释放共享锁）
+
+```java
+private void doReleaseShared() {
+    // 自旋
+    for (;;) {
+        Node h = head;
+        if (h != null && h != tail) {
+            int ws = h.waitStatus;
+            if (ws == Node.SIGNAL) {
+                if (!compareAndSetWaitStatus(h, Node.SIGNAL, 0))
+                    continue;            // loop to recheck cases
                 unparkSuccessor(h);
-            return true;
+            }  // 在头节点状态为正常的时候，将其修改为 PROPAGATE 状态。
+            else if (ws == 0 &&
+                     !compareAndSetWaitStatus(h, 0, Node.PROPAGATE))
+                continue;                // loop on failed CAS
         }
-        return false;
+        // 头节点未改变就推出
+        if (h == head)                   // loop if head changed
+            break;
     }
-    
-    /**
-     * 尝试释放共享资源的锁，具体的逻辑实现由子类完成 
-     * return:true为已经释放
-     */
-    protected boolean tryRelease(int arg) {
-        throw new UnsupportedOperationException();
-    }
-       /**
-        *  唤醒等待队列中下一个线程  
-        * 		入参:唤醒节点的前驱节点或更前
-        */
-     private void unparkSuccessor(Node node) {
-            ws = node.waitStatus;
-            // 判断并置0当前线程状态(取消状态不论)
-            if (ws < 0)
-                compareAndSetWaitStatus(node, ws, 0);
-            // 获取后继节点
-            Node s = node.next;
-            // 1. 后继节点为空 或者 后继节点的状态为取消 
-            if (s == null || s.waitStatus > 0) {
-                s = null;
-                // 从队尾开始向前找第一个有效节点
-                for (Node t = tail; t != null && t != node; t = t.prev)
-                    // 判断是否是有效节点
-                    if (t.waitStatus <= 0)    
-                        s = t;
-            }
-         	// 2. 不为空时直接唤醒后继节点
-            if (s != null)
-                LockSupport.unpark(s.thread);
-        }
-    
+}
 ```
 
+> 在独占锁中，获取锁成功只会将当前节点置为头节点。
+>
+> 而在共享锁中，获取锁成功除了将当前节点置为头节点之外，还会扩散。
+
+如果当前节点的状态为 SIGNAL，表示后继有节点需要获取锁，但若当前节点状态为 0，表示后续节点并没有节点需要锁，所以将状态修改为 PROPAGATE 之后，就算释放锁成功。
+
+> 扩散的方式就是唤醒下个节点，下个节点获取成功的话会继续唤醒下个节点。
 
 
----
+
+### 共享锁获取总结
+
+> 共享锁的获取流程如下：
+
+1. 尝试 tryAcquireShared 获取共享锁资源，获取失败同样进入入队列的流程
+
+> 共享锁以 SHARED 模式入队列，流程基本和独占锁类似，入队列之后判断前驱状态，前驱非头节点，在改前驱状态为　SIGNAL 之后，阻塞当前线程。
+
+2. 在获取成功之后，除了将当前节点置为头节点，还会扩散
+
+> 这里的扩散，就是指唤醒下一个有效状态的节点，每次只唤醒后续一个节点，后续节点在 doAcquireShared 中再次尝试获取还成功的话会再向后扩散。
 
 
 
-#### 共享锁相关
 
-- 共享锁总体上和独占锁没有多大区别所以简略看了一下.
 
-##### `acquireShared`   该方法以共享的形式获取锁
-```java
-    /**
-      *  以共享的形式获取锁
-      */
-    public final void acquireShared(int arg) {
-        // 尝试获取锁
-        if (tryAcquireShared(arg) < 0)
-            doAcquireShared(arg);
-    }
-    /**
-      *  尝试获取锁的方法,具体实现在子类
-      *  因为在acquireShared中的判断,所以对成功或者失败的返回值有限制
-      *  负数代表获取失败，0表示获取成功,但没有剩余资源,正数代表获取成功还有资源，需要唤醒共享节点
-      */
-    protected int tryAcquireShared(int arg) {
-            throw new UnsupportedOperationException();
-    }
-    /**
-      *  共享模式下使当前线程进入等待队列(进入队尾) 
-      */
-    private void doAcquireShared(int arg) {
-            // 创建共享模式的node实例并添加到队列末尾
-        	// 独占锁中一样,addWaiter会先尝试入队列一次,失败后enq自旋入
-        	// 队列也会在enq中创建
-            final Node node = addWaiter(Node.SHARED);
-            // 是否成功标识
-            boolean failed = true;
-            try {
-                // 是否被中断标识
-                boolean interrupted = false;
-                // 自旋操作
-                for (;;) {      
-                    // 获得前驱节点,为空抛NPE
-                    final Node p = node.predecessor();
-                    // 如果node的前驱节点是head,node处于第二则有机会获得资源
-                    if (p == head) {    
-                        // 尝试获取资源
-                        int r = tryAcquireShared(arg);
-                        // 正数代表资源还有剩余，
-                        if (r >= 0) {   
-                    // 重点方法,共享模式的精髓 在自身获取到锁之后设置传播 唤醒后继共享节点
-                            setHeadAndPropagate(node, r);		
-                            p.next = null; // help GC
-                            if (interrupted)
-                                selfInterrupt();
-                            failed = false;
-                            return;
-                        }
-                    }
-                   	// 尝试获取锁失败之后的挂起逻辑和独占锁一样
-                    if (shouldParkAfterFailedAcquire(p, node) &&
-                        parkAndCheckInterrupt())
-                        interrupted = true;
-                }
-            // 退出循环时没有获取到锁，则置为取消状态
-            } finally {     
-                if (failed)
-                    cancelAcquire(node);
-            }
-        }
-        /**
-          *    设置头节点并唤醒可以共享的线程
-          */
-         private void setHeadAndPropagate(Node node, int propagate) {
-                Node h = head; // Record old head for check below
-                setHead(node);   
-                // 操作太骚 我看不懂
-                if (propagate > 0 || h == null || h.waitStatus < 0 ||
-                    (h = head) == null || h.waitStatus < 0) {
-                    Node s = node.next;
-                    if (s == null || s.isShared())
-                        doReleaseShared();
-                }
-            }
-```
 
-- 共享形式和独占形式在代码上大同小异,**在共享模式的获取锁完成之后会尝试唤醒别的线程**,主要还是四种线程状态的判断。
+
+### 共享锁的释放
+
+#### releaseShared(long) - 共享锁的释放
+
+<img src="/home/chen/_note/pic/image-20210310000341515.png" alt="image-20210310000341515" style="zoom:67%;" />
+
+通过 tryReleaseShared  尝试释放共享锁，释放成功之后唤醒后续节点，和独占锁的释放区别并不大。
+
+doReleaseShared 在上述就有介绍。
+
+
+
+
+
+## 独占锁和共享锁的区别
+
+**独占锁和共享锁的区别主要在获取锁之后的行为，独占锁会将自己置为头节点后直接退出，而共享锁会进行扩散，进一步唤醒后继节点。**
+
+
+
+
+
+
 
 ## AbstractOwnableSynchonizer
 
@@ -609,31 +713,29 @@ final boolean acquireQueued(final Node node, int arg) {
    * that may entail a notion of ownership. 
    */
 ```
-* 该类主要定义了线程独占的方式拥有的同步器，提供了创建锁和相关同步器的基础，并且可能会涉及到所有权的概念。
+该类主要定义了线程独占的方式拥有的同步器，提供了创建锁和相关同步器的基础，并且可能会涉及到所有权的概念。
+
+AbstractOwnableSynchronizer 的全部源码如下:
 
 ```java
-    public abstract class AbstractOwnableSynchronizer
-            implements java.io.Serializable {
-        private transient Thread exclusiveOwnerThread;      // 独占线程
-        // 设置当前拥有独占访问权的线程
-        protected final void setExclusiveOwnerThread(Thread thread) {
-                exclusiveOwnerThread = thread;
-        }
-        // 获取当前拥有独占访问权的线程
-        protected final Thread getExclusiveOwnerThread() {
-                return exclusiveOwnerThread;
-        }
+public abstract class AbstractOwnableSynchronizer
+    implements java.io.Serializable {
+    private transient Thread exclusiveOwnerThread;      // 独占线程
+    // 设置当前拥有独占访问权的线程
+    protected final void setExclusiveOwnerThread(Thread thread) {
+        exclusiveOwnerThread = thread;
     }
+    // 获取当前拥有独占访问权的线程
+    protected final Thread getExclusiveOwnerThread() {
+        return exclusiveOwnerThread;
+    }
+}
 ```
-* 由源码可见在AbstractOwnableSynchronizer中并不提供对该独占线程的管理
-
----
-
 ## AQS相关问题
 
 ### CLH队列 & CLH锁
-- `CLH`锁就是一种以链表为基础的,可扩展的高性能自旋锁,线程以本地变量为基准自旋,并轮询前驱节点的状态,以确定自旋的结束时间.所谓的`前驱节点`就是队列中在当前节点之前的线程节点.
-- `AQS`本身维护的链表其实就是一个`CLH队列`,以`Node`内部类构造节点.
+- CLH 锁就是一种以链表为基础的,可扩展的高性能自旋锁,线程以本地变量为基准自旋,并轮询前驱节点的状态,以确定自旋的结束时间.所谓的前驱节点就是队列中在当前节点之前的线程节点.
+- AQS 本身维护的链表其实就是一个 CLH 队列,以 Node 内部类构造节点.
 - 推荐阅读:[CLH队列相关博客](https://coderbee.net/index.php/concurrent/20131115/577)
 
 
