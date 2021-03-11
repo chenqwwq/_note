@@ -627,9 +627,7 @@ private void doAcquireShared(int arg) {
 }
 ```
 
-
-
-#### setHeadAndPropagate(Node, int)  -  设置头节点并传播
+##### setHeadAndPropagate(Node, int)  -  设置头节点并传播
 
 ```java
 private void setHeadAndPropagate(Node node, int propagate) {
@@ -647,9 +645,7 @@ private void setHeadAndPropagate(Node node, int propagate) {
 }
 ```
 
-
-
-#### doReleaseShared - 传播（释放共享锁）
+###### doReleaseShared - 传播（释放共享锁）
 
 ```java
 private void doReleaseShared() {
@@ -1054,6 +1050,11 @@ public abstract class AbstractOwnableSynchronizer
     }
 }
 ```
-## AQS 中断相关问题
 
-> 待补充。
+
+## AQS 总结
+
+### AQS 中断相关问题
+
+### PROPAGATE 状态的含义
+
