@@ -42,7 +42,7 @@ state 在 JUC 不同的实现类中有不同的含义:
 
 ## 内部类 - Node
 
-> Node类就是CLH同步队列以及条件队列的节点类，它就是组成两种队列的元素。
+> Node 类就是 CLH 同步队列以及条件队列的节点类，它就是组成两种队列的元素。
 
 ```java
 static final class Node {  
@@ -52,7 +52,7 @@ static final Node SHARED = new Node();
 static final Node EXCLUSIVE = null;      
 ```
 
-以特殊的Node实例对象表示共享或者独占模式（Node.SHARED | Node.EXCLUSIVE）。
+以特殊的 Node 实例对象表示共享或者独占模式（Node.SHARED | Node.EXCLUSIVE）。
 
 ```java
 // CANCELLED  表示当前的线程被取消
@@ -69,7 +69,7 @@ static final int PROPAGATE = -3;
 volatile int waitStatus;     
 ```
 
-waitStatus表示当前节点的状态，其上就是四种不同的节点状态。
+waitStatus 表示当前节点的状态，其上就是四种不同的节点状态。
 
 - 同步状态具体如下表所示：
 
@@ -77,7 +77,7 @@ waitStatus表示当前节点的状态，其上就是四种不同的节点状态�
 | :-------: | :----------------------------------------------------------: | :--: |
 | CANCELLED |        等待队列中的线程被中断或者超时,会变为取消状态         |  1   |
 |  SIGNAL   |  表示该节点的后继节点等待唤醒，在完成该节点后会唤醒后继节点  |  -1  |
-| CONDITION | 该节点位于条件等待队列,当其他线程调用了`condition.signal()`方法后会被唤醒进入同步队列 |  -2  |
+| CONDITION | 该节点位于条件等待队列,当其他线程调用了 condition.signal() 方法后会被唤醒进入同步队列 |  -2  |
 | PROPAGATE |       共享模式中，表示下次的获取锁资源后应该无条件传播       |  -3  |
 | 初始状态  |                          初始化状态                          |  0   |
 
@@ -92,20 +92,20 @@ volatile Node next;
 volatile Thread thread;     
 ```
 
-在同步队列中会使用前驱和后继节点组成一个双端队列，而thread则直接保存对应的线程对象。
+在同步队列中会使用前驱和后继节点组成一个双端队列，而 thread 则直接保存对应的线程对象。
 
 ```java
 // 下一个等待者
 Node nextWaiter;
 ```
 
-nextWaiter是在条件队列中使用的变量。
+nextWaiter 是在条件队列中使用的变量。
 
->AQS中同步队列以双端队列的形式，队列中每个 Node 都持有前驱和后继两个节点，AQS 持有队头和队尾元素。
+
+
+> 同步队列和条件队列使用 Node 内部类中不同的字段表示链表节点间的关系。
 >
->但条件队列则是单向的。
-
-
+> 同步队列使用 prev 和 next，所以它是个双向队列，而条件队列使用 nextWaiter，所以它是个单向队列。
 
 ## 上锁形式
 
@@ -149,7 +149,7 @@ static void selfInterrupt() {
 
 > 需要先理解逻辑判断的短路特性，上图如果 tryAcquire(arg) 为 true 就会直接退出方法。
 
-方法首先调用 tryAcquire 尝试快速获取锁，失败时调用 addWaiter 添加到阻塞队列，最后调用 acquireQueued 阻塞线程，异常退出中断当前线程。
+方法首先调用 tryAcquire 尝试快速获取锁，失败时调用 addWaiter 添加到阻塞队列，最后调用 acquireQueued 自旋，必要时阻塞当前线程，异常退出中断当前线程。
 
 
 
@@ -157,7 +157,7 @@ static void selfInterrupt() {
 
 <img src="/home/chen/_note/pic/image-20210309221820230.png" alt="image-20210309221820230" style="zoom: 67%;" />
 
-以上是 AbstractQueuedSynchronizer#tryAcquire() 的源码，arg 可以理解为希望获取的资源数，返回 true 即为上锁成功。
+以上是 AbstractQueuedSynchronizer#tryAcquire() 的源码**，arg 可以理解为希望获取的资源数，返回 true 即为上锁成功**。
 
 tryAcquire() 是模板方法，具体的实现在各个实现类中，以下是 ReentrantLock$Fair#tryAcquire() 的源码实现:
 
@@ -192,6 +192,8 @@ protected final boolean tryAcquire(int acquires) {
 **在 ReentrantLock 中 AQS 的 state 表示的就是重入次数，**为0时就表示空闲状态并没有上锁，所以一顿操作之后返回 true。
 
 如果返回的 false，就进入等待队列，首先调用的就是 addWaiter 方法。
+
+> ReentrantLock 中 state 表示的是重入次数，所以为0时表示没有线程持有当前锁，所以 CAS 尝试上锁。
 
 
 
@@ -265,17 +267,25 @@ private Node enq(final Node node) {
 }
 ```
 
-该方法负责初始化等待队列中的头尾节点，也包括循环 CAS 入队列。
+> 该方法包含了初始化队列的逻辑，**同步队列以空节点为队头元素。**
+
+该节点确保节点能够正常的被添加到同步队列中。
 
 > 在锁竞争激烈的时候，可能同时有多个线程准备入队列，此时依靠 CAS + 自旋保证了并发安全，只有一个节点可以置换成功。
 
 
 
-到此时，获取锁失败的线程已经进入了等待队列。
+enq 方法执行之后，当前线程已经进入了等待队列。
 
+#### acquireQueued  -  等待自旋
 
-
-#### acquireQueued  -  阻塞线程
+> 该方法传入的参数 node，必须是已经在同步队列中的节点，arg 则表示希望获取的资源数。
+>
+> 如果方法正常返回就表示获取成功，返回值为线程当前的中断状态。
+>
+> 
+>
+> 该方法可以直接理解为线程在等待队列时候的逻辑。
 
 ```java
 // AbstractQueueSynchronizer#acquireQueued
@@ -300,9 +310,9 @@ final boolean acquireQueued(final Node node, int arg) {
             }
             //  !!! 重点 获取失败之后的准备操作，将前驱节点变为SIGNAL等
             if (shouldParkAfterFailedAcquire(p, node) &&
-                // 调用park***方法后会park当前线程，等待unpark
+                // 调用park***方法后会park当前线程，等待唤醒
                 parkAndCheckInterrupt()) 
-                // 在前驱状态为SIGNAL，且线程暂停成功之后，置true
+                // 只有线程被中断唤醒时，才会执行该方法
                 interrupted = true; 
         }
     } finally {    
@@ -312,13 +322,15 @@ final boolean acquireQueued(final Node node, int arg) {
 }	
 ```
 
-该方法是节点在等待队列中的自旋过程，只有在前驱节点为头节点时，才会尝试获取锁。
+**该方法是节点在等待队列中的自旋过程，自旋会大量消耗 CPU，所有该过程中也会夹杂着阻塞线程的逻辑。**
 
-自旋两次失败之后，调用 LockSupport#park 方法阻塞线程。
+阻塞线程之前会将前驱节点的状态变为 SIGNAL。
 
 
 
 ##### shouldParkAfterFailedAcquire  -  线程阻塞前的准备逻辑
+
+> 进入该方法表示当前线程的**前驱节点不是头节**点或者**获取锁失败**。
 
 ```java
 /**
@@ -350,15 +362,17 @@ private static boolean shouldParkAfterFailedAcquire(Node pred, Node node) {
 ```
 
 在线程阻塞前的准备逻辑,包括:
-- 将前驱节点的节点状态变为 SIGNAL.
+- 将前驱节点的节点状态变为 SIGNAL。
 
-- 清除状态为 Node.CANCELLED 的无用节点.
+- 清除状态为 Node.CANCELLED 的无用前驱节点，这里是从后往前遍历的。
 
 在前驱节点为 SIGNAL 的时候直接成功，成功之后回到 acquireQueued的逻辑调用 parkAndCheckInterrupt 方法阻塞线程。
 
 
 
 ##### parkAndCheckInterrupt  -  直接阻塞线程的方法
+
+> 阻塞线程，并在线程被唤醒时返回中断状态。
 
 ```java
 /**
@@ -376,9 +390,9 @@ private final boolean parkAndCheckInterrupt() {
 
 
 
-在 acquireQueued 方法中，获取锁失败却退出了自旋，就表示当前线程放弃了锁竞争，就进入了取消流程。
-
 ##### cancelAcquire - 取消获取
+
+> acquireQueued 方法中除非正常的获取锁退出，不然任何异常都会走到这个方法，进行取消操作，出队列。
 
 ```java
 /**
@@ -388,6 +402,7 @@ private final boolean parkAndCheckInterrupt() {
  */
 private void cancelAcquire(Node node) {
     // Ignore if node doesn't exist
+    // 取消状态的节点，可能直接被GC回收了，此时直接退出就好。
     if (node == null)
         return;
     node.thread = null;
@@ -436,6 +451,8 @@ cancelAcquire 可以看作是放弃锁竞争的流程，流程如下：
 4. 当前节点是头节点，直接唤醒后继节点
 5. 当前节点不是头节点，并且前驱节点已经为 SIGNAL(该状态表示后续节点在等待锁)，如果前驱不是 SIGNAL，就将其置为SIGNAL，然后从队列中删除当前节点(就是拿后继节点置换前驱的后继)。
 
+
+
 ### 独占锁获取总结
 
 > 整个获取独占锁的的流程
@@ -443,17 +460,20 @@ cancelAcquire 可以看作是放弃锁竞争的流程，流程如下：
 1. 首先调用 tryAcquire 方法尝试直接获取锁资源
 
 2. 获取锁失败之后,先调用 addWaiter 方法以独占方式将锁加入到等待队列末尾
+
    - addWaiter 中会尝试单次直接入队，失败后调用 enq 自旋入队
 
 3. acquireQueued 负责自旋等待锁，将前驱置为 SIGNAL，并阻塞当前线程
 
    - 自旋的过程中只有前驱节点为头节点，才会尝试获取锁
 
-   - 使用 **LockSupport类** 阻塞阻塞线程
+   - 使用 **LockSupport 类**阻塞阻塞线程
 
 4. 锁获取失败之后，将节点状态改为 CANCELLED，并从队列中剔除当前节点
 
 5. 阻塞被唤醒之后，如果获取锁成功，则将当前节点置为头节点。
+
+
 
 ### release(int) - 独占锁的释放
 
@@ -472,6 +492,8 @@ public final boolean release(int arg) {
     return false;
 }
 ```
+
+
 
 #### tryRelease(int) - 尝试释放锁
 
@@ -702,6 +724,307 @@ doReleaseShared 在上述就有介绍。
 
 
 
+> 共享锁和独占锁在获取失败之后进入的都是阻塞队列，而条件队列是存在 await 方法阻塞的线程。
+
+## 条件队列
+
+> 条件队列是由 AQS 中 ConditionObject 内部类维护的单向队列，区别于 AQS 自身维护的阻塞队列。
+>
+> 条件队列可以和 Monitor 的等待队列做比较，但是 Monitor 只有一个等待队列，但是 AQS 可以有很多的条件队列。
+
+一般的可以通过 ReentrantLock#newCondition 获取条件队列，方法直接调用了内部类 Sync#newCondition 方法，源码如下：
+
+<img src="/home/chen/_note/pic/image-20210310225756380.png" alt="image-20210310225756380" style="zoom:67%;" />
+
+直接使用的 ConditionObject。
+
+> ConditionObject 本身就是一个完整的同步工具，不需要继承实现模板方法。
+
+
+
+### 成员变量
+
+以下为 ConditionObject 的成员变量:
+
+<img src="/home/chen/_note/pic/image-20210310230757243.png" alt="image-20210310230757243" style="zoom:67%;" />
+
+简单的持有了一个队列的队首和队尾元素。
+
+
+
+
+
+### 等待方法
+
+#### 等待形式
+
+|         方法名         |                   获取形式                   |
+| :--------------------: | :------------------------------------------: |
+|        await()         |            无限期阻塞，直到被唤醒            |
+| awaitUninterruptibly() |          无限期阻塞，并不会响应中断          |
+|    awaitNanos(long)    |            阻塞参数时长，单位为ms            |
+|    awaitUntil(Date)    |        阻塞直到参数之前，Date表示时间        |
+| await(long, TimeUnit)  | 阻塞一定市场，long表示事件，TimeUnit表示单位 |
+
+> 除了 signal 方法，thread.interrupt 方法也能唤醒被 LockSupport#park 阻塞的线程，区别就在于中断标志位。
+
+
+
+#### await - 阻塞等待
+
+> 调用 await 阻塞等待方法前，需要先获取到 ConditionObject 所在 AQS 的锁资源。
+>
+> 并且在阻塞之后，释放对应的 AQS 中，当前线程持有的所有的锁资源。
+
+```java
+// ConditionObject#await
+public final void await() throws InterruptedException {
+    // 当前线程是否中断
+    if (Thread.interrupted())
+        throw new InterruptedException();
+    // 添加当前节点到条件队列
+    Node node = addConditionWaiter();
+    // await 之后需要完全释放占有的锁资源
+    int savedState = fullyRelease(node);
+    int interruptMode = 0;
+    // 检查是否在同步队列
+    while (!isOnSyncQueue(node)) {
+        // 阻塞当前线程
+        LockSupport.park(this);
+        // 被唤醒之后检查中断状态
+        if ((interruptMode = checkInterruptWhileWaiting(node)) != 0)
+            break;
+    }
+    // 节点被唤醒，并已经存在同步队列之后，会尝试获取之前释放的所有资源。
+    // acquireQueued 是入队列后的自旋操作，如果满足条件会重新被阻塞。
+    // acquireQueued 返回的是线程的阻塞状态。
+    if (acquireQueued(node, savedState) && interruptMode != THROW_IE)
+        interruptMode = REINTERRUPT;
+    // 走之前先清理一遍，此时会把当前节点也清理掉
+    if (node.nextWaiter != null) // clean up if cancelled
+        unlinkCancelledWaiters();
+    // 中断处理
+    if (interruptMode != 0)
+        reportInterruptAfterWait(interruptMode);
+}
+```
+
+await 方法会将当前线程直接添加到条件队列，并释放所有资源，检查是否持有当前锁资源的任务就在释放的过程中。
+
+之后会判断当前线程是否在同步队列，如果不在则会阻塞，唤醒后检查中断标志位，然后继续检查是否在同步队列。
+
+> 在 signal 方法中，唤醒线程的方式就是修改其节点状态并且调用 enq 方法入同步队列。
+>
+> while 循环起到了防止异常唤醒的作用，如果不在同步队列中继续会被阻塞。
+
+这里的唤醒分为 signal 唤醒和 interrupt 唤醒，中断唤醒在检查标志位之后跳出循环。
+
+
+
+> 线程调用 await 进入条件队列之后，会释放所有持有的所资源，在条件满足，线程被唤醒后，也会要求拿回全部。
+>
+> 例如 ReentrantLock 重入3次之后 await，在被唤醒后也需要获取3个资源数。
+
+
+
+
+
+
+
+##### addConditioonWaiter - 添加到条件队列
+
+```java
+// ConditionObject#addConditionWaiter
+private Node addConditionWaiter() {
+    Node t = lastWaiter;
+    // If lastWaiter is cancelled, clean out.
+    // 如果最后节点不是 CONDITION 状态，开始清理整个条件队列
+    if (t != null && t.waitStatus != Node.CONDITION) {
+        unlinkCancelledWaiters();
+        t = lastWaiter;
+    }
+    // 包装当前节点，CONDITION 状态
+    Node node = new Node(Thread.currentThread(), Node.CONDITION);
+    // 入队列
+    if (t == null)
+        firstWaiter = node;
+    else
+        t.nextWaiter = node;
+    lastWaiter = node;
+    return node;
+}
+```
+
+以 CONDITION 状态包装当前线程入队列，整个入队列方法没有任何的并发控制。
+
+
+
+###### unlinkCancelledWaiters - 清除取消节点
+
+源码如下：
+
+<img src="/home/chen/_note/pic/image-20210310234153642.png" alt="image-20210310234153642" style="zoom:67%;" />
+
+> 从队列节点开始一一剔除状态不为 CONDITION 的节点。
+
+
+
+
+
+##### fullyRelease - 完成释放锁资源
+
+> 在添加到条件队列之后，当前线程就要释放所有持有的锁资源，重入锁需要全部撤销。
+>
+> **在之前添加到条件队列的时候并没有校验是否是锁资源的持有者，而是添加之后通过在释放的时候校验。**
+
+<img src="/home/chen/_note/pic/image-20210310234113584.png" alt="image-20210310234113584" style="zoom:67%;" />
+
+fullyRelease 最终还是通过 release 方法实现的，一次释放所有持有的锁资源。
+
+release 中会通过 tryRelease 撤销 state 的修改，ReentrantLock#tryRelease 的逻辑在上文可以看到。
+
+> ReentrantLock#tryRelease 会对当前线程进行检查是否是持有锁资源的线程，不是则排除异常，抛出异常之后节点会被修改为 CANCELLED状态。
+>
+> **！！！ 等待节点先入队列，再释放锁，若释放失败则为取消状态。**
+
+
+
+##### isOnSyncQueue  - 判断节点是否在同步队列
+
+> Q： 为什么需要判断节点是否在同步队列？
+>
+> 在 signal 的逻辑中可以看到，节点在被唤醒后会通过 enq 的方法添加到队列中。
+
+<img src="/home/chen/_note/pic/image-20210310235214860.png" alt="image-20210310235214860" style="zoom:67%;" />
+
+有两个简化判断：
+
+1. 节点没有前驱节点，肯定不在同步队列
+
+> 在同步队列中，前驱节点为一个空节点，任何在同步队列中的节点肯定都有前驱节点。
+
+2. 节点存在后继节点，肯定在同步队列
+
+> 条件队列是单向队列，通过 nextWaiter 维护节点关系，同步队列是双向队列通过 prev 和 next 维护节点关系。
+>
+> 所以在条件队列时，肯定不会存在后继节点。
+
+
+
+
+
+###### findNodeFromTail - 从后往前查找节点
+
+<img src="/home/chen/_note/pic/image-20210310235322334.png" alt="image-20210310235322334" style="zoom:67%;" />
+
+从 tail 节点开始的遍历，到头节点后就结束。
+
+
+
+##### checkInterruptWhileWaiting - 中断检查
+
+<img src="/home/chen/_note/pic/image-20210311112558047.png" alt="image-20210311112558047" style="zoom:67%;" />
+
+方法的注释如下：
+
+> 检查中断，**如果返回 THROW_IE 则中断发生在 signal 之前，如果返回 REINTERRUPT 则中断发生在 signal 之后。**
+
+Thread#interupted 方法会在返回当前线程的中断标志位之后修改标志，**如果是中断导致的退出，则进入到 transrferAfterCancelledWait 方法。**
+
+
+
+###### transferAfterCancelledWait - 转移节点
+
+> 正常的被 signal 唤醒时，线程会通在 signal 线程中被转移到同步队列，中断唤醒缺少这一流程。
+
+<img src="/home/chen/_note/pic/image-20210311113200910.png" alt="image-20210311113200910" style="zoom:67%;" />
+
+中断唤醒之后，尝试修改其 CONDITION 状态为0，修改成功之后入队列，并返回 true。
+
+> 上文说到的，返回 true 表示中断发生在 signal 调用之前，因为在 signal 之前调用的中断，所以此时的状态并没有修改。
+
+修改失败之后，只要节点不在同步队列就让出CPU。
+
+> 返回 false 表示，中断发生在 signal 信号发出之后，在 signal 唤醒线程的操作之前，中断唤醒了线程。
+>
+> 此时状态可能已经修改，signal 仍然再继续进行入队列的操作，所以这里相当于自旋等待 signal 线程将当前线程入队列。
+
+
+
+
+
+
+
+#### 阻塞逻辑总结
+
+调用 await 方法之后不需要检查锁持有状态，优先尾插法入队列。
+
+之后完全释放持有的锁资源，并进入阻塞状态。
+
+阻塞被唤醒后检查中断，如果不是因为中断
+
+
+
+
+
+#### signal - 唤醒阻塞线程
+
+<img src="/home/chen/_note/pic/image-20210311000007729.png" alt="image-20210311000007729" style="zoom:67%;" />
+
+signal 会先检查当前线程是否是 AQS 锁资源的持有者，不是就抛出异常，然后从头节点开始唤醒被挂起的线程。
+
+
+
+##### doSignal 
+
+<img src="/home/chen/_note/pic/image-20210311000243871.png" alt="image-20210311000243871" style="zoom:67%;" />
+
+首先先剔除了从等待队列剔除了 firstWaiter 节点，如果 first 节点状态不为 CONDITION 时，继续尝试唤醒下一个节点。
+
+> transferForSignal 在 node 节点不为 CONDITION 状态时才会返回 false。
+
+
+
+###### transferForSignal -入队列并修改前驱节点
+
+```java
+// AQS#transferForSignal
+final boolean transferForSignal(Node node) {
+    // 修改节点状态，修改失败 false 退出
+    if (!compareAndSetWaitStatus(node, Node.CONDITION, 0))
+        return false;
+    // enq 就是循环入队列的逻辑，返回的是前驱节点
+    Node p = enq(node);
+    int ws = p.waitStatus;
+    // 前驱节点状态为取消 或者 不为取消时，替换前驱节点状态为 SIGNAL 失败时，唤醒node节点
+    if (ws > 0 || !compareAndSetWaitStatus(p, ws, Node.SIGNAL))
+        LockSupport.unpark(node.thread);
+    return true;
+}
+```
+
+
+
+#### 唤醒逻辑总结
+
+> signal 方法调用必须先获取对应的 AQS 锁资源。
+
+> signal 方法会唤醒从条件队列队首开始的第一个有效节点，并且修改该节点状态，并将该节点入队列。
+
+
+
+
+
+
+
+
+
+
+
+
+
+> 条件队列，多条件队列是 AQS 实现阻塞队列的基础。
+
 
 
 ## AbstractOwnableSynchonizer
@@ -731,11 +1054,6 @@ public abstract class AbstractOwnableSynchronizer
     }
 }
 ```
-## AQS相关问题
+## AQS 中断相关问题
 
-### CLH队列 & CLH锁
-- CLH 锁就是一种以链表为基础的,可扩展的高性能自旋锁,线程以本地变量为基准自旋,并轮询前驱节点的状态,以确定自旋的结束时间.所谓的前驱节点就是队列中在当前节点之前的线程节点.
-- AQS 本身维护的链表其实就是一个 CLH 队列,以 Node 内部类构造节点.
-- 推荐阅读:[CLH队列相关博客](https://coderbee.net/index.php/concurrent/20131115/577)
-
-
+> 待补充。
