@@ -1,4 +1,8 @@
+
+
 # AbstractQueuedSynchronizer
+
+> - chenqwwq 2021/03
 
 ---
 
@@ -8,9 +12,9 @@
 
 ## 概述
 
-AbstractQueuedSynchronizer 是用于构造锁和基本同步器的基础框架，是 JUC 中大部分同步工具的实现基础。
+AbstractQueuedSynchronizer 是用于**构造锁和基本同步器**的基础框架，是 JUC 中大部分同步工具的实现基础。
 
-> AbstractQueueSynchronizer 可以同 Monitor 机制类比，AQS 是通过 Java 语言实现的同步模型，Monitor 是通过 JVM 使用 C语言实现的。
+> 很大程度上，AbstractQueueSynchronizer 可以同 Monitor 机制类比，AQS 是通过 Java 语言实现的同步模型，Monitor 是通过 JVM 使用 C语言实现的。
 
 AbstractQueuedSynchronizer内部维护了两种队列结构用来存放相关的等待线程:
 
@@ -580,7 +584,7 @@ private void unparkSuccessor(Node node) {
 
 
 
-#### doAcquireShared(int) - 共享节点入队列
+#### doAcquireShared(int) - 共享节点入队列，自旋阻塞
 
 ```java
 /**
@@ -627,6 +631,16 @@ private void doAcquireShared(int arg) {
 }
 ```
 
+该方法包含了入队列以及入队列后的自旋操作。
+
+首先是 addWaiter 方法，会将当前节点以 Node.SHARED 的模式入队列。然后通过类似于 acquireQueued 的操作来实现共享锁的自旋。
+
+> 共享锁和独占锁相同的地方，只有在前驱节点为头节点的时候才会尝试去获取锁，获取成功之后还会进行传播。
+
+
+
+
+
 ##### setHeadAndPropagate(Node, int)  -  设置头节点并传播
 
 ```java
@@ -644,6 +658,32 @@ private void setHeadAndPropagate(Node node, int propagate) {
     }
 }
 ```
+
+> 锁资源传播的首要条件是，**后继节点为空或者后继节点为共享节点**，除此之外需要满足以下条件的其中之一：
+>
+> 1. 获取的资源数大于0
+>
+> 1. 旧的头节点为空，或者状态正常
+> 2. 新的头节点为空，或者状态正常
+>
+>
+> **Q: 什么情况下，头节点会为空？**
+
+
+
+> 这里会出现一个状况，就是同步队列里面如下结构：
+>
+> ​				读 - 读 - 读 - 写 - 读
+>
+> 在首节点唤醒并扩散之后，在写节点这里卡住了，而不会扩散到最后的读节点。
+
+
+
+
+
+
+
+
 
 ###### doReleaseShared - 传播（释放共享锁）
 
@@ -805,7 +845,7 @@ public final void await() throws InterruptedException {
 }
 ```
 
-await 方法会将当前线程直接添加到条件队列，并释放所有资源，检查是否持有当前锁资源的任务就在释放的过程中。
+await 方法会将当前线程直接添加到条件队列，并释放所有资源，检查是否持有当前锁资源的逻辑就在释放的过程中。
 
 之后会判断当前线程是否在同步队列，如果不在则会阻塞，唤醒后检查中断标志位，然后继续检查是否在同步队列。
 
@@ -813,15 +853,19 @@ await 方法会将当前线程直接添加到条件队列，并释放所有资�
 >
 > while 循环起到了防止异常唤醒的作用，如果不在同步队列中继续会被阻塞。
 
-这里的唤醒分为 signal 唤醒和 interrupt 唤醒，中断唤醒在检查标志位之后跳出循环。
+唤醒可以分为 signal 唤醒和 interrupt 唤醒，中断唤醒在检查标志位之后跳出循环。
+
+> 不论哪种唤醒方式，都会进入同步队列再次尝试获取所，只有获取到锁，才能够继续后面的逻辑，包括异常的处理。
 
 
 
-> 线程调用 await 进入条件队列之后，会释放所有持有的所资源，在条件满足，线程被唤醒后，也会要求拿回全部。
->
-> 例如 ReentrantLock 重入3次之后 await，在被唤醒后也需要获取3个资源数。
+> Q: THROW_IE 和 REINTERRUPT 两种中断模式的区别。
 
+THROW_IE 表示中断在 SIGNAL 之前，线程就是由中断唤醒的，而 REINTERRUPT 表示线程中断发生自 SIGNAL 之后，可能是获取到锁的唤醒也可能是中断方法的唤醒。
 
+两种模式的具体处理，在 reportInterruptAfterWait 方法，THROW_IE 会直接抛出中断异常，而 REINTERRUPT 会再次中断当前线程。
+
+这是 await 方法对两种不同时间的中断的响应方式。
 
 
 
@@ -861,7 +905,7 @@ private Node addConditionWaiter() {
 
 <img src="/home/chen/_note/pic/image-20210310234153642.png" alt="image-20210310234153642" style="zoom:67%;" />
 
-> 从队列节点开始一一剔除状态不为 CONDITION 的节点。
+从队列节点开始一一剔除状态不为 CONDITION 的节点。
 
 
 
@@ -869,9 +913,9 @@ private Node addConditionWaiter() {
 
 ##### fullyRelease - 完成释放锁资源
 
-> 在添加到条件队列之后，当前线程就要释放所有持有的锁资源，重入锁需要全部撤销。
+> 在添加到条件队列之后，当前线程就要释放所有持有的锁资源，重入锁需要全部撤销，例如 ReentrantLock 重入3次之后 await，在被唤醒后也需要获取3个资源数。
 >
-> **在之前添加到条件队列的时候并没有校验是否是锁资源的持有者，而是添加之后通过在释放的时候校验。**
+> **在之前添加到条件队列的时候并没有校验是否是锁资源的持有者，而是添加之后通过 fullyRelease 在释放锁的时候校验。**
 
 <img src="/home/chen/_note/pic/image-20210310234113584.png" alt="image-20210310234113584" style="zoom:67%;" />
 
@@ -881,7 +925,11 @@ release 中会通过 tryRelease 撤销 state 的修改，ReentrantLock#tryReleas
 
 > ReentrantLock#tryRelease 会对当前线程进行检查是否是持有锁资源的线程，不是则排除异常，抛出异常之后节点会被修改为 CANCELLED状态。
 >
-> **！！！ 等待节点先入队列，再释放锁，若释放失败则为取消状态。**
+> **等待节点先入队列，再释放锁，若释放失败则为取消状态。**
+>
+> 最主要的，**该方法会将节点从同步队列中删除，配合上一步的 addConditionWaiter 方法，此时已经完成节点从同步队列到条件队列的转移。**
+
+
 
 
 
@@ -917,6 +965,8 @@ release 中会通过 tryRelease 撤销 state 的修改，ReentrantLock#tryReleas
 
 
 
+
+
 ##### checkInterruptWhileWaiting - 中断检查
 
 <img src="/home/chen/_note/pic/image-20210311112558047.png" alt="image-20210311112558047" style="zoom:67%;" />
@@ -924,8 +974,14 @@ release 中会通过 tryRelease 撤销 state 的修改，ReentrantLock#tryReleas
 方法的注释如下：
 
 > 检查中断，**如果返回 THROW_IE 则中断发生在 signal 之前，如果返回 REINTERRUPT 则中断发生在 signal 之后。**
+>
+> signal 发生指的是状态的修改，如果连状态都没改变仍然为 CONDITION，那么就是在 signal 发生前改变的。
+>
+> 具体可以看 transferAfterCancelledWait 方法。
 
-Thread#interupted 方法会在返回当前线程的中断标志位之后修改标志，**如果是中断导致的退出，则进入到 transrferAfterCancelledWait 方法。**
+Thread#interupted 方法会在返回当前线程的中断标志位之后修改中断标志，**如果是中断导致的退出，则进入到 transrferAfterCancelledWait 方法。**
+
+
 
 
 
@@ -935,29 +991,27 @@ Thread#interupted 方法会在返回当前线程的中断标志位之后修改�
 
 <img src="/home/chen/_note/pic/image-20210311113200910.png" alt="image-20210311113200910" style="zoom:67%;" />
 
-中断唤醒之后，尝试修改其 CONDITION 状态为0，修改成功之后入队列，并返回 true。
-
-> 上文说到的，返回 true 表示中断发生在 signal 调用之前，因为在 signal 之前调用的中断，所以此时的状态并没有修改。
-
-修改失败之后，只要节点不在同步队列就让出CPU。
-
-> 返回 false 表示，中断发生在 signal 信号发出之后，在 signal 唤醒线程的操作之前，中断唤醒了线程。
->
-> 此时状态可能已经修改，signal 仍然再继续进行入队列的操作，所以这里相当于自旋等待 signal 线程将当前线程入队列。
+中断唤醒之后，尝试修改其 CONDITION 状态为0，修改成功之后入队列，并返回 true，修改失败之后，只要节点不在同步队列就让出CPU。
 
 
 
 
+
+
+
+###### reportInterruptAfterWait - 中断标志位的处理
+
+<img src="/home/chen/_note/pic/image-20210312003019436.png" alt="image-20210312003019436" style="zoom:67%;" />
+
+THROW_IE 和 REINTERRUPT 就是 AQS 条件队列的异常处理模式。
 
 
 
 #### 阻塞逻辑总结
 
-调用 await 方法之后不需要检查锁持有状态，优先尾插法入队列。
+调用 await 方法之后不需要检查锁持有状态，优先尾插法入队列，之后完全释放持有的锁资源，并进入阻塞状态。
 
-之后完全释放持有的锁资源，并进入阻塞状态。
-
-阻塞被唤醒后检查中断，如果不是因为中断
+从条件队列的阻塞状态中脱离，可以是 signal 也可以是中断。
 
 
 
@@ -1051,8 +1105,9 @@ public abstract class AbstractOwnableSynchronizer
 }
 ```
 
+## AQS 相关
 
-## AQS 总结
+> 待总结。
 
 ### AQS 中断相关问题
 

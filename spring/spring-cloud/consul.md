@@ -1,5 +1,7 @@
 # Consul
 
+> - chenqwwq 2020/03
+
 ---
 
 [TOC]
@@ -19,53 +21,53 @@
 以下是 PropertySourceBootstrapConfiguration 的源码部分:
 
 ```java
-	@Override
-	public void initialize(ConfigurableApplicationContext applicationContext) {
-		List<PropertySource<?>> composite = new ArrayList<>();
-        // 对所有的 PropertySourceLocator 进行排序
-		AnnotationAwareOrderComparator.sort(this.propertySourceLocators);
-		boolean empty = true;
-		ConfigurableEnvironment environment = applicationContext.getEnvironment();
-        // propertySourceLocators 是在声明时指定的
-		for (PropertySourceLocator locator : this.propertySourceLocators) {
-            // 获取配置
-			Collection<PropertySource<?>> source = locator.locateCollection(environment);
-			if (source == null || source.size() == 0) {
-				continue;
-			}
-			List<PropertySource<?>> sourceList = new ArrayList<>();
-            // 分别包装
-			for (PropertySource<?> p : source) {
-				if (p instanceof EnumerablePropertySource) {
-					EnumerablePropertySource<?> enumerable = (EnumerablePropertySource<?>) p;
-					sourceList.add(new BootstrapPropertySource<>(enumerable));
-				}
-				else {
-					sourceList.add(new SimpleBootstrapPropertySource(p));
-				}
-			}
-			logger.info("Located property source: " + sourceList);
-			composite.addAll(sourceList);
-			empty = false;
-		}
-		if (!empty) {
-            // 获取原始属性
-			MutablePropertySources propertySources = environment.getPropertySources();
-			String logConfig = environment.resolvePlaceholders("${logging.config:}");
-			LogFile logFile = LogFile.get(environment);
-            // 过滤了以 bootstrap 开头的属性
-			for (PropertySource<?> p : environment.getPropertySources()) {
-				if (p.getName().startsWith(BOOTSTRAP_PROPERTY_SOURCE_NAME)) {
-					propertySources.remove(p.getName());
-				}
-			}
-           	// 
-			insertPropertySources(propertySources, composite);
-			reinitializeLoggingSystem(environment, logConfig, logFile);
-			setLogLevels(applicationContext, environment);
-			handleIncludedProfiles(environment);
-		}
-	}
+@Override
+public void initialize(ConfigurableApplicationContext applicationContext) {
+    List<PropertySource<?>> composite = new ArrayList<>();
+    // 对所有的 PropertySourceLocator 进行排序
+    AnnotationAwareOrderComparator.sort(this.propertySourceLocators);
+    boolean empty = true;
+    ConfigurableEnvironment environment = applicationContext.getEnvironment();
+    // propertySourceLocators 是在声明时指定的
+    for (PropertySourceLocator locator : this.propertySourceLocators) {
+        // 获取配置
+        Collection<PropertySource<?>> source = locator.locateCollection(environment);
+        if (source == null || source.size() == 0) {
+            continue;
+        }
+        List<PropertySource<?>> sourceList = new ArrayList<>();
+        // 分别包装
+        for (PropertySource<?> p : source) {
+            if (p instanceof EnumerablePropertySource) {
+                EnumerablePropertySource<?> enumerable = (EnumerablePropertySource<?>) p;
+                sourceList.add(new BootstrapPropertySource<>(enumerable));
+            }
+            else {
+                sourceList.add(new SimpleBootstrapPropertySource(p));
+            }
+        }
+        logger.info("Located property source: " + sourceList);
+        composite.addAll(sourceList);
+        empty = false;
+    }
+    if (!empty) {
+        // 获取原始属性
+        MutablePropertySources propertySources = environment.getPropertySources();
+        String logConfig = environment.resolvePlaceholders("${logging.config:}");
+        LogFile logFile = LogFile.get(environment);
+        // 过滤了以 bootstrap 开头的属性
+        for (PropertySource<?> p : environment.getPropertySources()) {
+            if (p.getName().startsWith(BOOTSTRAP_PROPERTY_SOURCE_NAME)) {
+                propertySources.remove(p.getName());
+            }
+        }
+        // 
+        insertPropertySources(propertySources, composite);
+        reinitializeLoggingSystem(environment, logConfig, logFile);
+        setLogLevels(applicationContext, environment);
+        handleIncludedProfiles(environment);
+    }
+}
 ```
 
 >PropertySourceBootstrapConfiguration 是通用的配置获取类，每种配置中心只需要实现 PropertySourceLocators 就好。

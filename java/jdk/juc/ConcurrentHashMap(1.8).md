@@ -1,14 +1,18 @@
-# ConcurrentHashMap(1.8)
+# ConcurrentHashMap
+
+>基于 JDK1.8 版本。 - chenqwwq 2020/03
 
 ---
 
 [TOC]
 
+---
+
 ## 概述
 
 ConcurrentHashMap 是 Java 中线程安全的 HashMap，1.8的实现中，内部采用了 CAS 以及 synchronized 实现并发安全。
 
-![](https://chenbxxx.oss-cn-beijing.aliyuncs.com/ConcurrentHashMap.png)
+
 
 > HashMap 有良好的存取性能，但并不支持并发环境，`HashTable`支持并发环境,但在存取方法上直接加`synchronized`的方式太过粗暴会使性能明显暴跌，即使在JDK1.6的优化之后。
 

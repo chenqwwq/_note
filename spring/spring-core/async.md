@@ -265,7 +265,15 @@ protected AsyncTaskExecutor determineAsyncExecutor(Method method) {
 }
 ```
 
-> executor 是一个 ConcurrentHashMap，以 Method 为 key，以 AsyncTaskExecutor 为 value。
+> executor 是一个 ConcurrentHashMap，以 Method 为 key，以 AsyncTaskExecutor 为 value，是本地的缓存，下次就不用走后续的判断逻辑。
+
+#### 执行器的选择逻辑
+
+> 首先获取的是 Async 注解中的 value 值，在容器中对应的执行器。
+>
+> 为空则继续获取默认的执行器，默认的执行器就是容器中的 TaskExecutor 类型 Bean 对象。
+>
+> 都没有则返回 null，会在上层方法抛异常。
 
 
 
@@ -302,13 +310,51 @@ protected AsyncTaskExecutor determineAsyncExecutor(Method method) {
 3. Future
 4. 无返回值
 
-> 异步的任务不会返回一个正常的返回值对象。
+> ！！异步的任务无法返回一个正常的返回值对象。
 
 
 
 CompletableFuture 暂时不了解。
 
-ListenableFuture 是 Spring 扩展的原 Future 接口，新增了回调函数的添加方法，常见的实现比如 AsyncResult。
+**ListenableFuture 是 Spring 扩展的原 Future 接口，新增了回调函数的添加方法，常见的实现比如 AsyncResult。**
 
 > 这里的回调函数包含 SuccessCallback 和 FailureCallback。
+
+
+
+
+
+## 总结
+
+
+
+> Q: 什么是 Async？
+
+Async 提供了简单的异步实现模式，只要在方法上标注 @Async 就可以异步执行该方法。
+
+
+
+> Q: Async 采用什么执行器执行任务？
+
+默认使用容器中的 TaskExecutor 对象，也可以在 @Async 中指定，若两者都没有则抛异常。
+
+
+
+> Q: Async 的实现方式？
+
+Async 主要还是使用的 Spring 的 AOP 实现。
+
+Async 模块自己实现了一个 AsyncAnnotationBeanPostProcessor ，在 Bean 创建过程中拦截并创建代理对象。
+
+AsyncAnnotationBeanPostProcessor 中创建了 Advice 和 Pointcut 对象。
+
+具体的实现逻辑还是在 AnnotationAsyncExecutionInterceptor 中。
+
+
+
+
+
+
+
+
 
