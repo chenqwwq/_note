@@ -4,6 +4,8 @@
 
 [TOC]
 
+---
+
 ## 概述
 
 synchronized是Java提供的同步原语，背后是Java虚拟机(JVM)提供的Monitor机制。

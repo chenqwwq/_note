@@ -1,304 +1,130 @@
-# Spring TX
+# Spring Transaction
 
 
 
+---
 
+[TOC]
 
-## Spring事务的自动化配置
+---
 
-> 简略描述。
+## 概述
 
-```mermaid
-graph TD
-	spring.factories -- 自动化配置引入 --> 
-	TransactionAutoConfiguration -- 配置bean引入 --> EnableTransactionManagement
-    -- Import引入--> TransactionManagementConfigurationSelector 
-    -- Import Selector引入--> ProxyTransactionManagementConfiguration
-    -- 配置bean引入 --> BeanFactoryTransactionAttributeSourceAdvisor
-```
+Spring 的事务本质上是对底层数据库的重封装。
 
 
 
-以上流程就是Spring中事务的自动化配置原理，最终就是引入了`ProxyTransactionManagementConfiguration`。
+## 相关组件
 
-以下为`ProxyTransactinManagementConfiguration`的全部源码:
+### TransactionManager - 事务管理器
 
-![image-20210203235021382](/home/chen/github/_note/pic/image-20210203235021382.png)
+该接口为标记接口，其直接子接口有 PlatformTransactionManager 和 ReactiveTransactionManager。
 
-作为一个Java Config类，不仅声明了`BeanFactoryTransactionAttributeSourceAdvisor`，另外的还有`TransactionInterceptor`以及`TransactionAttributeSource`。
+以 PlatformTransactionManager 为例子:
 
-![image-20210203235413136](/home/chen/github/_note/pic/image-20210203235413136.png)
+<img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210316224438850.png" alt="image-20210316224438850" style="zoom:67%;" />
 
-> `TransactionAttributeSource`的构造函数中就声明了事务仅仅在public方法中生效。
+实现的方法如下：
 
+|                          方法名称                          |   方法作用   |
+| :--------------------------------------------------------: | :----------: |
+| getTransaction(@Nullable TransactionDefinition definition) | 获取当前事务 |
+|              commit(TransactionStatus status)              |   提交事务   |
+|             rollback(TransactionStatus status)             |   回滚事务   |
 
+每种不同的数据访问实现，都可以定义自己的事务管理器，例如使用 Hibernate 访问数据库，
 
-## Spring事务的代理创建流程
+则新建的是 HibernateTransactionManager，也就有了自己的一套创建，提交和回滚逻辑。
 
-> 代理的创建主要还是在`AbstractAutoProxyCreator`中，`BeanFactoryTransactionAttributeSourceAdvisor`提供了代理创建的Pointcut和Advice。
 
-以下为`BeanFactoryTransactionAttributeSourceAdvisor`的全部源码:
 
-![image-20210203235529615](/home/chen/github/_note/pic/image-20210203235529615.png)
 
-该Advisor中直接使用`TransactionAttributeSourcePointcut`作为Pointcut，并实现了抽象方法。
 
-`TransactionAttributeSourcePointcut`继承了`StaticMethodMatcherPointcut`，默认以`ClassFilter.TRUE`作为ClassFilter，也就是说匹配所有的类。
+### TransactionDefinition - 事务定义
 
-而在MethodMatcher就是自身，对比方法是否匹配的逻辑如下:
+该类中定义了基本的事务属性，具体的属性如下：
 
-![image-20210204000118038](/home/chen/github/_note/pic/image-20210204000118038.png)
+<img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210316224752132.png" alt="image-20210316224752132" style="zoom:67%;" />
 
-`getTransactionAttributeSource`就是在Advisor中实现的抽象方法，因此判断方法是否需要事务代理的逻辑又来到了`TransactionAttrbuteSource`中。
+事务的属性有如下几个：
 
+|   属性名    |    属性含义    |
+| :---------: | :------------: |
+| Propagation | 事件的传播属性 |
+|  Isolation  | 事务的隔离级别 |
+|   Timeout   | 事务的超时事件 |
+|  ReadOnly   | 是否为只读事务 |
+|    name     |    事务名称    |
 
 
-`TransactionAttrbuteSource`就是在`ProxyTransactinManagementConfiguration`中声明的`AnnotationTransactionAttributeSource`。
 
+另外的 TransactionDefinition 中还定义了事务的隔离级别和传播级别。
 
+> 事务隔离级别就是不同事务并发时后互相之间的可见度。
 
+| 隔离级别                   | 含义                                                         |
+| -------------------------- | ------------------------------------------------------------ |
+| ISOLATION_DEFAULT          | 默认的隔离级别，使用的底层数据源默认的隔离级别               |
+| ISOLATION_READ_UNCOMMITTED | READ_UNCOMMITTED级别，可能会出现脏读，幻读，不可重复         |
+| ISOLATION_READ_COMMITTED   | READ_COMMITTED级别，避免了脏读和不可重复读                   |
+| ISOLATION_REPEATABLE_READ  | REPEATABLE_READ级别，在 InnoDB 的存储引擎下，该级别能避免幻读 |
+| ISOLATION_SERIALIZABLE     | SERIALIZABLE级别，串行化执行各个事务，也就不存在并发问题     |
 
 
-### 方法调用
 
-```java
-@Nullable
-protected Object invokeWithinTransaction(Method method, @Nullable Class<?> targetClass,
-      final InvocationCallback invocation) throws Throwable {
+> 事务的传播级别定义了事务控制的边界，在方法调用间决定事务的逻辑。
 
-   // If the transaction attribute is null, the method is non-transactional.
-   TransactionAttributeSource tas = getTransactionAttributeSource();
-    // 获取@Transaction的事务属性
-   final TransactionAttribute txAttr = (tas != null ? tas.getTransactionAttribute(method, targetClass) : null);
-    // 获取事务管理器,@Transaction中的value会被存为Qualifier,表示事务管理器的名称
-   final TransactionManager tm = determineTransactionManager(txAttr);
-	// reactive模式的事务执行
-   if (this.reactiveAdapterRegistry != null && tm instanceof ReactiveTransactionManager) {
-      ReactiveTransactionSupport txSupport = this.transactionSupportCache.computeIfAbsent(method, key -> {
-         if (KotlinDetector.isKotlinType(method.getDeclaringClass()) && KotlinDelegate.isSuspend(method)) {
-            throw new TransactionUsageException(
-                  "Unsupported annotated transaction on suspending function detected: " + method +
-                  ". Use TransactionalOperator.transactional extensions instead.");
-         }
-         ReactiveAdapter adapter = this.reactiveAdapterRegistry.getAdapter(method.getReturnType());
-         if (adapter == null) {
-            throw new IllegalStateException("Cannot apply reactive transaction to non-reactive return type: " +
-                  method.getReturnType());
-         }
-         return new ReactiveTransactionSupport(adapter);
-      });
-      return txSupport.invokeWithinTransaction(
-            method, targetClass, invocation, txAttr, (ReactiveTransactionManager) tm);
-   }
-
-   // 包装事务管理器
-   PlatformTransactionManager ptm = asPlatformTransactionManager(tm);
-    // 切入的方法名称
-   final String joinpointIdentification = methodIdentification(method, targetClass, txAttr);
-
-   // 获取不到事务
-   if (txAttr == null || !(ptm instanceof CallbackPreferringPlatformTransactionManager)) {
-      // Standard transaction demarcation with getTransaction and commit/rollback calls.
-      TransactionInfo txInfo = createTransactionIfNecessary(ptm, txAttr, joinpointIdentification);
-
-      Object retVal;
-      try {
-         // This is an around advice: Invoke the next interceptor in the chain.
-         // This will normally result in a target object being invoked.
-         retVal = invocation.proceedWithInvocation();
-      }
-      catch (Throwable ex) {
-         // target invocation exception
-         completeTransactionAfterThrowing(txInfo, ex);
-         throw ex;
-      }
-      finally {
-         cleanupTransactionInfo(txInfo);
-      }
-
-      if (retVal != null && vavrPresent && VavrDelegate.isVavrTry(retVal)) {
-         // Set rollback-only in case of Vavr failure matching our rollback rules...
-         TransactionStatus status = txInfo.getTransactionStatus();
-         if (status != null && txAttr != null) {
-            retVal = VavrDelegate.evaluateTryFailure(retVal, txAttr, status);
-         }
-      }
-
-      commitTransactionAfterReturning(txInfo);
-      return retVal;
-   }
-
-   else {
-      Object result;
-      final ThrowableHolder throwableHolder = new ThrowableHolder();
-
-      // It's a CallbackPreferringPlatformTransactionManager: pass a TransactionCallback in.
-      try {
-         result = ((CallbackPreferringPlatformTransactionManager) ptm).execute(txAttr, status -> {
-            TransactionInfo txInfo = prepareTransactionInfo(ptm, txAttr, joinpointIdentification, status);
-            try {
-               Object retVal = invocation.proceedWithInvocation();
-               if (retVal != null && vavrPresent && VavrDelegate.isVavrTry(retVal)) {
-                  // Set rollback-only in case of Vavr failure matching our rollback rules...
-                  retVal = VavrDelegate.evaluateTryFailure(retVal, txAttr, status);
-               }
-               return retVal;
-            }
-            catch (Throwable ex) {
-               if (txAttr.rollbackOn(ex)) {
-                  // A RuntimeException: will lead to a rollback.
-                  if (ex instanceof RuntimeException) {
-                     throw (RuntimeException) ex;
-                  }
-                  else {
-                     throw new ThrowableHolderException(ex);
-                  }
-               }
-               else {
-                  // A normal return value: will lead to a commit.
-                  throwableHolder.throwable = ex;
-                  return null;
-               }
-            }
-            finally {
-               cleanupTransactionInfo(txInfo);
-            }
-         });
-      }
-      catch (ThrowableHolderException ex) {
-         throw ex.getCause();
-      }
-      catch (TransactionSystemException ex2) {
-         if (throwableHolder.throwable != null) {
-            logger.error("Application exception overridden by commit exception", throwableHolder.throwable);
-            ex2.initApplicationException(throwableHolder.throwable);
-         }
-         throw ex2;
-      }
-      catch (Throwable ex2) {
-         if (throwableHolder.throwable != null) {
-            logger.error("Application exception overridden by commit exception", throwableHolder.throwable);
-         }
-         throw ex2;
-      }
-
-      // Check result state: It might indicate a Throwable to rethrow.
-      if (throwableHolder.throwable != null) {
-         throw throwableHolder.throwable;
-      }
-      return result;
-   }
-}
-```
-
-
-
-
-
-```java
-// 必要情况下创建事务	
-protected TransactionInfo createTransactionIfNecessary(@Nullable PlatformTransactionManager tm,
-			@Nullable TransactionAttribute txAttr, final String joinpointIdentification) {
-
-    // If no name specified, apply method identification as transaction name.
-    // 事务如果没有名称，就以方法名作为事务的名称
-    if (txAttr != null && txAttr.getName() == null) {
-        txAttr = new DelegatingTransactionAttribute(txAttr) {
-            @Override
-            public String getName() {
-                return joinpointIdentification;
-            }
-        };
-    }
-    TransactionStatus status = null;
-    if (txAttr != null) {
-        if (tm != null) {
-            // 从事务管理器中开启事务
-            status = tm.getTransaction(txAttr);
-        }else {
-            if (logger.isDebugEnabled()) {
-                logger.debug("Skipping transactional joinpoint [" + joinpointIdentification +
-                             "] because no transaction manager has been configured");
-            }
-        }
-    }
-    return prepareTransactionInfo(tm, txAttr, joinpointIdentification, status);
-}
-```
-
-
-
-```java
-@Override
-public final TransactionStatus getTransaction(@Nullable TransactionDefinition definition)
-    throws TransactionException {
-	// 确定事务相关属性，如果属性为空则全部使用默认
-    TransactionDefinition def = (definition != null ? definition : TransactionDefinition.withDefaults());
-	// 获取事务
-    Object transaction = doGetTransaction();
-    boolean debugEnabled = logger.isDebugEnabled();
-
-    if (isExistingTransaction(transaction)) {
-        // Existing transaction found -> check propagation behavior to find out how to behave.
-        return handleExistingTransaction(def, transaction, debugEnabled);
-    }
-
-    // Check definition settings for new transaction.
-    if (def.getTimeout() < TransactionDefinition.TIMEOUT_DEFAULT) {
-        throw new InvalidTimeoutException("Invalid transaction timeout", def.getTimeout());
-    }
-
-    // No existing transaction found -> check propagation behavior to find out how to proceed.
-    // MANDATORY表示当前必须要存在事务，不存在则抛出异常
-    if (def.getPropagationBehavior() == TransactionDefinition.PROPAGATION_MANDATORY) {
-        throw new IllegalTransactionStateException(
-            "No existing transaction found for transaction marked with propagation 'mandatory'");
-    }
-    else if (def.getPropagationBehavior() == TransactionDefinition.PROPAGATION_REQUIRED ||
-             def.getPropagationBehavior() == TransactionDefinition.PROPAGATION_REQUIRES_NEW ||
-             def.getPropagationBehavior() == TransactionDefinition.PROPAGATION_NESTED) {
-        // 挂起TransactionSynchronizationManager的执行
-        SuspendedResourcesHolder suspendedResources = suspend(null);
-        if (debugEnabled) {
-            logger.debug("Creating new transaction with name [" + def.getName() + "]: " + def);
-        }
-        try {
-            // 开始新的事务
-            return startTransaction(def, transaction, debugEnabled, suspendedResources);
-        }
-        catch (RuntimeException | Error ex) {
-            resume(null, suspendedResources);
-            throw ex;
-        }
-    }
-    else {
-        // Create "empty" transaction: no actual transaction, but potentially synchronization.
-        if (def.getIsolationLevel() != TransactionDefinition.ISOLATION_DEFAULT && logger.isWarnEnabled()) {
-            logger.warn("Custom isolation level specified but no actual transaction initiated; " +
-                        "isolation level will effectively be ignored: " + def);
-        }
-        boolean newSynchronization = (getTransactionSynchronization() == SYNCHRONIZATION_ALWAYS);
-        return prepareTransactionStatus(def, null, true, newSynchronization, debugEnabled, null);
-    }
-}
-```
-
-
-
-
-
-### 开启新事务
-
-```java
-private TransactionStatus startTransaction(TransactionDefinition definition, Object transaction,
-                                           boolean debugEnabled, @Nullable SuspendedResourcesHolder suspendedResources) {
-
-    boolean newSynchronization = (getTransactionSynchronization() != SYNCHRONIZATION_NEVER);
-    DefaultTransactionStatus status = newTransactionStatus(
-        definition, transaction, true, newSynchronization, debugEnabled, suspendedResources);
-    doBegin(transaction, definition);
-    prepareSynchronization(status, definition);
-    return status;
-}
-```
+| 传播级别                  | 含义                                                         | 影响                                                         |
+| ------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| PROPAGATION_REQUIRED      | 默认级别，方法需要在事务中执行，当前没有则新建，有则加入     | 以单个事务执行，如果加入外层事务，不管内外的异常都会触发回滚 |
+| PROPAGATION_SUPPORTS      | 支持事务执行，当前有事务就加入，没有就以非事务模式执行       | 同上                                                         |
+| PROPAGATION_MANDATORY     | 强制性以事务模型执行，如果当前没有事务则抛异常               | 同上                                                         |
+| PROPAGATION_REQUIRES_NEW  | 新事务执行，该方法必须以单独的事务执行，当前有事务就暂时挂起，新开事务执行 | 以多个事务执行，内外的异常不会互相印象，里层的异常不会触发外层的回滚 |
+| PROPAGATION_NOT_SUPPORTED | 不支持事务模式执行，若当前存在事务则先挂起                   | 必须以非事务模式执行                                         |
+| PROPAGATION_NEVER         | 不能以事务模式执行，若当前存在事务则抛出异常                 | 必须以非事务模式执行                                         |
+| PROPAGATION_NESTED        | 以嵌套事务执行，如果当前存在事务则嵌套执行，如果没有事务则新建 | 如果加入当前事务，则外层事务的异常会触发内层的回滚，而内层的异常对外层无影响 |
 
+
+
+
+
+> 异常需要抛出到方法外，如果方法内捕获了异常，也就不会触发回滚。
+
+
+
+### TransactionStatus - 事务状态
+
+<img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210316232310738.png" alt="image-20210316232310738" style="zoom:67%;" />
+
+记录了当前事务的状态。
+
+
+
+|      状态      |        含义        |
+| :------------: | :----------------: |
+|  rollbackOnly  |  事务是否只能回滚  |
+| newTransaction |    是否为新事务    |
+|   completed    |    事务是否完成    |
+|  hasSavepoint  | 是否存在 SavePoint |
+
+
+
+## 事务的自动化配置
+
+通过 @EnableTransactionManagement 引入的 TransactionManagementConfigurationSelector 来加载具体的配置类。
+
+例如如果使用的 JDK 的动态代理，引入的就是 ProxyTransactionManagementConfiguration。
+
+
+
+
+
+
+
+
+
+## 乱来的
+
+
+
+ProxyTransactionManagementConfiguration

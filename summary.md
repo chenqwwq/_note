@@ -119,3 +119,21 @@ AQS - interprete，CountDownLatch
 更新简历。
 
 后续开始复习 Redis，Kafka之类的，四月初开始面试，没有是满意的就不换了，感觉涨点工资并不是我的目标。
+
+
+
+
+
+## 2020/03/16
+
+借由 @Async 理解 Spring 的代理和 JDK Proxy 的关系。
+
+> JDK Proxy 中使用 Proxy.newInstance 方法创建的代理对象，可以转化为所有实现的接口。
+>
+> 代理对象必须是 **InvocationHandler** 的子类，并实现该类的 invoke 方法，之后对产生的代理的所有接口方法的调用都会转到 invoke 方法中。
+
+> JdkDynamicAopProxy 自身就是一个 InvocationHandler 的实现，所有实现的代理类最终都会调用到该类的 invoke 方法。
+
+TODO: JdkDynamicAopProxy 的源码有空可以看一下，现在先到此为止吧。
+
+重新回顾一下 Spring 事务相关的知识点，包括传播和隔离。
