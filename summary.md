@@ -137,3 +137,39 @@ AQS - interprete，CountDownLatch
 TODO: JdkDynamicAopProxy 的源码有空可以看一下，现在先到此为止吧。
 
 重新回顾一下 Spring 事务相关的知识点，包括传播和隔离。
+
+
+
+
+
+## 2020/03/18
+
+下午和群里小伙伴讨论了以下 Spring 的事务在**加入**的情形下，内层事务对外层事务的影响，外层 catch 异常之后的逻辑。
+
+> 内层事务和外层事务公用一个底层事务，所以内层和外层的事务同时提交，同时回滚。
+>
+> 在执行内部方法的时候如果抛出异常，就已经让事务代理类感知到了，所以即使是 catch 住了内外也是一起回滚。
+>
+> 群里的说他试了并没有回滚，可能情况如下:
+>
+> 1. 同个类内使用 this 指针调用
+> 2. 非 public 方法
+>
+> 总结就是内层的事务并未生效。
+
+Feign 相关
+
+Feign 会为每个 FeignClient 创建是一个服务上下文，使用的 FeignContext 保存，继承了 NamedContextFactory，每一个上下文中保存了 Encoder，decoder 等组件。
+
+**FeignClientFactoryBean** 在创建代理的时候通过有没有 url 属性判断，有 url 就不会走负载均衡。
+
+**Contract** 在 Feign 中用来解析方法上的注解，常用的就有 SpringMvcContract。
+
+**Feign#Builder** 是用来创建最终代理对象的类，HystrixFeign#Builder 继承了 Feign#Builder，添加了 HystrixInvocationHandler 的工厂类，也替换了 Contract。
+
+**Targeter** 是在创建之前做一些额外的配置，比如 HystrixTargeter 就在默认的 Targeter 的基础上多解析了 fallback 和 fallbackFactory。
+
+**InvocationHandler** 就是 JDK Proxy 中的那个，是最终执行的请求的类，默认是 ReflectiveFeign.FeignInvocationHandler，而 Hystrix 采用的是 HystrixInvocationHandler。
+
+**Client** 是最终执行的请求的类，常用的有 LoadBalancerFeignClient 类。
+

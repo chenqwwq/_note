@@ -1,8 +1,6 @@
 # Feign
 
-
-
-
+> 基于 spring-cloud-openfeign-core-2.2.4.RELEASE
 
 ---
 
@@ -10,19 +8,40 @@
 
 ---
 
-## Feign 的自动化配置
+
+
+## FeignClient 注解
+
+> 该注解就是用来声明一个远程服务的，基于该注解代理整个接口为一个服务调用类。
+
+<img src="/home/chen/_note/pic/image-20210317212959080.png" alt="image-20210317212959080" style="zoom:67%;" />
+
+| 属性名          | 属性含义                                                     |
+| --------------- | ------------------------------------------------------------ |
+| value           | 服务名称                                                     |
+| name            | 等同于value                                                  |
+| contextId       | 上下文Id，默认为服务名称                                     |
+| qualifier       | 服务别名                                                     |
+| url             | 请求的绝对URL，例如微信的接口，url 就可以定义为：https://api.weixin.qq.com/ |
+| decode404       | 对于404异常是否需要解码                                      |
+| fallback        | 降级策略，继承定义的接口方法实现就是服务降级的逻辑，实现类需要注册为Bean |
+| fallbackFactory | 降级策略工厂，继承定义的接口方法实现就是服务降级的逻辑       |
+| path            | 请求地址的统一前缀                                           |
+| primary         | 等同于 @Primary 是不是主要的Bean对象，默认为true             |
 
 
 
-## FeignClient Bean注册流程
 
-FeignClient 注解的解析流程在于 FeignClientsRegistrar，该类在 EnableFeignClients 注解中被加入到容器中。
+
+## FeignClient -  注解扫描流程
+
+FeignClient 注解的解析流程在于 **FeignClientsRegistrar**，该类在 EnableFeignClients 注解中被加入到容器中。
+
+该注解源码如下：
 
 <img src="/home/chen/_note/pic/image-20210304213239994.png" alt="image-20210304213239994" style="zoom:67%;" />
 
-
-
-在 FeignClientsRegistrar 继承了 ImportBeanDefinitionRegistrar。
+@Import 中的 FeignClientsRegistrar 继承了 ImportBeanDefinitionRegistrar。
 
 > ImportBeanDefinitionRegistrar 类借由 ConfigurationClassPostProcessor，在上下文刷新阶段就会调用该接口的  registerBeanDefinitions 方法。
 
@@ -30,9 +49,19 @@ FeignClient 注解的解析流程在于 FeignClientsRegistrar，该类在 Enable
 
 首先会向容器注册一个默认的配置类。
 
+<img src="/home/chen/_note/pic/image-20210318214330736.png" alt="image-20210318214330736" style="zoom:67%;" />
+
+从 EnableFeignClients 注解中提取 defaultConfiguration 属性，默认为空。
+
+<img src="/home/chen/_note/pic/image-20210318214438618.png" alt="image-20210318214438618" style="zoom:67%;" />
+
+此时如果是默认，则以空对象注册到 BeanFactory 中，配置类的类型是  FeignClientSpecification。
+
 > 配置项中包括了 Contract，Encoder，Decoder，ConversionService 等基础的配置项。
 >
-> 也可以为每个 FeignClient 指定一个单独的配置类。
+> Feign 可以为每个 FeignClient 指定一个单独的配置类，如果没有配置则采用默认的配置类。
+
+
 
 之后的 registerFeignClients 方法的作用则是扫描 FeignClient 注解，并向容器注册。
 
@@ -42,6 +71,7 @@ public void registerFeignClients(AnnotationMetadata metadata,
                                  BeanDefinitionRegistry registry) {
     // 获取类扫描器，它的功能就是扫描整个包的所有Java类
     ClassPathScanningCandidateComponentProvider scanner = getScanner();
+    // 资源加载器
     scanner.setResourceLoader(this.resourceLoader);
     Set<String> basePackages;
     // 获取 EnableFeignClients 注解的属性
@@ -107,28 +137,15 @@ public void registerFeignClients(AnnotationMetadata metadata,
 
 ```
 
+整个流程就是确定扫描的目录，然后用 ClassPathScanningCandidateComponentProvider 扫描。
 
+扫描的目录如下，如果没有指明 clients 会扫描整个根目录，如果指明了 clients，会扫描 clients 所在的包，以及 clients 表示的类。
 
-以下是配置类注册的流程:
+扫描之后会为每个 FeignClient 类注册一个配置类，再注册一个 FeignClient 的代理类。
 
-```java
-// FeignClientsRegistrar#registerClientConfiguration
-private void registerClientConfiguration(BeanDefinitionRegistry registry, Object name,
-                                         Object configuration) {
-    BeanDefinitionBuilder builder = BeanDefinitionBuilder
-        .genericBeanDefinition(FeignClientSpecification.class);
-    builder.addConstructorArgValue(name);
-    // 这里注册的config可能为空
-    builder.addConstructorArgValue(configuration);
-    // 使用BeanDefinitionRegistry注册BeanDefinition
-    registry.registerBeanDefinition(
-        // 组合的名称类似:dev-consul-server.FeignClientSpecification
-        name + "." + FeignClientSpecification.class.getSimpleName(),
-        builder.getBeanDefinition());
-}
-```
+> FeignClient 只能标注在接口上。
 
-> FeignClientSpecification 可以看做 name/configuration 的组合类。
+注册配置类的逻辑上面的一样，但是此时取的是 FeignClient 中指明的配置类。
 
 以下是注册 FeignClient 的流程:
 
@@ -175,21 +192,33 @@ private void registerFeignClient(BeanDefinitionRegistry registry,
 }
 ```
 
-到这里 FeignClient 的对象就生成好了，最终注入到容器的对象类型是 FeignClientFactoryBean。
+> 首先重要的一点就是，扫描的 FeignClient 类都会被注册为 FeignClientFactoryBean。
+
+会将 FeignClient 中的所有属性都取出来塞进 BeanDefinition里面，然后为该类以及所有别名注册 Bean 对象。
+
+
+
+> 以上就是扫描的全过程。
+
+
 
 ### 小结
 
-Feign 借由 ImportBeanDefinitionRegistrar 接口，在容器初始化阶段扫描并注册了 BeanDefinition。
+Feign 借由 ImportBeanDefinitionRegistrar 接口，在容器初始化阶段扫描 FeignClint 标注的类并以 FeignClientFactoryBean 注册了 BeanDefinition。
 
-相关的 BeanDefinition 包括默认的配置类，每个 FeignClient 对象，以及其上指明的配置类。
+除了默认的配置类之外，还为每一个 FeignClient 都注册了自己的配置对象。
 
-> 最重要的，FeignClient 最终扫描完成后注册的是 FeignClientFactoryBean 对象，这是一个 FactoryBean 对象。
->
-> 所以最终的代理对象创建还需要继续看 FeignClientFactoryBean#getObject() 方法。
 
-## FeignClient 代理对象创建流程
 
-最后创建真实调用的 Bean 对象就是 FeignClientFactoryBean#getObject()。
+
+
+
+
+> FeignClientFactoryBean 继承于 FactoryBean ，所以真实的代理创建流程还是在 FeignClientFactoryBean#getObject() 方法中。
+
+## FeignClientFactoryBean -  代理对象创建流程
+
+以下是 FeignClientFactoryBean#getObject 方法源码：
 
 <img src="/home/chen/_note/pic/image-20210304232239220.png" alt="image-20210304232239220" style="zoom:67%;" />
 
@@ -200,6 +229,7 @@ Feign 借由 ImportBeanDefinitionRegistrar 接口，在容器初始化阶段扫�
 <T> T getTarget() {
     // 从 ApplicationContext 中获取 FeignContext 类Bean对象
     FeignContext context = applicationContext.getBean(FeignContext.class);
+    // 获取 FeignBuilder
     Feign.Builder builder = feign(context);
 	
     // 根据是否有url
@@ -261,33 +291,41 @@ protected Feign.Builder feign(FeignContext context) {
 }
 ```
 
+## 
+
 Feign.Builder 就是用来创建 Target 类的工厂类，这里会通过配置文件选取具体的工厂。
 
 
 
 
 
-### 各类组件的获取流程
+### get(FeignContext, Class) - 相关组件的获取
 
-> 先说结论， Feign 会为每个 FeignClient 创建 ApplicationContext，上下文中仅包含了其配置类，如果没有则为默认的配置类。
 
-FeignClientFactoryBean 中可以通过 get / getOptional 获取相关的组件，以下是 get 方法的源码：
 
-<img src="/home/chen/_note/pic/image-20210304233225735.png" alt="image-20210304233225735" style="zoom:67%;" />
 
-get 方法会从 FeignContext 中获取该类的对象:
 
-<img src="/home/chen/_note/pic/image-20210304233306625.png" alt="image-20210304233306625" style="zoom:67%;" />
+## FeignContext - 服务上下文集合
 
-再往下追就看到，最终获取的对象还是从 ApplicationContext 来的，但此时的 ApplicationContext 并不是最初的或者 bootstrap(SpringCloud的)。
+Feign 的实现中会为每个服务创建一个应用上下文，并且使用 FeignContext 保存，FeignContext 继承于 NamedContextFactory，作为应用中所有 Feign 上下文的集合。
 
-<img src="/home/chen/_note/pic/image-20210304233415972.png" alt="image-20210304233415972" style="zoom:67%;" />
+> NamedContextFactory 中定义的是一组的应用上下文，并且应用上下文具有相同的配置类型，以及同一个父上下文。
+>
+> <img src="/home/chen/_note/pic/image-20210318223749982.png" alt="image-20210318223749982" style="zoom:67%;" />
+>
+> NameContextFactory 中 contexts 保存的就是所有的子上下文，configurations 保存的就是对应的配置类。
 
-从 getContext 方法中可以看到，根据 name 也就是 contextId 获取不同的 ApplicationContext，如果不存在则创建。
 
-> FeignContext 继承于 NamedContextFactory 可以看做是简单的 name 到 ApplicationContext 的映射，使用 FeignClient 的 name 属性做 Key，每个 FeignClient 都会有自己专属的 ApplicationContext。
 
-以下为创建 ApplicationContext 的过程:
+FeignContext 在 FeignAutoConfiguration 中被注册为Bean，并保存了所有的 FeignClientSpecification 类的 Bean 对象。
+
+![image-20210318223958934](/home/chen/_note/pic/image-20210318223958934.png)
+
+
+
+
+
+以下为创建 服务对应 ApplicationContext 的过程:
 
 ```java
 // NamedContextFactory#createContext
@@ -331,6 +369,42 @@ protected AnnotationConfigApplicationContext createContext(String name) {
 > FeignContext 创建的 ApplicationContext 非常简单，只有基础的 Feign 的配置类就开始 refresh，最终的 Bean 基本也就只有配置类中的那几个。
 
 因为设定了父容器的关系，如果指定的 Bean 在配置类中灭有，也会进一步从父容器中获取。
+
+
+
+
+
+
+
+FeignClientFactoryBean 创建过程中使用 get / getOptional 获取相关的组件和配置，如果子上下文找不到就会回到主上下文找。
+
+FeignClientsConfiguration 是默认的配置，默认的配置并没有定义 Client，所以 Client 是从主上下文找的。
+
+
+
+Feign.Builder 就是 Feign 的建造器类。
+
+Targeter 就是在创建之前做一些额外的配置，DefaultTargeter 就是直接调用的 Feign.Builder#target 类，而 HystrixTargeter 则是继续配置 Fallback，FallbackFactory 以及 SetterFactory。
+
+> Fallback 优先，配置了 Fallback 之后就不考虑 FallbackFactory 类。
+
+
+
+HystrixFeign.Builder#builder 中增加了 invocationHandlerFactory 的属性，配置为 InvocationHandlerFactory。
+
+Contract 用于解析注解，例如 RequestMapping 等就是通过 SpringMvcContract 解析出来的，开启 Hystrix 之后注册了 HystrixDelegatingContract，并且增加了 HystrixCommand 等的返回值判断。
+
+
+
+Feign 会为每一个 FeignClient 类创建代理，InvocationHandlerFactory 就是创建代理的工厂，默认的代理就是
+
+ReflectiveFeign.FeignInvocationHandler，如果使用 Hystrix 那么就会是HystrixInvocationHandler，工厂是在 HystrixFeign#build 时的内部类
+
+每个
+
+
+
+
 
 
 
