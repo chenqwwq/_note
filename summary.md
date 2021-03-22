@@ -163,7 +163,7 @@ Feign 会为每个 FeignClient 创建是一个服务上下文，使用的 FeignC
 
 **FeignClientFactoryBean** 在创建代理的时候通过有没有 url 属性判断，有 url 就不会走负载均衡。
 
-**Contract** 在 Feign 中用来解析方法上的注解，常用的就有 SpringMvcContract。
+**Contract 在 Feign 中用来解析方法上的注解**，常用的就有 SpringMvcContract，用来解析 RequestMapping 等注解。
 
 **Feign#Builder** 是用来创建最终代理对象的类，HystrixFeign#Builder 继承了 Feign#Builder，添加了 HystrixInvocationHandler 的工厂类，也替换了 Contract。
 
@@ -172,4 +172,49 @@ Feign 会为每个 FeignClient 创建是一个服务上下文，使用的 FeignC
 **InvocationHandler** 就是 JDK Proxy 中的那个，是最终执行的请求的类，默认是 ReflectiveFeign.FeignInvocationHandler，而 Hystrix 采用的是 HystrixInvocationHandler。
 
 **Client** 是最终执行的请求的类，常用的有 LoadBalancerFeignClient 类。
+
+
+
+## 2020/03/21
+
+又浪费了周末的两天，自律性看来有待提高啊，嘿嘿，好歹单词还是继续背的，这两天复习加背诵的应该快400个单词了。
+
+周赛又是两题下机，第三题数据量有点大，开赛时没想到二分。
+
+接下来的计划，整理一下 RabbitMQ / Kafka 的 Spring 客户端配置，重新看一下 Kafka。
+
+面试前还想再看一些东西，Redis 已经 over 了，AQS 线程池什么的也没问题，Spring IOC / AOP / Async / 事务 / Boot 的启动流程 / Cloud / Consul / feign 。
+
+还差 Ribbon / Hystrix 的原理部分。
+
+1.  RabbitMQ 客户端的配置
+2. MQ ，消费的幂等性保证，消息积压问题，ACK 相关
+3. JVM 
+4. MYSQL / 分表分库
+
+
+
+
+
+## 2020/03/22
+
+RabbitMQ
+
+Docker 启动 RabbitMQ UI 管理界面一直有问题，rlgl。
+
+RabbitMQ 的备份交换机，通过 alternate-exchange 绑定某交换机，那么该交换机上所有为匹配到队列的消息都会被转发到该交换机。
+
+mandatory 参数，保证消息实际投递到队列，发送者设置了 mandatory 参数之后，如果参数在 Broker 端无法找到匹配的队列，则会调用 return 方法。
+
+> 对应 SpringBoot#RabbitMq 中的 ReturnCallback，该回调只有在匹配队列失败之后返回，而不管有没有发送到交换机。
+>
+> 而 ConfirmCallback 对应的则是生产者到交换机的步骤，如果消息未到交换机则回调，而不管消息是否有匹配到队列。
+
+
+
+RabbitMQ 相对于 Kafka 来说，
+
+在生产者端，发消息并不是直接和 Queue 关联，而是通过一种 Exchange 的角色中转，可以实现多队列发送，或者模糊匹配发送，而 Kafka 通过分区器也只是发给单个 Topic，相对来说 实现了 AMQP 的 RabbitMQ 更加灵活。
+
+在消费者端，Kafka 通过消费者组的概念，可以让多个消费者同时消费一个队列，或者多个消费者组重复消费，而在 RabbitMQ 中，单个队列无法被多个消费者消费，所以如果想实现类似 Kafka 的多消费者消费相同的消息，可以在 Exchange 的时候就将消息发送到多个队列。
 
