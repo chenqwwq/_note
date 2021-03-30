@@ -10,27 +10,29 @@
 
 [TOC]
 
+---
+
+## 示例
+
+![image-20210330215015366](/home/chen/_note/pic/image-20210330215015366.png)
+
+SpringFactoriesLoader 可以独立于整个 Spring 的体系，作为一个动态加载机制。
+
 
 
 ## spring.factories文件
 
-```Properties
-# SpringApplicationRunListener就是基类，等号后面就是实现的需要加载的子类。
-org.springframework.boot.SpringApplicationRunListener=\
-org.springframework.boot.context.event.EventPublishingRunListener
-```
+<img src="/home/chen/_note/pic/image-20210330215839441.png" alt="image-20210330215839441" style="zoom:67%;" />
 
 一个配置以等号划分key和value，以逗号划分多个value，斜杠换行。
 
-要注意的是，value中的类名必须是key的子类，否则会报`IllegalArgumentException`。
+> 要注意的是，value中的类名必须是key的子类，否则会报`IllegalArgumentException`。
 
 
 
 ## SpringFactoriesLoader
 
-`SpringFactoriesLoader`就是Spring工厂加载机制的核心工具类。
-
-`SpringFactoriesLoader`的源码并不复杂。
+`SpringFactoriesLoader`就是Spring工厂加载机制的核心工具类，但是其源码并不复杂。
 
 以下为其中的成员变量：
 
@@ -44,16 +46,18 @@ private static final Log logger = LogFactory.getLog(SpringFactoriesLoader.class)
 private static final Map<ClassLoader, MultiValueMap<String, String>> cache = new ConcurrentReferenceHashMap<>();
 ```
 
+> spring.factories 配置类的地址是写死的，无法修改。
 
 
-在`SpringBoot`的应用启动过程中就使用了该类实现动态的加载，例如`SpringApplication`的构造函数中
+
+在 SpringBoot 的应用启动过程中就使用了该类实现动态的加载，例如在 SpringApplication 的构造函数中，使用了该机制加载应用上下文初始化器以及应用监听器：
 
 ```java
    // 这两行是SpringApplication构造函数中的两行代码	
    setInitializers((Collection) getSpringFactoriesInstances(ApplicationContextInitializer.class));
 	setListeners((Collection) getSpringFactoriesInstances(ApplicationListener.class));
     
-   // 可以看到最终调用还是使用的SpringFactoriesLoader.loadFactoryNames获取类的全限定名
+  // 可以看到最终调用还是使用的SpringFactoriesLoader.loadFactoryNames获取类的全限定名
   // 简单的可以看作，入参为一个类对象，获取配置文件中该类对象对应的所有实现的子类。
 	private <T> Collection<T> getSpringFactoriesInstances(Class<T> type) {
 		return getSpringFactoriesInstances(type, new Class<?>[] {});

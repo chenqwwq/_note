@@ -47,3 +47,5 @@ AbstractAdvisingBeanPostProcessor 对实例化后，初始化的 Bean 进行拦�
 
 
 ## AbstractAuthProxyCreator
+
+该类继承继承了
