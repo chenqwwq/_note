@@ -160,6 +160,8 @@ SpringBoot 提供了默认的 EventPublishingRunListener 实现类，该类收�
 >
 > 可以在里面增加 primarySource 或者 source，来干预当前阶段接下来的操作。
 
+<img src="/home/chen/_note/pic/image-20210331073220201.png" alt="image-20210331073220201" style="zoom:67%;" />
+
 接下来除了注册一些基础的 Bean 对象之外，还会加载主要的 BeanDefinition，简单点就是应用的启动类。
 
 最后广播 ApplicationPreparedEvent。
@@ -168,7 +170,79 @@ SpringBoot 提供了默认的 EventPublishingRunListener 实现类，该类收�
 
 
 
+> 此阶段主要的作用就是准备的应用上下文，配置环境，添加默认的 Bean 对象，应用所有的上下文初始化器并且加载主配置类。
 
+## 6. 刷新应用上下文
 
+在应用上下文准备好之后就可以开始刷新流程了。
 
+所谓的刷新就是应用所有的配置
+
+```java
+// AbstractApplicationContext#refresh
+@Override
+public void refresh() throws BeansException, IllegalStateException {
+    synchronized (this.startupShutdownMonitor) {
+        // Prepare this context for refreshing.
+        prepareRefresh();
+
+        // Tell the subclass to refresh the internal bean factory.
+        ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
+
+        // Prepare the bean factory for use in this context.
+        prepareBeanFactory(beanFactory);
+
+        try {
+            // Allows post-processing of the bean factory in context subclasses.
+            postProcessBeanFactory(beanFactory);
+
+            // Invoke factory processors registered as beans in the context.
+            invokeBeanFactoryPostProcessors(beanFactory);
+
+            // Register bean processors that intercept bean creation.
+            registerBeanPostProcessors(beanFactory);
+
+            // Initialize message source for this context.
+            initMessageSource();
+
+            // Initialize event multicaster for this context.
+            initApplicationEventMulticaster();
+
+            // Initialize other special beans in specific context subclasses.
+            onRefresh();
+
+            // Check for listener beans and register them.
+            registerListeners();
+
+            // Instantiate all remaining (non-lazy-init) singletons.
+            finishBeanFactoryInitialization(beanFactory);
+
+            // Last step: publish corresponding event.
+            finishRefresh();
+        }
+
+        catch (BeansException ex) {
+            if (logger.isWarnEnabled()) {
+                logger.warn("Exception encountered during context initialization - " +
+                            "cancelling refresh attempt: " + ex);
+            }
+
+            // Destroy already created singletons to avoid dangling resources.
+            destroyBeans();
+
+            // Reset 'active' flag.
+            cancelRefresh(ex);
+
+            // Propagate exception to caller.
+            throw ex;
+        }
+
+        finally {
+            // Reset common introspection caches in Spring's core, since we
+            // might not ever need metadata for singleton beans anymore...
+            resetCommonCaches();
+        }
+    }
+}
+```
 
