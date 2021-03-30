@@ -84,10 +84,6 @@ Spring 的事务本质上是对底层数据库的重封装。
 | PROPAGATION_NEVER         | 不能以事务模式执行，若当前存在事务则抛出异常                 | 必须以非事务模式执行                                         |
 | PROPAGATION_NESTED        | 以嵌套事务执行，如果当前存在事务则嵌套执行，如果没有事务则新建 | 如果加入当前事务，则外层事务的异常会触发内层的回滚，而内层的异常对外层无影响 |
 
-
-
-
-
 > 异常需要抛出到方法外，如果方法内捕获了异常，也就不会触发回滚。
 
 
@@ -114,17 +110,3 @@ Spring 的事务本质上是对底层数据库的重封装。
 通过 @EnableTransactionManagement 引入的 TransactionManagementConfigurationSelector 来加载具体的配置类。
 
 例如如果使用的 JDK 的动态代理，引入的就是 ProxyTransactionManagementConfiguration。
-
-
-
-
-
-
-
-
-
-## 乱来的
-
-
-
-ProxyTransactionManagementConfiguration
