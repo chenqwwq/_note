@@ -172,11 +172,9 @@ SpringBoot 提供了默认的 EventPublishingRunListener 实现类，该类收�
 
 > 此阶段主要的作用就是准备的应用上下文，配置环境，添加默认的 Bean 对象，应用所有的上下文初始化器并且加载主配置类。
 
-## 6. 刷新应用上下文
+### 6. 刷新应用上下文
 
 在应用上下文准备好之后就可以开始刷新流程了。
-
-所谓的刷新就是应用所有的配置
 
 ```java
 // AbstractApplicationContext#refresh
