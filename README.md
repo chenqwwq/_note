@@ -10,6 +10,54 @@
 
 
 
+## 2020/04/07
+
+算是告一段落吧，还有前后端的编译没有仔细看，还有Class文件的整体结构没有详细看。
+
+前端编译就是.java文件变成.class文件的过程，期间会有解语法糖的过程，Java里的语法糖不多，包括自动拆装箱，可边长参数，泛型等等，泛型擦除后会变成基本的类型，如果使用了 extend ,super 之类的还会有变化。
+
+后端编译就是JIT将class文件直接变为本地机器码的过程，根据热点探测编译部分代码。
+
+编译的优化涉及到的就多了，比如逃逸分析，这个在Go里面也有，逃逸分析是很多优化的基础，只有确定变量的作用范围才能进一步做细化的，比如标量替换甚至栈上分配，因为栈的生命周期是固定的就是方法的执行期，所以将变量的生命周期直接和栈绑定不失为一个减少gc压力的好办法，只是栈的空间一般较小，不适合分配太大的对象。
+
+
+
+Netty 相关的脱稿整理：
+
+Netty 算是 Reactor 模型的实现，可以实现单线程/多线程的 Reactor 模型。
+
+
+
+ChannelPipeline 是每个 Channel 都会有的，Channel 就是 Socket 的上层抽象，以 Channel 为模型方便了对下层实现的屏蔽。
+
+比如服务端 Channel 常用的 NioServerSocketChannel ，在创建的时候就会打开一个 Selector 对象，然后打开并绑定 ServerSocket。
+
+初始化的时候同时添加了 ServerBootstrapAcceptor 的 ChannelHandler，响应 ServerSocketChannel 里的 channelRead 事件，创建客户端 Channel 对象并绑定到一个 EventLoop 中。
+
+
+
+EventLoop 就是一个事件执行器，感觉上类似于 Redis 的网络模型，但是 Redis 是由前端线程读取后经由事件分派器分发，而EventLoop 中的事件就是由 EventLoop 这个线程执行或者另外指定线程池。
+
+EventLoop 中的事件有以下三种：
+
+一种就是网络的IO事件，ServerSocketChannel 监听 Accept 事件，而 SocketChannel 监听的是 READ 事件。
+
+一种是定时任务，EventLoop 本身就继承了 Schedule 相关的接口，所以有执行定时任务的能力，心跳就是在借此发起的，而且到期的任务会被转移到 taskQueue 中。
+
+最后一种是由程序提交的任务，程序提交的任务又分了两种，一种是按照 io 事件的百分比可能会被执行到的，就是在 SingleThreadEventExecutor 中定义的 taskQueue 。
+
+另外一种是在 SingleThreadEventLoop 中定义的 tailTasks 任务，这些任务不受上述限制，每次轮询都会执行完所有任务。
+
+
+
+##  2020/04/05
+
+清明真就啥都没干....
+
+[JVM 知识点脑图](https://www.processon.com/view/link/6064961d6376891a06bbe35e)
+
+
+
 ## 2020/03/07
 
 Async，ProxyFactory
@@ -231,11 +279,3 @@ RabbitMQ 相对于 Kafka 来说，
 [不同AOP实现方式的整理](./spring/spring-core/aop/Aop 实现的不同方式.md)
 
 [SpringBoot启动流程简述](./spring/spring-boot/springboot的启动流程简述.md)
-
-
-
-##  2020/04/05
-
-清明真就啥都没干....
-
-[JVM 知识点脑图](https://www.processon.com/view/link/6064961d6376891a06bbe35e)
