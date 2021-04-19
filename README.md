@@ -4,9 +4,29 @@
 
 ---
 
-[TOC]
+
+
+
 
 ---
+
+## 2020/04/19
+
+晚上简单总结了一下 MySQL 的索引，看了几页 ES 的文档。
+
+还有大顶堆/优先级队列的实现：
+
+> 插入时直接在末尾，逐个对比上升，删除时，直接将末尾元素移动到顶部，然后对比下降。
+
+[索引相关](./mysql/索引相关.md)
+
+
+
+## 2020/04/15
+
+工作不忙，生活上有点忙，哈哈哈，侧面算充实吧。
+
+[elasticsearch](/./elasticsearch/极客时间课程.md)
 
 
 
@@ -279,3 +299,4 @@ RabbitMQ 相对于 Kafka 来说，
 [不同AOP实现方式的整理](./spring/spring-core/aop/Aop 实现的不同方式.md)
 
 [SpringBoot启动流程简述](./spring/spring-boot/springboot的启动流程简述.md)
+
