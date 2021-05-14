@@ -10,7 +10,7 @@
 
 [TOC]
 
-
+---
 
 ## 概述
 
@@ -55,7 +55,7 @@ private int threshold; // Default to 0 构造方法
 
 以下为Entry对象的声明形式：
 
- ![image-20210221154222208](/home/chen/github/_note/pic/image-20210221154222208.png)
+ ![image-20210221154222208](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210221154222208.png)
 
 > WeakReference就是Java中的弱引用，以ThreadLocal作为弱引用对象。
 >
@@ -93,7 +93,6 @@ private Entry getEntry(ThreadLocal<?> key) {
 > private static AtomicInteger nextHashCode = new AtomicInteger();  
 > private static int nextHashCode() {
 >  return nextHashCode.getAndAdd(HASH_INCREMENT);
-> }
 > ```
 > 以上就是Key的获取方式，Key是以类变量的方式递增获取，相对于直接调用hashCode()可以更好的减少hash冲突，也有hash冲突的解决方式的不同。
 
@@ -471,35 +470,39 @@ private boolean cleanSomeSlots(int i, int n) {
 
 ### ThreadLocal如何解决内存泄漏
 
-首先内存泄露的原因就是上述的原因:
+> Q: 内存泄露的原因？
 
-> Key/Value数据的生命周期和Thread对象的生命周期之间的差异，在Thread对象未被回收前，如果没有弱引用ThreadLocalMap就一直持有着Key，Value的引用，Key/Value的生命周期被迫和Thread对象一致。
-
-解决的方法就是采用弱引用。
-
-另外的在每次获取或者添加数据的时候都会判断Key是否被回收，如果Key被回收就表明该数据的生命周期已经过了，所以会连带清理Value对象。
+Key/Value 数据的生命周期和 Thread 对象的生命周期之间的差异，在 Thread 对象未被回收前，如果不是弱引用，ThreadLocalMap 就一直持有着 Key/Value 的引用，Key/Value 的生命周期被迫和 Thread 对象一致。
 
 
 
+> Q: 如何解决内存泄漏？
+
+**解决的方法就是采用弱引用，**弱引用消除了 ThreadLocalMap 对 ThreadLocal 对象的 GC 的影响
+
+另外的在每次获取或者添加数据的时候都会判断 Key 是否被回收，如果 Key 被回收就表明该数据的生命周期已经过了，所以会连带清理Value对象。
 
 
-### ThreadLocalMap如何解决Hash冲突
+
+
+
+### ThreadLocalMap 如何解决Hash冲突
 
 > Hash冲突是使用Hash类算法都会遇到的问题，不同的Key计算得到一样的数值。
 
-HashMap解决Hash冲突的方法就是**拉链法**，底层的数组中保存的不是单一的数据，而是一个集合(链表/红黑树)，冲突之后下挂。
+HashMap 解决 Hash 冲突的方法就是**拉链法**，底层的数组中保存的不是单一的数据，而是一个集合(链表/红黑树)，冲突之后下挂。
 
-采用拉链法的结果就是在Hash冲突严重时会严重影响时间复杂度，因为就算是红黑树查询的事件复杂度都是O(Log2n)。
+采用拉链法的结果就是在Hash冲突严重时会严重影响时间复杂度，因为就算是红黑树查询的事件复杂度都是 O(Log2n)。
 
-ThreadLocalMap并没有采用这种方法，而是使用的**开放寻址法**，如果已经有数据存在冲突点，就在数组中往下遍历找到第一个空着的位置。
+ThreadLocalMap 并没有采用这种方法，而是使用的**开放寻址法**，如果已经有数据存在冲突点，就在数组中往下遍历找到第一个空着的位置。
 
 
 
-### ThreadLocalMap和HashMap的异同
+### ThreadLocalMap 和 HashMap 的异同
 
-两个都是采用Hash定位的数据结构，底层都是以数组的形式。
+两个都是采用 Hash 定位的数据结构，底层都是以数组的形式。
 
-但是HashCode的获取方式不同，HashMap调用对象的hashCode()方法，而ThreadLocalMap中的Key就是ThreadLocal，ThreadLocal的HashCode是递增分配的。
+但是 HashCode 的获取方式不同，HashMap 调用对象的 hashCode() 方法，而 ThreadLocalMap 中的 Key 就是 ThreadLocal，ThreadLocal 的 HashCode 是递增分配的。
 
-另外处理Hash冲突的方式不同，ThreadLocalMap采用的开放寻址法，而HashMap采用的是拉链法。
+另外处理Hash冲突的方式不同，ThreadLocalMap 采用的开放寻址法，而 HashMap 采用的是拉链法。
 

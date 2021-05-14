@@ -1,10 +1,12 @@
 # 浅谈Redis的主从复制和Sentinel
 
-![image-20200906175435466](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20200906180956035.png)
-
-<!--more-->
+---
 
 [TOC]
+
+---
+
+
 
 ### 一、Redis的主从复制模式
 

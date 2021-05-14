@@ -27,7 +27,7 @@ AbstractQueuedSynchronizer内部维护了两种队列结构用来存放相关的
 
 ## 成员变量
 
-<img src="/home/chen/_note/pic/image-20210309220315479.png" alt="image-20210309220315479" style="zoom:50%;" />
+<img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210309220315479.png" alt="image-20210309220315479" style="zoom:50%;" />
 
 head，tail 分别是等待队列的头，尾节点，而 state 表示的是同步器当前的状态。
 
