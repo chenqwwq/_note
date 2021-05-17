@@ -58,6 +58,10 @@ put 方法使用 putLock 上锁，使用 notFull 阻塞添加线程，并且使�
 >
 > (个人感觉)
 
+
+
+
+
 ## ArrayBlockingQueue
 
 数组实现的有界阻塞队列，新增和获取时都有可能被阻塞。

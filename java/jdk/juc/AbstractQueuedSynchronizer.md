@@ -14,22 +14,50 @@
 
 AbstractQueuedSynchronizer 是用于**构造锁和基本同步器**的基础框架，是 JUC 中大部分同步工具的实现基础。
 
+
+
 > 很大程度上，AbstractQueueSynchronizer 可以同 Monitor 机制类比，AQS 是通过 Java 语言实现的同步模型，Monitor 是通过 JVM 使用 C语言实现的。
+>
+> Monitor 使用 Owner 表示锁的持有者，用 EntryList 和 WaitList 存放等待和阻塞的队列，AQS 也一样使用了 AbstractOwnableSynchronizer 保存的持有者。
+>
+> **Condition 就是 WaitList，AQS 本身就是 EntryList。**
 
-AbstractQueuedSynchronizer内部维护了两种队列结构用来存放相关的等待线程:
 
-- CLH等待队列(同步队列)
-- 条件队列
 
-> CLH队列锁是自旋锁的一种简单实现，但可以确保线程无饥饿，也可以保证锁等待的FIFO。
+**AbstractQueuedSynchronizer 使用了类似 CLH等待队列(同步队列) 的双端队列结构来保存等待的任务。**
+
+**Condition 使用同样的双端队列来保存阻塞的任务。**
+
+> CLH队列锁是自旋锁的一种简单实现，后继节点需要轮询前驱节点状态判断自己的动作，可以确保线程无饥饿，也可以保证锁释放的顺序。
+
+
 
 **AbstractQueueSynchronizer 的上锁形式又可以分为独占锁和共享锁。**
 
+
+
+>  Q: 粗略介绍 AQS
+
+**AQS 就是保存竞争锁失败的线程的集合。**
+
+Java 中以线程为单位竞争锁，竞争成功则成为持有者执行相关任务，但是执行失败则需要额外保存。
+
+**保存是最基本的功能，AQS 可以理解为是锁的合理调度。**
+
+简单来说，如果每个线程都监听锁的情况，如果锁被释放立马出手尝试获取锁，就会出现以下几种情况：
+
+1. 饥饿 - 没有先来后到之分，抢不抢得到锁全看缘分，运气差的可能就一直拿不到锁
+2. CPU 盲目空转 - 因为等待的线程都需要检查锁的状态
+
+即使使用 Wait 等方法阻塞线程，等到锁释放之后 notify 也依旧会存在饥饿的问题，如果 notifyAll 更存在惊群的问题。
+
+
+
 ## 成员变量
 
-<img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210309220315479.png" alt="image-20210309220315479" style="zoom:50%;" />
+<img src="assets/image-20210309220315479.png" alt="image-20210309220315479" style="zoom:50%;" />
 
-head，tail 分别是等待队列的头，尾节点，而 state 表示的是同步器当前的状态。
+**head，tail 分别是等待队列的头，尾节点，而 state 表示的是同步器当前的状态。**
 
 state 在 JUC 不同的实现类中有不同的含义:
 
@@ -159,7 +187,7 @@ static void selfInterrupt() {
 
 #### tryAcquire(int) - 尝试获取锁资源
 
-<img src="/home/chen/_note/pic/image-20210309221820230.png" alt="image-20210309221820230" style="zoom: 67%;" />
+<img src="assets/image-20210309221820230.png" alt="image-20210309221820230" style="zoom: 67%;" />
 
 以上是 AbstractQueuedSynchronizer#tryAcquire() 的源码**，arg 可以理解为希望获取的资源数，返回 true 即为上锁成功**。
 
@@ -501,11 +529,11 @@ public final boolean release(int arg) {
 
 #### tryRelease(int) - 尝试释放锁
 
-<img src="/home/chen/_note/pic/image-20210309225912867.png" alt="image-20210309225912867" style="zoom:67%;" />
+<img src="assets/image-20210309225912867.png" alt="image-20210309225912867" style="zoom:67%;" />
 
 同样的，这里也是模板方法，真实逻辑在子类中实现，以下是 tryRelease 在 ReentrantLock#Sync 中的实现：
 
-<img src="/home/chen/_note/pic/image-20210309230030350.png" alt="image-20210309230030350" style="zoom:67%;" />
+<img src="assets/image-20210309230030350.png" alt="image-20210309230030350" style="zoom:67%;" />
 
 tryRelease 只是将 releases 加回到 state 中，如果最终的 state 为0，表示资源完全释放，返回 true。
 
@@ -558,7 +586,7 @@ private void unparkSuccessor(Node node) {
 
 以下是 AQS#acquireShared 的方法源码:
 
-<img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210309231606765.png" alt="image-20210309231606765" style="zoom:67%;" />
+<img src="assets/image-20210309231606765.png" alt="image-20210309231606765" style="zoom:67%;" />
 
 同样的以 tryAcquireShared 这个模板方法尝试获取锁资源。
 
@@ -566,7 +594,7 @@ private void unparkSuccessor(Node node) {
 
 #### tryAcquireShared - 尝试获取共享锁
 
-<img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210309231719390.png" alt="image-20210309231719390" style="zoom:67%;" />
+<img src="assets/image-20210309231719390.png" alt="image-20210309231719390" style="zoom:67%;" />
 
 > 在独占锁中以 bool 类型表示是否成功获取锁，但在共享锁中，获取锁大于等于0表示锁获取成功。
 >
@@ -574,7 +602,7 @@ private void unparkSuccessor(Node node) {
 
 以下是在 CountDownLatch 中对于 tryAcquireShared 的具体实现:
 
-<img src="/home/chen/_note/pic/image-20210309232239454.png" alt="image-20210309232239454" style="zoom:67%;" />
+<img src="assets/image-20210309232239454.png" alt="image-20210309232239454" style="zoom:67%;" />
 
 当前的 state 为0即为获取成功，连修改都没有。
 
@@ -742,7 +770,7 @@ private void doReleaseShared() {
 
 #### releaseShared(long) - 共享锁的释放
 
-<img src="/home/chen/_note/pic/image-20210310000341515.png" alt="image-20210310000341515" style="zoom:67%;" />
+<img src="assets/image-20210310000341515.png" alt="image-20210310000341515" style="zoom:67%;" />
 
 通过 tryReleaseShared  尝试释放共享锁，释放成功之后唤醒后续节点，和独占锁的释放区别并不大。
 
@@ -770,7 +798,7 @@ doReleaseShared 在上述就有介绍。
 
 一般的可以通过 ReentrantLock#newCondition 获取条件队列，方法直接调用了内部类 Sync#newCondition 方法，源码如下：
 
-<img src="/home/chen/_note/pic/image-20210310225756380.png" alt="image-20210310225756380" style="zoom:67%;" />
+<img src="assets/image-20210310225756380.png" alt="image-20210310225756380" style="zoom:67%;" />
 
 直接使用的 ConditionObject。
 
@@ -782,7 +810,7 @@ doReleaseShared 在上述就有介绍。
 
 以下为 ConditionObject 的成员变量:
 
-<img src="/home/chen/_note/pic/image-20210310230757243.png" alt="image-20210310230757243" style="zoom:67%;" />
+<img src="assets/image-20210310230757243.png" alt="image-20210310230757243" style="zoom:67%;" />
 
 简单的持有了一个队列的队首和队尾元素。
 
@@ -903,7 +931,7 @@ private Node addConditionWaiter() {
 
 源码如下：
 
-<img src="/home/chen/_note/pic/image-20210310234153642.png" alt="image-20210310234153642" style="zoom:67%;" />
+<img src="assets/image-20210310234153642.png" alt="image-20210310234153642" style="zoom:67%;" />
 
 从队列节点开始一一剔除状态不为 CONDITION 的节点。
 
@@ -917,7 +945,7 @@ private Node addConditionWaiter() {
 >
 > **在之前添加到条件队列的时候并没有校验是否是锁资源的持有者，而是添加之后通过 fullyRelease 在释放锁的时候校验。**
 
-<img src="/home/chen/_note/pic/image-20210310234113584.png" alt="image-20210310234113584" style="zoom:67%;" />
+<img src="assets/image-20210310234113584.png" alt="image-20210310234113584" style="zoom:67%;" />
 
 fullyRelease 最终还是通过 release 方法实现的，一次释放所有持有的锁资源。
 
@@ -939,7 +967,7 @@ release 中会通过 tryRelease 撤销 state 的修改，ReentrantLock#tryReleas
 >
 > 在 signal 的逻辑中可以看到，节点在被唤醒后会通过 enq 的方法添加到队列中。
 
-<img src="/home/chen/_note/pic/image-20210310235214860.png" alt="image-20210310235214860" style="zoom:67%;" />
+<img src="assets/image-20210310235214860.png" alt="image-20210310235214860" style="zoom:67%;" />
 
 有两个简化判断：
 
@@ -959,7 +987,7 @@ release 中会通过 tryRelease 撤销 state 的修改，ReentrantLock#tryReleas
 
 ###### findNodeFromTail - 从后往前查找节点
 
-<img src="/home/chen/_note/pic/image-20210310235322334.png" alt="image-20210310235322334" style="zoom:67%;" />
+<img src="assets/image-20210310235322334.png" alt="image-20210310235322334" style="zoom:67%;" />
 
 从 tail 节点开始的遍历，到头节点后就结束。
 
@@ -969,7 +997,7 @@ release 中会通过 tryRelease 撤销 state 的修改，ReentrantLock#tryReleas
 
 ##### checkInterruptWhileWaiting - 中断检查
 
-<img src="/home/chen/_note/pic/image-20210311112558047.png" alt="image-20210311112558047" style="zoom:67%;" />
+<img src="assets/image-20210311112558047.png" alt="image-20210311112558047" style="zoom:67%;" />
 
 方法的注释如下：
 
@@ -989,7 +1017,7 @@ Thread#interupted 方法会在返回当前线程的中断标志位之后修改�
 
 > 正常的被 signal 唤醒时，线程会通在 signal 线程中被转移到同步队列，中断唤醒缺少这一流程。
 
-<img src="/home/chen/_note/pic/image-20210311113200910.png" alt="image-20210311113200910" style="zoom:67%;" />
+<img src="assets/image-20210311113200910.png" alt="image-20210311113200910" style="zoom:67%;" />
 
 中断唤醒之后，尝试修改其 CONDITION 状态为0，修改成功之后入队列，并返回 true，修改失败之后，只要节点不在同步队列就让出CPU。
 
@@ -1001,7 +1029,7 @@ Thread#interupted 方法会在返回当前线程的中断标志位之后修改�
 
 ###### reportInterruptAfterWait - 中断标志位的处理
 
-<img src="/home/chen/_note/pic/image-20210312003019436.png" alt="image-20210312003019436" style="zoom:67%;" />
+<img src="assets/image-20210312003019436.png" alt="image-20210312003019436" style="zoom:67%;" />
 
 THROW_IE 和 REINTERRUPT 就是 AQS 条件队列的异常处理模式。
 
@@ -1019,7 +1047,7 @@ THROW_IE 和 REINTERRUPT 就是 AQS 条件队列的异常处理模式。
 
 #### signal - 唤醒阻塞线程
 
-<img src="/home/chen/_note/pic/image-20210311000007729.png" alt="image-20210311000007729" style="zoom:67%;" />
+<img src="assets/image-20210311000007729.png" alt="image-20210311000007729" style="zoom:67%;" />
 
 signal 会先检查当前线程是否是 AQS 锁资源的持有者，不是就抛出异常，然后从头节点开始唤醒被挂起的线程。
 
@@ -1027,7 +1055,7 @@ signal 会先检查当前线程是否是 AQS 锁资源的持有者，不是就�
 
 ##### doSignal 
 
-<img src="/home/chen/_note/pic/image-20210311000243871.png" alt="image-20210311000243871" style="zoom:67%;" />
+<img src="assets/image-20210311000243871.png" alt="image-20210311000243871" style="zoom:67%;" />
 
 首先先剔除了从等待队列剔除了 firstWaiter 节点，如果 first 节点状态不为 CONDITION 时，继续尝试唤醒下一个节点。
 

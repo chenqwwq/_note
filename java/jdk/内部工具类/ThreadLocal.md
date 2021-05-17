@@ -14,27 +14,33 @@
 
 ## 概述
 
-ThreadLocal（线程局部变量），作用是**为每个线程对象中保存该线程的私有变量**。
+ThreadLocal（线程局部变量），作用是**保存每个线程的私有变量**，以空间换时间的方式，线程独有就不会出现并发问题。
 
-> 真实的数据并不会存在ThreadLocal中，而是在Thread对象中Thread#threadLocals这个成员变量中，所以一定程度上ThreadLocal只是一个操作该集合的工具类。
-
-以下就是ThreadLocalMap在Thread中的声明:
-
- ![image-20210221153908595](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210221153908595.png)
-
->threadLocals是给ThreadLocal用的，该类只能访问当前线程中的数据。
+> 真实的数据并不会存在 ThreadLocal 中。
 >
->inheritableThreadLocal是给InheritableThreadLocal用的，子线程可以访问到父线程的数据。
+> 数据都保存在 Thread 对象中 Thread#threadLocals 这个成员变量中，所以一定程度上 ThreadLocal 只是一个操作该集合的工具类。
+
+
+
+以下就是 ThreadLocalMap 在Thread中的变量声明:
+
+ ![image-20210221153908595](assets/image-20210221153908595.png)
+
+>threadLocals 是给 ThreadLocal 用的，该类只能访问当前线程中的数据。
+>
+>inheritableThreadLocal 是给 InheritableThreadLocal 用的，使用该类子线程可以访问到父线程的数据。
+
+## 
 
 
 
 ## ThreadLocalMap
 
-ThreadLocalMap类似于HashMap是使用Hash算法定位存取的数据结构，ThreadLocal作为Map中的Key。
+ThreadLocalMap 类似于 HashMap 是使用Hash算法定位存取的数据结构，ThreadLocal 作为 Map 中的 Key。
 
-> 只要有Key就能获取数据，因为数据都保存在Thread.currentThread()#threadLocals中。
+> 只要有Key就能获取数据，因为数据都保存在 Thread.currentThread()#threadLocals 中。
 
-`ThreadLocalMap`出人意料的并没有继承任何一个类或接口，是完全独立的类，作为一个Map内部存放的是K/V形式的数据，以ThreadLocal对象为Key。
+`ThreadLocalMap` 出人意料的并没有继承任何一个类或接口，是完全独立的类，作为一个 Map 内部存放的是K/V形式的数据，以 ThreadLocal 对象为 Key。
 
 
 
@@ -51,15 +57,17 @@ private int size = 0;
 private int threshold; // Default to 0 构造方法
   ```
 
-> ThreadLocalMap的底层数据结构是Entry的数组。
+> **ThreadLocalMap 的底层数据结构是 Entry 的数组。**
 
-以下为Entry对象的声明形式：
+
+
+以下为 Entry 对象的声明形式：
 
  ![image-20210221154222208](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210221154222208.png)
 
-> WeakReference就是Java中的弱引用，以ThreadLocal作为弱引用对象。
+> WeakReference 就是 Java 中的弱引用，以 ThreadLocal 作为弱引用对象。
 >
-> 对象在被GC扫描到之后，发现该对象仅仅只有弱引用指向它，那么它就会被回收。
+> 弱引用消除了 ThreadLocalMap 的引用对 ThreadLocal  的对象回收的影响。
 
 
 
@@ -67,7 +75,7 @@ private int threshold; // Default to 0 构造方法
 
 #### getEntry(ThreadLocal<?> key) 
 
-通过ThreadLocal对象获取对应的数据。
+通过 ThreadLocal 对象获取对应的数据。
 
 ```java
 private Entry getEntry(ThreadLocal<?> key) {

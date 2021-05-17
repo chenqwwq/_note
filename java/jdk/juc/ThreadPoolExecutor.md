@@ -12,6 +12,8 @@
 
 ---
 
+
+
 ## 概述
 
 线程池是常见的池化技术实现之一，旨在**重复使用现有的线程资源，已减少线程创建和销毁的消耗**，类似的池化操作还有内存池，连接池等。
@@ -80,7 +82,7 @@ ThreadPoolExecutor 是最基础的线程池，没有任何其他附加功能。
 
 **这样的设计使线程池的状态和线程数的设置可以同时进行，保证彼此的关联性，而且位运算的效率也不错。**
 
- ![image-20200922221847131](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20200922221847131.png)
+ ![image-20200922221847131](assets/image-20200922221847131.png)
 
 
 
@@ -94,7 +96,7 @@ CAPACITY 表示线程的数目上限，也用于求线程数以及线程状态�
 
 接下来看线程池的状态:
 
- ![image-20200924233552756](assets/image-20200924233552756.png)
+ ![image-20200924233552756](assets/ThreadPoolExecutor五种状态.png)
 
 整理如下:
 
@@ -103,7 +105,7 @@ CAPACITY 表示线程的数目上限，也用于求线程数以及线程状态�
 | RUNNING    | 线程池正常运行，可以接收新的任务并执行。                     |
 | SHUTDOWN   | 线程池已经关闭，停止接受新的任务，但是排队中的任务以及执行中的任务都还要执行。 |
 | STOP       | 线程池正式关闭，不仅不接受新的任务，排队中以及执行中的任务都需要取消或者中断。 |
-| TIDYING    | 整理过渡状态，工作线程为0时就需要调用terminated()方法。      |
+| TIDYING    | 整理过渡状态，工作线程为0时就需要调用 terminated() 方法。    |
 | TERMINATED | terminated()方法执行完毕就是终止状态。                       |
 
 以上状态非常关键，因为不论是添加任务，执行任务，都需要先检查线程池的状态。
@@ -162,7 +164,7 @@ Worker 作为 ThreadPoolExecutor 的内部类，自身**继承了AbstractQueuedS
 
 方法源码如下:
 
-![image-20200922221155365](assets/image-20200922221155365.png)
+ ![image-20200922221155365](assets/image-20200922221155365.png)
 
 
 
@@ -205,6 +207,8 @@ addWorker 中也会前置检查，比如当前线程为 SHUTDOWN 但是因为 fi
  
 
 <img src="assets/ThreadPoolExecutor%20%E6%A0%B8%E5%BF%83%E9%80%BB%E8%BE%91%E5%9B%BE.png" style="zoom:50%;" />
+
+
 
 
 
@@ -352,7 +356,7 @@ private boolean addWorker(Runnable firstTask, boolean core) {
 
 在经过前置检查之后，会将 firstTask 包装为 Worker，以下是 Worker 的构造函数。
 
-![image-20201229222659333](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201229222659333.png)
+ ![image-20201229222659333](assets/ThreadPoolExecutor#Worker%E6%9E%84%E9%80%A0%E5%87%BD%E6%95%B0.png)
 
 > 这里有一个细节，就是会现将状态变为-1，此时 `Woker#lock()`方法就不会成功，等同于忙碌状态。
 
@@ -398,7 +402,7 @@ private void addWorkerFailed(Worker w) {
 
 以下就是worker的run方法，也就是工作线程执行逻辑入口：
 
- ![image-20200923071519311](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20200923071519311.png)
+ ![image-20200923071519311](assets/image-20200923071519311.png)
 
 很干脆的只有调用`runWorker`方法，不过会把自身引用当做入参传入。
 
@@ -591,12 +595,10 @@ private void processWorkerExit(Worker w, boolean completedAbruptly) {
 
 ```java
 private Runnable getTask() {
-    boolean timedOut = false; // Did the last poll() time out?
-
+    boolean timedOut = false; // Did the last poll() time out
     for (;;) {		// 循环获取
         int c = ctl.get();
         int rs = runStateOf(c);
-
         // 直接返回空并减去工作线程数的情况
         // 1. 线程池状态为SHUTDOWN，并且工作线程为空
         // 2. 线程池状态为STOP以上
@@ -605,9 +607,7 @@ private Runnable getTask() {
             decrementWorkerCount();
             return null;
         }
-
         int wc = workerCountOf(c);
-
         // 线程是否需要检测超时
         // wc大于corePoolSize的时候就相当于允许超时，允许淘汰
         boolean timed = allowCoreThreadTimeOut || wc > corePoolSize;
@@ -778,23 +778,25 @@ private void interruptIdleWorkers(boolean onlyOne) {
 
 
 
+
+
 ### 线程池关闭 - shutdown/shutdownNow
 
 ThreadPoolExecutor中有很多种关闭线程的方式。
 
 以下是强制关闭的方法 `shutdownNow()`:
 
- ![image-20200925170630479](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20200925170630479.png)
+ ![image-20200925170630479](assets/image-20200925170630479.png)
 
 该方法通过将线程池的状态置为 `STOP` 来关闭线程池，会中断所有执行中线程，最后返回阻塞队列中的任务，但是不包含正在执行的任务。
 
 `interrupeWorkers` 源码如下:
 
-![image-20201230221741065](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201230221741065.png)
+ ![image-20201230221741065](assets/image-20201230221741065.png)
 
 `interruptWorkers()`方法会遍历调用 Worker 的 `interruptIfStarted()` 方法
 
-![image-20200925171236897](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20200925171236897.png)
+ ![image-20200925171236897](assets/image-20200925171236897.png)
 
 第一个```getState() >= 0```的条件会过滤掉刚创建并没有调用`runWorker()`的线程。
 
@@ -810,7 +812,7 @@ drainQueue() 会返回所有阻塞队列中的任务。
 
 以下算是优雅关闭的方法`shutdown()`
 
- ![image-20200925170649962](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20200925170649962.png)
+ ![image-20200925170649962](assets/image-20200925170649962.png)
 
 相同的检查之外，不同的是将状态变为 SHUTDOWN。
 
@@ -824,25 +826,27 @@ SHUTDOWN 状态下的线程并不会直接关闭而是会继续消费阻塞队�
 
 
 
+
+
 ### 剩余方法
 
 剩余的就是一些线程池的补充方法。
 
 #### 预启动核心线程 - prestartCoreThread
 
- ![image-20201008200931508](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201008200931508.png)
+ ![image-20201008200931508](assets/image-20201008200931508.png)
 
 该方法会新建最多一个核心线程，如果不满足添加核心线程的要求就不会添加。
 
 #### 预启动所有核心线程 - prestartAllCoreThreads
 
- ![image-20201008221355464](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201008221355464.png)
+ ![image-20201008221355464](assets/image-20201008221355464.png)
 
 该方法最多新建 `corePoolSize` 个线程，准确说是 `corePoolSize - workerCountOf(ctl.get())` 个线程。
 
 #### 删除所有取消的任务 - purge
 
- ![image-20201008222547802](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201008222547802.png)
+ ![image-20201008222547802](../../../../image-20201008222547802.png)
 
 这里可以看到任务也是可以取消的。
 
@@ -888,7 +892,7 @@ SHUTDOWN 状态下的线程并不会直接关闭而是会继续消费阻塞队�
 
 拒绝策略是提交的任务实在无法执行的情况下的回调策略，在`ThreadPoolExecutor`中的接口定义如下:
 
-![image-20201230175138763](../../../pic/image-20201230175138763.png)
+ ![image-20201230175138763](assets/image-20201230175138763.png)
 
 
 
@@ -917,7 +921,7 @@ SHUTDOWN 状态下的线程并不会直接关闭而是会继续消费阻塞队�
 
 DiscardOldestPolicy的源码如下:
 
-![image-20201230220725057](/home/chen/github/_note/pic/image-20201230220725057.png)
+ ![image-20201230220725057](assets/image-20201230220725057.png)
 
 在获取了阻塞队列之后直接调用的poll方法，弹出队列头的线程，然后再次添加当前任务。
 
@@ -951,7 +955,7 @@ DiscardOldestPolicy的源码如下:
 
 `allowCoreThreadTimeOut` 需要开发者调用对应方法配置，源码如下:
 
-![image-20201229232837660](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201229232837660.png)
+ ![image-20201229232837660](assets/image-20201229232837660.png)
 
 在配置为true后，会立即清理一波空闲的工作线程。
 
@@ -969,7 +973,7 @@ DiscardOldestPolicy的源码如下:
 
 
 
-<img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201229233942444.png" alt="image-20201229233942444" style="zoom: 50%;" />
+<img src="assets/image-20201229233942444.png" alt="image-20201229233942444" style="zoom: 50%;" />
 
 
 

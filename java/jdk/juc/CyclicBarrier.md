@@ -1,4 +1,6 @@
-### 	CyclicBarrier
+# CyclicBarrier
+
+---
 
 - `CyclicBarrier`是一个可以重用的同步辅助类，允许一组线程相互等待，在达到一个共同点在继续执行。
 - 当一个线程到达集合点时，它将调用await()方法等待其它的线程。线程调用await()方法后，CyclicBarrier将阻塞这个线程并将它置入休眠状态等待其它线程的到来。等最后一个线程调用await()方法时，CyclicBarrier将唤醒所有等待的线程然后这些线程将继续执行。CyclicBarrier可以传入另一个Runnable对象作为初始化参数。当所有的线程都到达集合点后，CyclicBarrier类将Runnable对象作为线程执行。 

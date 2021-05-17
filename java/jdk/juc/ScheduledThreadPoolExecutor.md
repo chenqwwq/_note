@@ -4,9 +4,15 @@
 >
 > ScheduledThreadPoolExecutor的主要功能还是通过内部的 DelayedWorkQueue 以及 ScheduleFutureTask 来实现的。
 
+
+
+---
+
 [TOC]
 
 ---
+
+
 
 ## 概述
 
@@ -15,7 +21,7 @@
 
  ScheduleThreadPoolExecutor 的类图如下:
 
-![image-20210103234108744](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210103234108744.png)
+![image-20210103234108744](assets/ScheduledThreadPoolExecutor%E7%B1%BB%E5%9B%BE.png)
 
 首先 ScheduledThreadPoolExecutor 直接继承了 ThreadPoolExecutor ，**所以它也完全可以当做一个线程池来使用，可以 submit 相关任务**。
 
@@ -23,7 +29,7 @@
 
 以下是 ScheduledExecutorService 接口的方法API列表:
 
-![image-20210103234428384](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210103234428384.png)
+![image-20210103234428384](assets/image-20210103234428384.png)
 
 其中 scheduleAtFixedRate() 方法就是定时任务，如果上一次任务结束时下次任务时间已到则直接开始下一次任务。
 
@@ -52,7 +58,7 @@ x另外 scheduleWithFixedDelay() 方法就是固定延时的任务，任意两�
 
 以下是DelayedWorkerQueue的成员变量:
 
-![image-20210104115620871](../../../pic/image-20210104115620871.png)
+![image-20210104115620871](assets/image-20210104115620871.png)
 
 因为是内部类只供内部使用，所以直接使用的 RunnableScheduledFuture 的数组保存等待任务。
 
@@ -135,7 +141,7 @@ public RunnableScheduledFuture<?> take() throws InterruptedException {
 
 如果不为空表示已经有线程在等待执行该任务，那么此时就直接阻塞，因为最接近的任务都没有到执行时候，后面的任务就更加不可能了，所以这里采用的是永久的阻塞等待唤醒。
 
-<img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/DelayedWorkQueue中任务的获取流程.png" style="zoom:50%;" />
+<img src="assets/ScheduledThreadPoolExecutor%E4%BB%BB%E5%8A%A1%E9%87%8D%E7%BD%AE%E6%B5%81%E7%A8%8B.png" style="zoom:50%;" />
 
 
 
@@ -162,7 +168,7 @@ public RunnableScheduledFuture<?> take() throws InterruptedException {
 
 添加任务的流程就是一个常规的往堆里添加元素并且重新调整堆的流程，主要源码如下:
 
-![image-20210105231957745](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210105231957745.png)
+![image-20210105231957745](assets/image-20210105231957745.png)
 
 主要关注的是在添加的元素为堆首元素的时候会调用 signal 方法唤醒其中一个线程。
 
@@ -177,6 +183,8 @@ public RunnableScheduledFuture<?> take() throws InterruptedException {
  如果队首的元素未到期，那么此时所有获取的线程都会被阻塞，但是首个获取的线程会将自己设置为 leader ，**并且开启定时阻塞，阻塞到任务到期**，而其他线程都是无限期阻塞。
 
 通过 DelayedWorkQueue ，就已经可以实现延迟任务，接下来再来看定时以及固定延迟的任务实现。
+
+
 
 
 

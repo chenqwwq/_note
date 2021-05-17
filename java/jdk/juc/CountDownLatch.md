@@ -2,11 +2,15 @@
 
 > - chenqwwq 2021/03
 
+
+
 ---
 
 [TOC]
 
 ---
+
+
 
 ## 概述
 
@@ -22,11 +26,11 @@ CountDownLatch 是利用 AQS 的共享锁机制实现的计数器。
 
 CountDownLatch#await 方法调用的是 AQS 中共享锁的获取方法：
 
-<img src="/home/chen/_note/pic/image-20210311225241495.png" alt="image-20210311225241495" style="zoom:67%;" />
+ <img src="assets/image-20210311225241495.png" alt="image-20210311225241495" style="zoom:67%;" />
 
 而 CountDownLatch#countDown 方法调用的也是共享锁的撤销方法：
 
-<img src="/home/chen/_note/pic/image-20210311225334959.png" alt="image-20210311225334959" style="zoom:67%;" />
+ <img src="assets/image-20210311225334959.png" alt="image-20210311225334959" style="zoom:67%;" />
 
 每次固定的释放一个资源。
 
@@ -34,7 +38,7 @@ CountDownLatch#await 方法调用的是 AQS 中共享锁的获取方法：
 
 再来就是 CountDownLatch 内部的同步控制器的实现：
 
-![image-20210311225400166](/home/chen/_note/pic/image-20210311225400166.png)
+ <img src="assets/image-20210311225400166.png" alt="image-20210311225400166" style="zoom:67%;" />
 
 
 

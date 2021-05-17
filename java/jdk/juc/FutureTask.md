@@ -12,7 +12,7 @@
 
 FutureTask 的继承关系图如下:
 
-![image-20210101220124616](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210101220124616.png)
+![image-20210101220124616](assets/FutureTask%20%E7%B1%BB%E5%9B%BE.png)
 
 FutureTask 直接继承了 RunnableFuture，而 RunabkleFuture 又继承了 Future 和 Runnable 接口。
 
@@ -20,7 +20,7 @@ FutureTask 直接继承了 RunnableFuture，而 RunabkleFuture 又继承了 Futu
 
 另外的 Future 可以简单看一下它的方法列表：
 
-![image-20210101222620223](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210101222620223.png)
+![image-20210101222620223](assets/FutureTask%20%E6%96%B9%E6%B3%95%E5%88%97%E8%A1%A8.png)
 
 | 方法名称           | 方法作用                                           |
 | ------------------ | -------------------------------------------------- |
@@ -40,7 +40,7 @@ FutureTask 直接继承了 RunnableFuture，而 RunabkleFuture 又继承了 Futu
 
 以下是 FutureTask 的类注释:
 
-![image-20210101220304793](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210101220304793.png)
+![image-20210101220304793](assets/FutureTask%20%E7%B1%BB%E6%B3%A8%E9%87%8A.png)
 
 FutureTask 是一个可以取消的异步计算任务，提供了 Future 中启动任务，取消任务以及在获取任务结果的基础实现，任务的结果只有在结束之后才能获取。get 方法会阻塞直到任务结束，在任务已经结束之后，不能重启或者取消。
 
@@ -71,13 +71,13 @@ FutureTask 可以用于包装 Callable 或者 Runnable 对象，因为 FutureTas
 
 不仅包含正常的返回结果，如果执行有异常也会保存在 outcome。
 
-![image-20210101225438275](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210101225438275.png)
+![image-20210101225438275](assets/image-20210101225438275.png)
 
 
 
 通过 get() 方法获取任务的结果:
 
-![image-20210101225800773](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210101225800773.png)
+![image-20210101225800773](assets/image-20210101225800773.png)
 
 
 
@@ -89,7 +89,7 @@ FutureTask 可以用于包装 Callable 或者 Runnable 对象，因为 FutureTas
 
 以下是状态的处理方法，**此时任务的状态肯定大于 COMPLETING :**
 
-![image-20210101230013589](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210101230013589.png)
+![image-20210101230013589](assets/image-20210101230013589.png)
 
 如果任务状态正常则返回正常的结果，否则都会报错，包含任务已经取消异常或者执行失败异常。
 
@@ -105,7 +105,7 @@ FutureTask 可以用于包装 Callable 或者 Runnable 对象，因为 FutureTas
 
 接下来看 FutureTask 作为 Runnable 的 run() 方法:
 
-![image-20210101231540437](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210101231540437.png)
+![image-20210101231540437](assets/image-20210101231540437.png)
 
 刨除其他代码来说，整个 run() 的逻辑非常简单，就是调用 Callable 的 call() 方法，获取执行结果，然后 set 结果到FutureTask。
 
@@ -115,7 +115,7 @@ FutureTask 可以用于包装 Callable 或者 Runnable 对象，因为 FutureTas
 
 以下为结果赋值方法：
 
-![image-20210101231956159](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210101231956159.png)
+![image-20210101231956159](assets/image-20210101231956159.png)
 
 
 
@@ -141,7 +141,7 @@ FutureTask 可以用于包装 Callable 或者 Runnable 对象，因为 FutureTas
 
 先来看阻塞的逻辑，也就是  awaitDone  方法:
 
-![image-20210101230626457](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210101230626457.png)
+![image-20210101230626457](assets/image-20210101230626457.png)
 
 这里有类似AQS自旋入队列的逻辑。
 
@@ -157,7 +157,7 @@ FutureTask 可以用于包装 Callable 或者 Runnable 对象，因为 FutureTas
 
 创建的  WaitNode  会包含当前的线程:
 
-![image-20210101232520786](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210101232520786.png)
+![image-20210101232520786](assets/image-20210101232520786.png)
 
 >   WaitNode  就是简化版的链表，以所有阻塞的线程作为节点，保存所有等待结果的线程。
 >
@@ -181,7 +181,7 @@ FutureTask 可以用于包装 Callable 或者 Runnable 对象，因为 FutureTas
 
   finishCompletion  方法就是在任务执行完毕之后唤醒所有的阻塞线程的逻辑。
 
-![image-20210101232424527](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210101232424527.png)
+![image-20210101232424527](assets/image-20210101232424527.png)
 
 该方法就是从  waiters  开始遍历所有阻塞线程并一一唤醒。
 
@@ -203,7 +203,7 @@ FutureTask 可以用于包装 Callable 或者 Runnable 对象，因为 FutureTas
 
 > 入参  mayInterruptIfRunning  的意思就是**如果任务已经启动是否需要中断**。
 
-![image-20210101233445663](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210101233445663.png)
+![image-20210101233445663](assets/image-20210101233445663.png)
 
 取消的方法相对简单，调用  runner  也就是正在执行任务的线程，然后中断它，中断之后状态变为  INTERRUPTED  。
 
@@ -215,7 +215,7 @@ FutureTask 可以用于包装 Callable 或者 Runnable 对象，因为 FutureTas
 
 可以在  FutureTask  的  run()  方法中再看一眼:
 
-![image-20210102001307542](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210102001307542.png)
+![image-20210102001307542](assets/image-20210102001307542.png)
 
 如上图，异常其实在  FutureTask  的  run()  方法中全被 catch 住了，所以对于线程池或者普通线程来说就是类似普通的任务结束。
 
@@ -235,7 +235,7 @@ FutureTask 可以用于包装 Callable 或者 Runnable 对象，因为 FutureTas
 
 以下是在  FutureTask  中定义的七种任务状态。
 
-![image-20210101224215562](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210101224215562.png)
+![image-20210101224215562](assets/image-20210101224215562.png)
 
   NEW  表示初始状态以及执行中的状态，也就是说任务从创建到完成都是  NEW  的状态。
 
@@ -251,7 +251,7 @@ FutureTask 可以用于包装 Callable 或者 Runnable 对象，因为 FutureTas
 
 
 
-<img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/未命名文件 (1).png" style="zoom: 50%;" />
+<img src="assets/FutureTask%20%E4%BB%BB%E5%8A%A1%E7%8A%B6%E6%80%81.png" style="zoom: 50%;" />
 
 
 
