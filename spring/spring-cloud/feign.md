@@ -1,6 +1,8 @@
 # Feign
 
-> 基于 spring-cloud-openfeign-core-2.2.4.RELEASE
+> 基于 spring-cloud-openfeign-core-2.2	.4.RELEASE
+
+
 
 ---
 
@@ -14,11 +16,11 @@
 
 > 该注解就是用来声明一个远程服务的，基于该注解代理整个接口为一个服务调用类。
 
-<img src="/home/chen/_note/pic/image-20210317212959080.png" alt="image-20210317212959080" style="zoom:67%;" />
+<img src="assets/feignclients注解属性列表.png" alt="image-20210317212959080" style="zoom:67%;" />
 
 | 属性名          | 属性含义                                                     |
 | --------------- | ------------------------------------------------------------ |
-| value           | 服务名称                                                     |
+| value           | 服务名称，如果采用 ribbon 会使用该服务名称从注册中心拉取地址 |
 | name            | 等同于value                                                  |
 | contextId       | 上下文Id，默认为服务名称                                     |
 | qualifier       | 服务别名                                                     |
@@ -39,17 +41,25 @@ FeignClient 注解的解析流程在于 **FeignClientsRegistrar**，该类在 En
 
 该注解源码如下：
 
-<img src="/home/chen/_note/pic/image-20210304213239994.png" alt="image-20210304213239994" style="zoom:67%;" />
+<img src="assets/EnableFeignClients.png" alt="image-20210304213239994" style="zoom:67%;" />
 
 @Import 中的 FeignClientsRegistrar 继承了 ImportBeanDefinitionRegistrar。
 
 > ImportBeanDefinitionRegistrar 类借由 ConfigurationClassPostProcessor，在上下文刷新阶段就会调用该接口的  registerBeanDefinitions 方法。
 
-<img src="/home/chen/_note/pic/image-20210304213302218.png" alt="image-20210304213302218" style="zoom:67%;" />
+
+
+<img src="assets/configurationClassPostProcessor-registerBeanDefinitions.png" alt="image-20210304213302218" style="zoom:67%;" />
 
 首先会向容器注册一个默认的配置类。
 
-<img src="/home/chen/_note/pic/image-20210318214330736.png" alt="image-20210318214330736" style="zoom:67%;" />
+<img src="assets/registerDefaultConfiguration-1621416370271.png" alt="image-20210318214330736" style="zoom:67%;" />
+
+> Feign 的每个客户端都会创建一个继承于当前主容器的子容器，父子容器之间，子容器在获取 Bean 的时候，如果不存在则会进一步从父容器获取。
+>
+> **所以在单个 Feign 的配置类中未找到配置，则会采用该类中声明的默认配置。**
+
+
 
 从 EnableFeignClients 注解中提取 defaultConfiguration 属性，默认为空。
 
@@ -60,6 +70,8 @@ FeignClient 注解的解析流程在于 **FeignClientsRegistrar**，该类在 En
 > 配置项中包括了 Contract，Encoder，Decoder，ConversionService 等基础的配置项。
 >
 > Feign 可以为每个 FeignClient 指定一个单独的配置类，如果没有配置则采用默认的配置类。
+
+
 
 
 
@@ -116,7 +128,7 @@ public void registerFeignClients(AnnotationMetadata metadata,
                 // verify annotated class is an interface
                 AnnotatedBeanDefinition beanDefinition = (AnnotatedBeanDefinition) candidateComponent;
                 AnnotationMetadata annotationMetadata = beanDefinition.getMetadata();
-                // @FeignClient 只能标注在接口上
+                // !!! @FeignClient 只能标注在接口上
                 Assert.isTrue(annotationMetadata.isInterface(),
                               "@FeignClient can only be specified on an interface");
 				// 获取@FeignClient的注解属性
@@ -144,6 +156,8 @@ public void registerFeignClients(AnnotationMetadata metadata,
 扫描之后会为每个 FeignClient 类注册一个配置类，再注册一个 FeignClient 的代理类。
 
 > FeignClient 只能标注在接口上。
+
+
 
 注册配置类的逻辑上面的一样，但是此时取的是 FeignClient 中指明的配置类。
 
@@ -192,17 +206,15 @@ private void registerFeignClient(BeanDefinitionRegistry registry,
 }
 ```
 
-> 首先重要的一点就是，扫描的 FeignClient 类都会被注册为 FeignClientFactoryBean。
+**扫描的 FeignClient 类都会被注册为 FeignClientFactoryBean。**
 
 会将 FeignClient 中的所有属性都取出来塞进 BeanDefinition里面，然后为该类以及所有别名注册 Bean 对象。
 
 
 
-> 以上就是扫描的全过程。
 
 
-
-### 小结
+> Q: FeignClient 的类扫描过程
 
 Feign 借由 ImportBeanDefinitionRegistrar 接口，在容器初始化阶段扫描 FeignClint 标注的类并以 FeignClientFactoryBean 注册了 BeanDefinition。
 
@@ -210,13 +222,25 @@ Feign 借由 ImportBeanDefinitionRegistrar 接口，在容器初始化阶段扫�
 
 
 
+> 扫描包的方式很粗暴，但是因为 FeignClient 只能作用到类上，所以也不会太慢。
+>
+> 但是类似 Async 这种能作用在方法上的实现，如果也用 MethodMatcher 扫描可能就不太合适了。
 
+
+
+
+
+
+
+
+
+## FeignClientFactoryBean -  代理对象创建流程
 
 
 
 > FeignClientFactoryBean 继承于 FactoryBean ，所以真实的代理创建流程还是在 FeignClientFactoryBean#getObject() 方法中。
 
-## FeignClientFactoryBean -  代理对象创建流程
+## 
 
 以下是 FeignClientFactoryBean#getObject 方法源码：
 

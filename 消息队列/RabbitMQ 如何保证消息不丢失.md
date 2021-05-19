@@ -106,7 +106,7 @@ RabbitMQ 中保存的消息，只有在被 ack 之后才会主动删除，所以
 
 ### RabbitMQ 原生 ack 模式
 
-RabbitMQ 的消费者端提供了自动和手动两种 ack 方式。
+RabbitMQ 的消费者端提供了**自动和手动两种 ack 方式**。
 
 [Consumer Acknowledgement Modes and Data Safety Considerations](https://www.rabbitmq.com/confirms.html#acknowledgement-modes)
 
@@ -127,7 +127,7 @@ basic.reject 和 basic.nack 的作用是一样的，区别就在于语义上，�
 > RabbitMQ 提供了两大类 ack 模式：手动和自动
 >
 > 1. 自动 ack 会在消息到达消费者之后直接删除队列中的消息
-> 2. 手动 ack 分为 ack，nack ，reject 三种。
+> 2. 手动 ack 分为 ack / nack / reject 三种。
 
 
 
@@ -137,7 +137,9 @@ basic.reject 和 basic.nack 的作用是一样的，区别就在于语义上，�
 
 ![](assets/rabbitmq-创建consumer.png)
 
-上图中的方法参数 autoAck 就表示是否开启自动 ack，对于三种手动确认的方法也分别提供了方法。
+上图中的方法参数 autoAck 就表示是否开启**自动 ack**。
+
+对于三种手动确认的方法也分别提供了方法。
 
 ```java
 void basicAck(long deliveryTag, boolean multiple) throws IOException;
@@ -156,9 +158,7 @@ requeue 参数表示是否需要重回队列，如果为 false，那么在方法
 
 
 
-> Java 原生的 RabbitMQ 客户端基本就简单实现了
-
-
+> Java 原生的 RabbitMQ 客户端基本就简单实现了。
 
 
 
@@ -170,23 +170,19 @@ SpringBoot 根据以上的 ack 方法抽象提供了三种 AcknowledgeMode，具
 
 None 对应的就是 RabbitMQ 的 自动 ack，在消息被下发后就认为是消费成功，Broker 可以删除该消息。
 
-MANUAL 需要用户在 listener 中手动调用 ack/nack 方法。
-
-AUTO 是由 SpringBoot 控制的 ack 模式，如果 listener 返回正常，则调用 ack，如果抛异常则调用 nack。
-
-> SpringBoot 的实现中并不会使用 basic.reject 方法拒绝消息。
+> 实际开发中慎用该配置！
 >
-> 也不会使用 
+> 但是如果处理失败就无法对该条消息进行重试，因为已经从队列中删除。
+>
+> 自动 ack 能稍微提高消息速度，ack 之后 Broken 会立马补消息到 prefetch 个。
 
+MANUAL 需要用户在 listener 中手动调用 ack / nack / reject 方法。
 
-
-
+**AUTO 是由 SpringBoot 控制的 ack 模式，如果 listener 返回正常，则调用 ack，如果抛异常则调用 nack。**
 
 另外的还有 default-requeue-rejected 配置，表示在消息处理失败之后是否需要重回队列。
 
-> SpringBoot 的客户端默认是会重回队列的，所以如果 Listener 抛异常而不进一步处理，消息会进入死循环。
-
-
+> **SpringBoot 的客户端默认是会重回队列的，所以如果 Listener 抛异常而不进一步处理，消息会进入死循环。**
 
 
 
