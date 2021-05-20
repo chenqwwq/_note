@@ -214,7 +214,7 @@ private void registerFeignClient(BeanDefinitionRegistry registry,
 
 
 
-> Q: FeignClient 的类扫描过程
+> Q: FeignClient 的类	扫描过程
 
 Feign 借由 ImportBeanDefinitionRegistrar 接口，在容器初始化阶段扫描 FeignClint 标注的类并以 FeignClientFactoryBean 注册了 BeanDefinition。
 
