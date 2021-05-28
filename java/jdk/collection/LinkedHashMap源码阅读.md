@@ -1,12 +1,11 @@
+# LinkedHashMap
+
 - 2018-11-14 今天开始看`LinkedHashMap`的源码.
+
 - 以前看源码写博客都是大段大段的贴代码,但是转回去看的时候发现我自己都看不下去了,`LinkedHashMap`并不难理解,就当是一次测试吧.
 - `LinkedHashMap`大部分的结构和算法和`HashMap`一致,所以在阅读`LinkedHashMap`源码之前可能要先了解下`HashMap`的原理,
-
----
-
-#### LinkedHashMap
-
 - `LinkedList`不仅实现了`List`接口还实现了`Deque`，因此除`链表`之外还可以作为`队列`使用。<font size="2">(自己画结构图被丑哭了)</font>.
+
 - `LinkedList`和`ArrayList`不同，底层并不是数组，还是一个由`Node`内部类实现的`双向链表`，`Node`结构下面说。
 
 ### 成员变量
