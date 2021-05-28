@@ -103,7 +103,7 @@ Monitor是虚拟机内建的用来实现同步的机制，原则上Java的每一
 >
 > 因为线程的阻塞，恢复以及mutex的调用等都涉及到用户态到内核态的切换，所以性能有限。
 
- ![img](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/1153206-20190929010958813-162832143.png)
+ ![img](z)
 
 上图可以简单说明整个Monitor机制的工作方法。
 
