@@ -1,4 +1,4 @@
-# 浅谈Redis的主从复制和Sentinel
+# 浅谈Redis的主从复制和 Sentinel
 
 ---
 
@@ -8,17 +8,49 @@
 
 
 
-### 一、Redis的主从复制模式
+## 概述
 
-Redis可以通过`SLAVEOF <ip> <port>`指令或者配置文件`slavof <ip> <port>`的方式，让本服务器去复制另外一个服务器。
+Redis 的主从模式和 Sentinel 分别解决的是 Redis 的读性能瓶颈以及单点故障问题。
 
-被复制的服务器称为主服务器，复制的服务器则称为从服务器，以此形成一种主从关系(Master-Slave)。
 
-建立主从关系之后，从服务器不再(也不能)执行写命令，而是完全同步主服务器的数据(就算发现AOF或者RDB文件中有过期的键也不能删除，只能等主服务器的同步)。
 
-指令`info replication`，可以单独查看服务器此时的主从信息。如下：
 
-![image-20191109232601445](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/redis_info_replication_master.png)
+
+## Redis的主从复制模式
+
+### 思维脑图
+
+![image-20210528000112558](https://chenqwwq-note.oss-cn-hangzhou.aliyuncs.com/img/Redis-master-slaver.png)
+
+
+
+
+
+### 相关原理
+
+Redis 可以通过 `SLAVEOF <ip> <port>` 指令或者配置文件 `slavof <ip> <port>` 的方式，让当前服务器去复制另外一个 Redis 服务器。
+
+被复制的服务器称为主服务器，复制的服务器则称为从服务器，以此形成一种主从关系 (Master-Slave 关系)。
+
+
+
+建立主从关系之后，从服务器就无法再执行写命令了，而是完全同步主服务器的数据。
+
+> 就算在执行 AOF 或者 RDB 文件的过程中发现有过期的键也不能删除，只能等主服务器的同步。
+>
+> 因为无法执行命令，无法写入，所以主从模式仅仅只扩展了读属性，写入瓶颈依然存在。
+
+
+
+通过指令 `info replication`，可以单独查看服务器此时的主从信息。如下：
+
+![image-20191109232601445](https://chenqwwq-note.oss-cn-hangzhou.aliyuncs.com/img/redis_info_replication_master.png)
+
+> role 表示当前节点的身份，master 表示是主节点
+>
+> connected_slave 表示当前的子节点数，以及 slave0 就表示子节点信息。
+
+
 
 该种主从复制模型非常适合读多写少的环境，而且仅从主服务器写入一定程度上也不需要担心数据一致性问题。
 
@@ -44,7 +76,7 @@ Redis中对应数据同步的命令有两个`SYNC`和`PSYNC`。
 
 旧版的数据同步就是依托于`Sync`命令，由从服务器发送给主服务器表示开启同步数据。
 
-![image-20191109154905723](https://chenbxxx.oss-cn-beijing.aliyuncs.com/Redis_SYNC_流程.png)
+![image-20191109154905723](https://chenqwwq-note.oss-cn-hangzhou.aliyuncs.com/img/Redis_SYNC_流程.png)
 
 主服务器首次接收到`Sync`命令之后，会执行`BGSAVE`命令生成RDB文件，并在此时开启**命令缓冲区**，记录之后所有执行的写命令。
 
@@ -119,7 +151,11 @@ Redis的主从模式允许服务器横向扩展，增加容错性以及读的性
 
 
 
-### 二、 Sentinel 哨兵模式
+
+
+
+
+##  Sentinel 哨兵模式
 
 `Sentinel`是Redis的高可用解决方案，仅仅依靠主从复制在主服务器宕机之后主服务器所在的整个模块就会进入只读状态(Redis不存在主主复制的模式)，无法写入或更新数据。
 
@@ -203,7 +239,7 @@ PUBLIC _sentinel:hello_  "s_ip,s_port,s_runId,s_epoch,m_name,m_ip,m_port,m_epoch
 
 和其他的`Sentinel`则是因为选主，不可能在失效之后每个`Sentinel`各自选择一个从服务器升为主服务器。
 
-![image-20191109233459918](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/Sentinel结构.png)
+![image-20191109233459918](https://chenqwwq-note.oss-cn-hangzhou.aliyuncs.com/img/Sentinel结构.png)
 
 
 
@@ -279,7 +315,7 @@ Redis的选举算法是对`Raft算法`简单实现。
 
 `SLAVEOF NO ONE`并不一定能很快到达并执行，所以需要状态监控。
 
-![image-20191109233931424](https://chenbxxx.oss-cn-beijing.aliyuncs.com/redis_info_replication_slave.png)
+![image-20191109233931424](../../redis_info_replication_slave.png)
 
 就是上图中的`role`字段从`slave`变为`master`，表示从服务器已经变为主服务器。
 
