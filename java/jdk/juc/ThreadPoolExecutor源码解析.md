@@ -1,16 +1,20 @@
+---
+
+title: ThreadPoolExecutor源码解析
+excerpt: 线程池是常见的池化技术实现之一，旨在重复使用现有的线程资源，已减少线程创建和销毁的消耗，类似的池化操作还有内存池，连接池等。
+index_img: https://chenqwwq.oss-cn-hangzhou.aliyuncs.com/note/assets/ThreadLocal.png
+banner_img: https://chenqwwq.oss-cn-hangzhou.aliyuncs.com/note/assets/ThreadLocal.png
+date: 2021-05-30 23:08:35
+categories:
+- java
+tags:
+- jdk
+---
+
 # ThreadPoolExecutor源码解析
 
-> ThreadPoolExecutor就是JDK中的线程池实现。
+> ThreadPoolExecutor就是JDK中的线程池实现，基于 JDK 1.8
 >
-> 基于 JDK 1.8
-
-
-
----
-
-[TOC]
-
----
 
 
 
@@ -18,11 +22,9 @@
 
 线程池是常见的池化技术实现之一，旨在**重复使用现有的线程资源，已减少线程创建和销毁的消耗**，类似的池化操作还有内存池，连接池等。
 
-Java 中的线程(  Thread )借由内核线程来实现，也就是说在 Java 中的每个 Thread 对象都会对应内核中的一个轻量级进程，线程的创建，销毁和调度都由内核完成，
+Java 中的线程(  Thread )借由内核线程来实现，也就是说在 Java 中的每个 Thread 对象都会对应内核中的一个轻量级进程，线程的创建，销毁和调度都由内核完成，因此对于线程的创建和销毁消耗都不小，而且线程状态的切换也需要用户态到内核态的切换。
 
-对于线程的创建和销毁消耗都不小，而且线程状态的切换也需要用户态到内核态的切换。
-
-
+<br>
 
 > 进程和线程的区别:
 >
@@ -30,27 +32,37 @@ Java 中的线程(  Thread )借由内核线程来实现，也就是说在 Java �
 > 2. 一个进程可以包含多个线程，多个线程共享同一个进程下的内存等资源
 > 3. 进程间的切换CPU需要保存线程，切换执行环境消耗会比线程大的多
 
-
+<br>
 
 **另一方面来说线程池也是线程资源的统一管理**，例如在一个消息队列的消费场景中，我就可以指定固定线程数的线程池来完成，而不需要手动去控制消费线程的创建。
 
-
+<br>
 
 ThreadPoolExecutor 是最基础的线程池，没有任何其他附加功能。
+
+
+
+<br>
 
 ## 源码分析
 
 > 基于 JDK 1.8.0_241
 
+<br>
+
+
+
 ### 	构造函数
 
 这个基本是面试都会问的问题了，非常重要，因为**设定不同的入参是我们控制线程池执行方式的最主要的方法。**
 
- ![image-20200922220330699](assets/ThreadPoolExecutor%E6%9E%84%E9%80%A0%E5%87%BD%E6%95%B0.png)
+ ![ThreadPoolExecutor构造函数](https://chenqwwq.oss-cn-hangzhou.aliyuncs.com/note/assets/ThreadPoolExecutor构造函数.png)
 
 以上就是 ThreadPoolExecutor 类内所有的构造函数，以下是参数最完整的一个:
 
- ![image-20200927210322840](assets/image-20200927210322840.png)
+ ![ThreadPoolExecutor构造函数方法签名](assets/ThreadPoolExecutor构造函数方法签名.png)
+
+<br>
 
 参数的含义如下:
 
@@ -64,15 +76,15 @@ ThreadPoolExecutor 是最基础的线程池，没有任何其他附加功能。
 | threadFactory   | 线程工厂               |
 | handler         | 拒绝策略               |
 
+<br>
 
+另外的 `Executors` 类也帮我们快速的创建特定形式的线程池，比如单个线程的线程池或者无限等待队列的线程池等。	  
 
-另外的 `Executors` 类也帮我们快速的常见特定形式的线程池，比如单个线程的线程池或者无限等待队列的线程池等。	  
-
-简单demo如下：
+简单demo如下，创建一个单线程的线程池：
 
   ![image-20201016153444173](assets/image-20201016153444173.png)
 
-
+<br><br>
 
 
 
@@ -84,15 +96,17 @@ ThreadPoolExecutor 是最基础的线程池，没有任何其他附加功能。
 
  ![image-20200922221847131](assets/image-20200922221847131.png)
 
+<br>
 
-
-如上图所示，**ctl是一个 AtomicInteger 类型的对象，高3位表示当前线程池的状态，低29位表示线程的数目。**
+如上图所示，**ctl 是一个 AtomicInteger 类型的对象，高3位表示当前线程池的状态，低29位表示线程的数目。**
 
 COUNT_BITS 是表示线程数目的位数，也就是29位，这里也可以看出来，线程池的线程上限就是2^29个。
 
 CAPACITY 表示线程的数目上限，也用于求线程数以及线程状态，具体可以看下面 `runStateOf` 以及 `workerCountOf` 两个方法。
 
+<br>
 
+<br>
 
 接下来看线程池的状态:
 
@@ -114,7 +128,7 @@ CAPACITY 表示线程的数目上限，也用于求线程数以及线程状态�
 >
 > 两种状态都不会继续接受新的任务提交，但 `SHUTDOWN` 状态下会继续执行已提交的任务，而 `STOP` 会中断并取消任务。
 
-
+<br>
 
 ### 其他相关组件对象
 
@@ -132,15 +146,13 @@ Worker 作为 ThreadPoolExecutor 的内部类，自身**继承了AbstractQueuedS
 
  ![image-20200926222820062](assets/image-20200926222820062.png)
 
-
-
-**addWorker 方法中没有 firstTask 的调用则表示是直接添加工作线程消费阻塞队列中的任务，eg. (addWorker(null,boolean))**
+<br>
 
 下面是 Worker 中有关于 AQS 的方法实现:
 
  ![image-20200926225406590](assets/image-20200926225406590.png)
 
-
+<br>
 
 `Worker` 的上锁和解锁就是 state 在0,1之间的变化。
 
@@ -152,7 +164,9 @@ Worker 作为 ThreadPoolExecutor 的内部类，自身**继承了AbstractQueuedS
 
 **正是因为这个忙碌状态会导致其他线程获取锁失败，在类似 `interruptIdleWorkers()` 方法中就可以区分忙碌和空闲的工作线程。**
 
+<br>
 
+<br>
 
 
 
@@ -166,7 +180,7 @@ Worker 作为 ThreadPoolExecutor 的内部类，自身**继承了AbstractQueuedS
 
  ![image-20200922221155365](assets/image-20200922221155365.png)
 
-
+<br>
 
 **第一步获取 ctl 变量,判断是否可以使用核心线程池，如果线程池的工作线程数量小于 corePoolSize，就直接调用 addWorker 方法添加任务，执行成功就直接 return**。
 
@@ -925,7 +939,28 @@ DiscardOldestPolicy的源码如下:
 
 在获取了阻塞队列之后直接调用的poll方法，弹出队列头的线程，然后再次添加当前任务。
 
-## 总结
+<br>
+
+<br>
+
+## Q&A
+
+> Q: 使用线程池的好处？
+
+1. 减少频繁创建和销毁带来的延迟
+2. 弹性使用线程资源，减少响应时间
+3. 统一管理资源，更容易控制资源的分配
+4. 待补充...
+
+
+
+<br>
+
+> Q: 任务的添加流程？
+
+
+
+
 
 > Q: 添加工作线程的几个要求
 
