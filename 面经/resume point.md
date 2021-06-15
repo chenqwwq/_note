@@ -1,5 +1,7 @@
 # Resume Point
 
+> 北枳
+
 ## NETWORK
 
 ### HTTP/HTTPS
@@ -18,51 +20,145 @@
 
 ### Collection
 
-1. HashMap原理
-2. 线程安全的map？
-3. HashMap多线程情况下扩容会出现什么问题？
-4. CurrentHashMap说一下怎么保证的线程安全？
-5. put的流程？
-6. 说一下HashMap在JDK7和JDK8的区别？
+- HashMap原理
+
+>  Hash，以 Hash 函数将对象散列到一定范围之内，以此作为下标定位标准，实现插入和获取接近O(1)的复杂度。
+
+- 线程安全的map？
+
+> ConcurrentHashMap
+
+- HashMap多线程情况下扩容会出现什么问题？
+
+> 1. 数据丢失
+> 2. 环链
+
+- CurrentHashMap说一下怎么保证的线程安全？
+
+> CAS + synchronized
+>
+> 1.7 为 ReentrantLock，以多个桶为一段实现分段锁，相对于整个数组上锁来说是细化了锁的粒度。
+
+- put的流程？
+
+> 1. 懒初始，如果数组没创建则此时创建
+> 2. 计算 Hash, hash << 16 & hash，扰动函数
+> 3. 定位到桶，没有的话以value 作为头节点新增
+> 4. 遍历桶，可能是链表或者红黑树，插入结束后看是否可以变为树 8升树 6退链表
+
+- 说一下HashMap在JDK7和JDK8的区别？
+
+> 1. 增加红黑树，降低桶遍历的整体事件复杂度
+> 2. 头插法变为尾插法，避免环链
 
 ### Stream
 
 1. 看你对JDK8的stream流有了解，那你说下？
 
+> 常用，但是没细看过原理。
+
 ### VCS
 
 ### Spring Family
 
-1. 你项目中使用到了Spring cloud，能说一下使用到的组件，已经他的作用？
-2. 你是使用的哪个Spring的扩展点，进行跨线程的日志处理？（AOP环绕通知）
-3. 你对于spring的扩展点如何扩展的？
-4. AOP所使用的设计模式？
-5. spring生命周期
-6. 动态代理的区别
-7. 环绕通知是什么？
-8. Spring AOP是怎么出入的，也就是怎么完成的AOP代理？
-9. 那你能具体讲一下怎么基于cglib进行的动态代理？
-10. 你这个基于Spring扩展点进行跨线程操作日志记录怎么做的？
-11. 你对于Spring的话，是怎么进行二次定制的？
-12. 看过哪部分的源码？
-13. Spring bean的生命周期
-14. SpringCloud的注册中心用的哪一个？
-15. 他的注册流程是什么样的？
-16. 注册中心的负载均衡这么做的？
-17. 你在项目中如何基于Spring的扩展点完成相关的业务难题的？
-18. 你这个扩展点是在哪个阶段生效的？（你确定是这个阶段吗?那你在我电脑里面找一下这个相应的接口在哪吧？我人晕了直接）
-19. 在某一个utils类中（这个类没有交给Spring进行管理），我想要获取到Spring容器的某一个bean你该怎么做？
-20. 那Spring是什么时候或者是什么阶段调用的ApplicationContextAware接口的方法的？
-21. IOC的理解？
-22. Spring容器启动流程？
-23. BeanFactory和ApplicationContext有什么区别？
-24. Spring如何解决循环依赖问题
-25. Spring框架中的Bean是线程安全的么？如果线程不安全，那么如何处理？
-26. Spring事务的实现方式和实现原理
-27. <https://blog.csdn.net/a745233700/article/details/80959716>
-28. <https://blog.csdn.net/oldshaui/article/details/90675149>（spring cloud）
-29. <https://www.cnblogs.com/wjqhuaxia/p/11837069.html>（同上）
-30. <https://blog.csdn.net/qq_35906921/article/details/84032874>（同上）
+- 你项目中使用到了Spring cloud，能说一下使用到的组件，已经他的作用？
+
+> Feign + Consul + Ribbon + Hystrix + Sentinel + Zuul
+>
+> Http 客户端，简化对接流程完美适配 Ribbon + Hystrix + Sentinel
+>
+> Consul 注册中心 + 配置中心
+>
+> Ribbon 服务获取 + 客户端负载均衡
+>
+> Hystrix 限流，熔断，并发控制(线程池和信号量控制)
+>
+> Sentinel 同 Hystrix
+
+你是使用的哪个Spring的扩展点，进行跨线程的日志处理？（AOP环绕通知）
+
+- 你对于spring的扩展点如何扩展的？
+
+> SpringBoot 实现 AOP 的方式？
+>
+> 1. 自己定义一个 Advisor 注解或者直接自己创建一个
+> 2. 自己定义 BeanPostProcessor，拦截 Bean 创建过程，创建代理对象，类似 Async，BPP 中定义切面逻辑
+> 3. 扫描 BeanFactory，类似 FeignClient 的扫描
+
+- AOP所使用的设计模式？
+
+> 代理模式，观察者模式？
+
+- spring生命周期
+
+> Bean 的生命周期？
+>
+> 从创建 Bean 开始，查询缓存 SingleObjects，不在就先从父容器获取，没有就创建。
+>
+> 获取 BeanDefinition，创建依赖对象，，实例化 ，填充数据，初始化，注册 Disposable 回调。
+>
+> 实例化和初始化前后 BeanPostProcessor 调用实例化有工厂方法，创建方法，构造函数，空构造函数填充一些 Value 等数据调用初始化函数
+
+- 动态代理的区别
+
+> JDK 的动态代理是实现相同的接口继承同个 ProxyInstance，将对接口的方法调用转移到了子类。
+>
+> Cglib 使用的是字节码修改
+
+- 环绕通知是什么？
+
+> 方法调用前后
+
+- Spring AOP是怎么出入的，也就是怎么完成的AOP代理？
+
+> 以代理对象替换真实对象，对 真实对象的调用都转移到了对 代理对象的替换，代理对象在真实方法调用的前后添加钩子方法。
+
+- **那你能具体讲一下怎么基于cglib进行的动态代理？**
+
+> 不知
+
+1. 你这个基于Spring扩展点进行跨线程操作日志记录怎么做的？
+
+- 你对于Spring的话，是怎么进行二次定制的？
+
+> 对各类扩展点进行扩展，最大的 BeanPostProcessor 直接插手 Bean 对象的创建过程，使用代理模式添加功能。
+>
+> 在 Springboot 中使用监听器监听的各种过程，还有 EnvironmentPostProcessor，还有 ApplicationInitializer，BeanFactoryPostProcessor
+>
+> 自动化配置的添加，可以使用 Import 注册自己的配置逻辑
+
+- 看过哪部分的源码？
+
+> AOP，IOC，SpringBoot 的启动流程，Async，事务的，Retry 的，Feign，服务注册的，SpringMvc 的
+
+1. Spring bean的生命周期
+2. SpringCloud的注册中心用的哪一个？
+3. 他的注册流程是什么样的？
+
+> Consul 
+>
+> 在 SpringMVC 启动完毕之后有个 WebStartedSuccess类似的事件，监听该事件注册。
+>
+> ServiceRegister
+
+- 注册中心的负载均衡这么做的？
+
+> 从注册中心获取到真实的地址之后，通过 Ribbon 来做负载均衡。
+
+1. 你在项目中如何基于Spring的扩展点完成相关的业务难题的？
+2. 你这个扩展点是在哪个阶段生效的？（你确定是这个阶段吗?那你在我电脑里面找一下这个相应的接口在哪吧？我人晕了直接）
+3. 在某一个utils类中（这个类没有交给Spring进行管理），我想要获取到Spring容器的某一个bean你该怎么做？
+4. 那Spring是什么时候或者是什么阶段调用的ApplicationContextAware接口的方法的？
+5. IOC的理解？
+6. Spring容器启动流程？
+7. BeanFactory和ApplicationContext有什么区别？
+8. Spring如何解决循环依赖问题
+9. Spring框架中的Bean是线程安全的么？如果线程不安全，那么如何处理？
+10. Spring事务的实现方式和实现原理
+11. <https://blog.csdn.net/a745233700/article/details/80959716>
+12. <https://blog.csdn.net/oldshaui/article/details/90675149>（spring cloud）
+13. <https://www.cnblogs.com/wjqhuaxia/p/11837069.html>（同上）
+14. <https://blog.csdn.net/qq_35906921/article/details/84032874>（同上）
 
 ### MyBatis/MyBatis-plus
 
@@ -79,12 +175,17 @@
 ### JVM/JMM
 
 1. JVM运行时数据区，存放的内容
-2. JAVA内存模型？（JMM内存模型说一下吧？）
-3. 类加载机制？
-4. 为什么要这样加载类？
-5. 常见的垃圾收集器？
-6. CMS和G1的区别？
-7. JVM参数你是怎么设置的
+
+> 堆，JVM 栈，本地方法栈，元空间，PC
+>
+> 对象，调用
+
+1. JAVA内存模型？（JMM内存模型说一下吧？）
+2. 类加载机制？
+3. 为什么要这样加载类？
+4. 常见的垃圾收集器？
+5. CMS和G1的区别？
+6. JVM参数你是怎么设置的
 
 ### JUC/Current Class（TL ed.）/AQS/Lock/keyword
 
