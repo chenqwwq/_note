@@ -148,17 +148,57 @@
 1. 你在项目中如何基于Spring的扩展点完成相关的业务难题的？
 2. 你这个扩展点是在哪个阶段生效的？（你确定是这个阶段吗?那你在我电脑里面找一下这个相应的接口在哪吧？我人晕了直接）
 3. 在某一个utils类中（这个类没有交给Spring进行管理），我想要获取到Spring容器的某一个bean你该怎么做？
-4. 那Spring是什么时候或者是什么阶段调用的ApplicationContextAware接口的方法的？
-5. IOC的理解？
-6. Spring容器启动流程？
-7. BeanFactory和ApplicationContext有什么区别？
-8. Spring如何解决循环依赖问题
-9. Spring框架中的Bean是线程安全的么？如果线程不安全，那么如何处理？
-10. Spring事务的实现方式和实现原理
-11. <https://blog.csdn.net/a745233700/article/details/80959716>
-12. <https://blog.csdn.net/oldshaui/article/details/90675149>（spring cloud）
-13. <https://www.cnblogs.com/wjqhuaxia/p/11837069.html>（同上）
-14. <https://blog.csdn.net/qq_35906921/article/details/84032874>（同上）
+
+> 声明一个 ApplicationContextHolder 的工具类继承 ApplicatioContextAware。
+
+1. 那Spring是什么时候或者是什么阶段调用的ApplicationContextAware接口的方法的？
+
+> 是初始化阶段最先调用。
+
+1. IOC的理解？
+2. Spring容器启动流程？
+
+> SpringBoot 的启动流程：
+>
+> 1. 创建环境上下文
+>2. 配置环境上下文，此时触发 FileConfigListener
+> 3. 创建 ApplicationContext
+>4. 准备 ApplicationContext 
+>    - 此时可能顺带触发 SpringCloud 的Bootsrtap，先创建SpringCloud的上下文，并作为当前上下文的父上下文，SpringCloud 的
+>   - 还有PropertySourceBootstrapConfiguration，用于配置中心的配置数据加载
+>    - 还会加载所有的BeanDefinition
+>   - 对 Import 和 ImportSelect 的处理
+> 5. 刷新上下文
+>
+>    1. 创建并准备 BeanFactory
+>    2. 执行 BeanFatocyrPostProcessor
+>    3. 加载 BeanPostProcessor
+>    4. 
+>
+>    
+
+1. BeanFactory和ApplicationContext有什么区别？
+
+> ApplicationContext 是对 BeanFactory 的扩展，完全包含了 BeanFactory 的功能之外还提供了Listener的支持，以及对各类环境的配置和整合。
+
+1. Spring如何解决循环依赖问题
+
+> 三级缓存，缓存已经构建完成的Bean,SingleObjects，缓存刚实例化好但是并没有填充数据的对象，以及 FactoryBean 对象。
+
+- Spring框架中的Bean是线程安全的么？如果线程不安全，那么如何处理？
+
+> Bean 默认为单例模式，线程不拿全
+
+- Spring事务的实现方式和实现原理
+
+> Spring 的事务基于 AOP 开发，定义了一个 TransactionManageer 来实现各种的事务操作，包括挂起，回复，开启，提交，回滚等。
+>
+> 使用 ThreadLocal 保存当前的事务名称，事务状态，所以当开启一个事务的时候会先判断线程本地是否有为提交的事务，有的话根据隔离级别执行隔离逻辑。
+
+1. <https://blog.csdn.net/a745233700/article/details/80959716>
+2. <https://blog.csdn.net/oldshaui/article/details/90675149>（spring cloud）
+3. <https://www.cnblogs.com/wjqhuaxia/p/11837069.html>（同上）
+4. <https://blog.csdn.net/qq_35906921/article/details/84032874>（同上）
 
 ### MyBatis/MyBatis-plus
 
@@ -174,18 +214,49 @@
 
 ### JVM/JMM在
 
-1. JVM运行时数据区，存放的内容
+- JVM运行时数据区，存放的内容
 
 > 堆，JVM 栈，本地方法栈，元空间，PC
 >
-> 对象，调用
+> 堆中主要存放的是Java的对象
+>
+> JVM栈是线程私有的，栈帧里面存放的有局部变量表，操作数栈，应用，方法返回地址
 
-1. JAVA内存模型？（JMM内存模型说一下吧？）
-2. 类加载机制？
-3. 为什么要这样加载类？
-4. 常见的垃圾收集器？
-5. CMS和G1的区别？
-6. JVM参数你是怎么设置的
+- JAVA内存模型？（JMM内存模型说一下吧？）
+
+>  JMM 是虚拟机规范中定义的一种模型，使得虚拟机可以屏蔽顶层的硬件区别。
+>
+> JMM 中规定数据保存在主内存，操作时加载到线程本地，通过JMM规范进行同步，相当于说线程之间必须要通过主内存通信。
+>
+> Happen-before原则以及七种绝对安全操作，load,use,assign,lock,unlock,read,write
+
+- 类加载机制？
+
+> 加载，验证，准备，解析，初始化
+
+- 为什么要这样加载类？
+
+> 加载负责的是找到 Class文件的二进制流，并转化为Class对象的数据结构
+>
+> 连接过程是保护Class二进制流的安全性，以及固定内存的分配和连接的转换
+
+1. 常见的垃圾收集器？
+
+> CMS,G1,Serial,Seral Old,pararrl ，parall old
+
+1. CMS和G1的区别？
+
+> CMS 是老年代垃圾收集器，默认和par New 结合使用，G1不区分老年代和新生代，将整个堆空间划分为 region，region 有老年型和新生型，还有Huge类性
+>
+> CMS 主要是降低用户的延迟，但是G1可以达到一个可预测的停顿时间，对于region的整理预处理后会有一个排序，尽量收集收益较高的区域
+
+1. JVM参数你是怎么设置的
+
+> xms，xmx 设置为一样的。
+>
+> 整个堆空间扩展的时候，也会增加用户进程的停顿。
+>
+> 添加 GC 日志以及OOM时的Dump文件。
 
 ### JUC/Current Class（TL ed.）/AQS/Lock/keyword
 
@@ -199,21 +270,40 @@
 8. ThreadLocal的话，不显示调用remove方法的话，除了内存遗漏问题的话，还会有什么其他的问题？
 9. 那如果出现这种问题，你大概知道是因为这个线程池中线程没有进行remove，那你可以使用什么办法确定你的猜想？
 10. AQS说一下原理
-11. 说一下volatile关键字吧？
+
+> AQS 和 JVM 原生的 Monitor 机制类似，使用了变种的CLH同步队列来解决线程的排队和饥饿问题。
+>
+> 本身维护了一个双端队列作为阻塞队列，获取失败线程入队列，每个节点通过监听前驱节点的状态来判断是否可以竞争锁，自旋一定次数未获取到锁则使用LockSupport挂起当前线程。
+>
+> 在队首节点执行完成之后，会唤醒后继的节点，如果是共享模式会一直往后知道遇到一个独占节点，另外还有取消等节点状态。
+>
+> Condition 是一个单向队列，存放的是因为条件不满足的阻塞节点，如果条件满足之后会从 条件队列加入到阻塞队列，可以存在多个单向队列。
+
+1. 说一下volatile关键字吧？
+
+> Volatile 是相对轻量级的同步关键字。
+>
+> 保证对象的可见行和有序性。
 
 ### Other
 
 1. 类加载器有哪些，一个类加载器如何加载类的（类加载机制）
-2. 为什么要使用这样的加载机制加载类，不使用行不行？
-3. tomcat是使用这种类加载机制吗？
-4. String字符串的最大长度是多少？
-5. IO模型都有哪些？
-6. wait、notify和await、signal两套之间的区别？
-7. 使用ReentrantLock时为什么signal就行，而使用Object.notifyAll是通知全部的？
-8. 有哪些JDK的核心类库用到了阻塞队列这种数据结构？
-9. 类加载的过程？ 每一步都是干什么的？
-10. 你项目中每一种规则都对应一个线程，而且线程会从阻塞队列中获取GPS信息，那么的话，你这如果线程挂了（假设他挂了，不管怎么挂了），那么的话，你这阻塞队列中满了或者是超过了最大的长度，那么该如何处理呢？
-11. 看你对JDK8的stream流有了解，那你说一下JDK7和JDK8的区别，或者说有哪些优化？
+
+> Bootsrtap,Ext,App 三种主要的加载器。
+
+1. 为什么要使用这样的加载机制加载类，不使用行不行？
+2. tomcat是使用这种类加载机制吗？
+
+> Tomcat 部分支持该种累加在机制，。
+
+1. String字符串的最大长度是多少？
+2. IO模型都有哪些？
+3. wait、notify和await、signal两套之间的区别？
+4. 使用ReentrantLock时为什么signal就行，而使用Object.notifyAll是通知全部的？
+5. 有哪些JDK的核心类库用到了阻塞队列这种数据结构？
+6. 类加载的过程？ 每一步都是干什么的？
+7. 你项目中每一种规则都对应一个线程，而且线程会从阻塞队列中获取GPS信息，那么的话，你这如果线程挂了（假设他挂了，不管怎么挂了），那么的话，你这阻塞队列中满了或者是超过了最大的长度，那么该如何处理呢？
+8. 看你对JDK8的stream流有了解，那你说一下JDK7和JDK8的区别，或者说有哪些优化？
 
 ## Open Source Project
 
@@ -233,7 +323,7 @@
 
 ### ~~ELS~~
 
-### ~~Netty~~
+###  ~~Netty~~
 
 ### ~~Dubbo~~
 
@@ -252,8 +342,21 @@
 1. MySQL和PG的区别？
 2. 那他们之间有使用区别呢？
 3. MySQL的优化？
-4. 常用的存储引擎？InnoDB与MyISAM的区别？
-5. 事务的ACID与实现原理？
+
+> Explain 
+>
+> 
+
+1. 常用的存储引擎？InnoDB与MyISAM的区别？
+2. 事务的ACID与实现原理？
+
+> 原子性，一致性，隔离性，持久性
+>
+> 原子性通过 undolog 实现，如果异常则执行undolog回滚操作
+>
+> 隔离性通过锁和mvcc实现，根据不同的隔离级别有不同的实现。
+>
+> 持久性通过 redolog + binlog实现
 
 ### 索引原理/B+ Tree
 
