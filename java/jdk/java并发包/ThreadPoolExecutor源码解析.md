@@ -1,5 +1,4 @@
 ---
-
 title: ThreadPoolExecutor源码解析
 excerpt: 线程池是常见的池化技术实现之一，旨在重复使用现有的线程资源，已减少线程创建和销毁的消耗，类似的池化操作还有内存池，连接池等。
 index_img: https://chenqwwq.oss-cn-hangzhou.aliyuncs.com/note/assets/ThreadLocal.png
@@ -11,7 +10,7 @@ tags:
 - jdk
 ---
 
-# ThreadPoolExecutor源码解析
+# ThreadPoolExecutor 源码解析
 
 > ThreadPoolExecutor就是JDK中的线程池实现，基于 JDK 1.8
 >

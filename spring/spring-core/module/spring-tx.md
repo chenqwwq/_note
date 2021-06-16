@@ -1,4 +1,4 @@
-# Spring Transaction
+# Transaction
 
 
 
@@ -10,19 +10,23 @@
 
 ## 概述
 
-Spring 的事务本质上是对底层数据库的重封装。
+Spring 的事务本质上是对底层数据库的重封装，涉及到事务的开启和关闭以及回滚操作。
 
+不同于数据库中的单事务，程序在方法调用期间可能会涉及到多个事务的情况，因此 Spring 的实现增加了**隔离级别**的概念。
 
+<br>
+
+<br>
 
 ## 相关组件
 
-### TransactionManager - 事务管理器
+### PlatformTransactionManager - 事务管理器
 
-该接口为标记接口，其直接子接口有 PlatformTransactionManager 和 ReactiveTransactionManager。
+**该接口为标记接口，其直接子接口有 PlatformTransactionManager 和 ReactiveTransactionManager，是事务执行的基本逻辑模板，包含了开启和关闭以及回滚的实现。**
 
 以 PlatformTransactionManager 为例子:
 
-<img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210316224438850.png" alt="image-20210316224438850" style="zoom:67%;" />
+![Spring_TransactionManager_方法列表](assets/Spring_TransactionManager_方法列表.png)
 
 实现的方法如下：
 
@@ -32,19 +36,21 @@ Spring 的事务本质上是对底层数据库的重封装。
 |              commit(TransactionStatus status)              |   提交事务   |
 |             rollback(TransactionStatus status)             |   回滚事务   |
 
-每种不同的数据访问实现，都可以定义自己的事务管理器，例如使用 Hibernate 访问数据库，
+每种不同的数据访问实现，都可以定义自己的事务管理器，例如使用 Hibernate 访问数据库，则新建的是 HibernateTransactionManager，也就有了自己的一套创建，提交和回滚逻辑。
 
-则新建的是 HibernateTransactionManager，也就有了自己的一套创建，提交和回滚逻辑。
+<br>
 
-
+<br>
 
 
 
 ### TransactionDefinition - 事务定义
 
-该类中定义了基本的事务属性，具体的属性如下：
+**该类中定义了基本的事务属性，包含隔离级别，超时时间，传播行为等。**
 
-<img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210316224752132.png" alt="image-20210316224752132" style="zoom:67%;" />
+具体的属性如下：
+
+![Spring_TransactionDefinition](assets/Spring_TransactionDefinition.png)
 
 事务的属性有如下几个：
 
@@ -56,11 +62,13 @@ Spring 的事务本质上是对底层数据库的重封装。
 |  ReadOnly   | 是否为只读事务 |
 |    name     |    事务名称    |
 
-
+<br>
 
 另外的 TransactionDefinition 中还定义了事务的隔离级别和传播级别。
 
-> 事务隔离级别就是不同事务并发时后互相之间的可见度。
+<br>
+
+> 事务隔离级别就是不同事务并发时后互相之间的可见度，级别越高并发效率越低，但是安全性越好，
 
 | 隔离级别                   | 含义                                                         |
 | -------------------------- | ------------------------------------------------------------ |
@@ -70,7 +78,7 @@ Spring 的事务本质上是对底层数据库的重封装。
 | ISOLATION_REPEATABLE_READ  | REPEATABLE_READ级别，在 InnoDB 的存储引擎下，该级别能避免幻读 |
 | ISOLATION_SERIALIZABLE     | SERIALIZABLE级别，串行化执行各个事务，也就不存在并发问题     |
 
-
+<br>
 
 > 事务的传播级别定义了事务控制的边界，在方法调用间决定事务的逻辑。
 
@@ -88,13 +96,17 @@ Spring 的事务本质上是对底层数据库的重封装。
 
 
 
+<br>
+
+<br>
+
 ### TransactionStatus - 事务状态
 
-<img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210316232310738.png" alt="image-20210316232310738" style="zoom:67%;" />
+同类名，该类保存了事务的基本状态，使用了 ThreadLocal 保存在本地线程中。
 
-记录了当前事务的状态。
+![Spring_transaction_status](assets/Spring_transaction_status.png)
 
-
+状态含义如下：
 
 |      状态      |        含义        |
 | :------------: | :----------------: |
@@ -103,10 +115,16 @@ Spring 的事务本质上是对底层数据库的重封装。
 |   completed    |    事务是否完成    |
 |  hasSavepoint  | 是否存在 SavePoint |
 
+<br>
+
+在默认实现（DefaultTransactionStatus ）中，还另外保存了当前挂起的事务状态。
 
 
-## 事务的自动化配置
 
-通过 @EnableTransactionManagement 引入的 TransactionManagementConfigurationSelector 来加载具体的配置类。
+<br>
 
-例如如果使用的 JDK 的动态代理，引入的就是 ProxyTransactionManagementConfiguration。
+<br>
+
+## 事务的源码实现
+
+Spring 中事务的实现是在 AbstractPlatformTransactionManager 中。
