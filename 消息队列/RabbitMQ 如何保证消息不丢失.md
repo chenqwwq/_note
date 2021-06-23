@@ -26,7 +26,7 @@ RabbitMQ 可以分为 Producer（生产者），Consumer（消费者），Exchan
 
 还有就是，消息在 Exchange 和 Queue 的持久性，不能因为 Broker 的宕机导致消息的丢失，所以 Exchange ，Queue 和消息都需要持久化。
 
-> 持久化十分损耗内存，使用时谨慎判断是否必要。
+> 持久化对性能有损，使用时谨慎判断是否必要。
 
 <br>
 
