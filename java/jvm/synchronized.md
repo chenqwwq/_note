@@ -1,6 +1,6 @@
 # synchronized
 
-> chenqwwq
+> synchronized 就是 JVM 提供的内置锁。
 
 ---
 
@@ -18,7 +18,7 @@ synchronized 是 Java 提供的同步原语，背后是 Java虚拟机(JVM) 提�
 
 **synchronized 具有可重入性，单线程可以重复对一个对象上锁，而不会自我阻塞，但是解锁还是一次性的。**
 
-**synchronized 保证了程序的可见性和原子性。<font size="2">(volatile只能保证可见性以及一定程度上的有序性,而无原子性)</font>**
+**synchronized 保证了程序的可见性和原子性以及有序性。<font size="2">(volatile只能保证可见性以及一定程度上的有序性,而无原子性)</font>**
 
 **synchronized 不具备公平性,会导致饥饿，而使线程阻塞时间过长。**
 
@@ -26,11 +26,13 @@ synchronized 是 Java 提供的同步原语，背后是 Java虚拟机(JVM) 提�
 
 另外和 synchronized 搭配使用的还有 wait()/notify()/notifyAll() 三个方法。
 
->**调用该三个方法之前必须要获取到对应的Monitor锁。**
+>**调用该三个方法之前必须要获取到对应的 Monitor 锁。**
 >
->因为所有的 Object 类都可以作为 Monitor 锁，所以这三个方法直接放在 Object 类好像也合情合理。
+>因为所有的 Object 类都可以作为 Monitor 锁，所以这三个方法直接放在 Object 类也合情合理。
 
+<br>
 
+<br>
 
 ## synchronized的锁形式
 
@@ -59,7 +61,9 @@ synchronized 是 Java 提供的同步原语，背后是 Java虚拟机(JVM) 提�
    public static synchronized void syncMethod(){};
    ```
 
+<br>
 
+<br>
 
 ## synchronized的虚拟机层实现
 
@@ -71,59 +75,65 @@ synchronized 根据不同的上锁形式会有不同的实现方式。
 
     > 退出实际上是两次的，在方法执行完毕之后还会执行一次 monitorexit
 
-    
+    <br>
 
 2. **在修饰方法(包括静态方法)时由方法调用指令读取运行时常量池方法中的 `ACC_SYNCHRONIZED` 隐式实现**
 
       ![image-20210220102424150](assets/javap_acc_synchronized.jpg)
 
+<br>
 
+<br>
 
 ## Mark Word
 
 `Mark Word` 是 `Java对象头`结构中除类型指针外的另一部分,用于记录 `HashCode` ，对象的年龄分代,锁状态标志等运行时数据。
 
-> Java 的对象头包含了 Mark Word，类型指针和对齐填充。
+> Java 的对象头包含了 **Mark Word，类型指针和对齐填充。**
 
 下图中就比较清晰的展示了,不同情况下`Mark Word`的不同结构.
 
 ![](assets/markword.jpg)
 
-> Mark Word相当于是锁的记录，查看Mark Word就可以确定当前Monitor锁的状态。
+> Mark Word 相当于是锁的记录，查看 Mark Word 就可以确定当前 Monitor 锁的状态。
 >
-> Class对象也继承与Object对象，所以也能作为Monitor锁对象。
+> Class 对象也继承与 Object 对象，所以也能作为 Monitor 锁对象。
 
+<br>
 
+<br>
 
 ## Monitor 监视器(管程)
 
-Monitor是虚拟机内建的用来实现同步的机制，原则上Java的每一个对象都可以作为Monitor。
+Monitor 是虚拟机内建的用来实现同步的机制，原则上Java的每一个对象都可以作为 Monitor。
 
 > `Monitor`的实现还是依赖于操作系统的`Mutex Lock`(互斥锁)来实现的，对于操作系统层面的实现不深究。
 >
-> 因为线程的阻塞，恢复以及mutex的调用等都涉及到用户态到内核态的切换，所以性能有限。
+> 因为线程的阻塞，恢复以及 mutex 的调用等都涉及到用户态到内核态的切换，所以性能有限。
 
- ![img](z)
+![img](assets/JVM_Monitor.jpeg)
 
-上图可以简单说明整个Monitor机制的工作方法。
+上图可以简单说明整个 Monitor 机制的工作方法。
 
-Entry Set存放所有竞争线程集合，Wait Set存放所有的等待线程的集合。
+Entry Set 存放所有竞争线程集合，Wait Set 存放所有的等待线程的集合。
 
-> 都是用Set表示了，所以synchronized并不是公平锁，存在饥饿的情况。
+> 都是用 Set 表示了，所以 synchronized 并不是公平锁，存在饥饿的情况。
 
-进入同步代码块的时候，线程先加入到 Entry Set，如果获取到锁则变为 Owner，期间调用了 wait() 方法后，进入 Wait Set，代码块执行完毕则会退出。
+进入同步代码块的时候，线程先加入到 Entry Set，如果获取到锁则变为 Owner，期间调用了 wait() 方法后，进入 Wait Set，调用了 notify() 之后回到 Entry Set 继续竞争锁资源，代码块执行完毕则会退出。
 
-只有 Owner 代表的线程才可以执行标识的代码块，也就保证的互斥性。
+只有 Owner 代表的线程才可以执行标识的代码块，也就保证了锁的互斥性。
 
->Monitor 是以 C++ 实现的，虚拟机内建的互斥锁机制，Java中还可以使用ReentrantLock和Condition对象实现更加灵活的控制。
+>Monitor 是以 C++ 实现的，虚拟机内建的互斥锁机制，Java中还可以使用 ReentrantLock 和 Condition 对象实现更加灵活的控制。
 >
 >Condition 中也有 await()/signal()/signalAll() 等配套方法。
 
+<br>
 
+<br>
 
 ## wait()/notify()/notifyAll()
 
->以上三个方法都需要在获取到 Monitor 锁的状态下执行，也就是说在 synchronized 代码块中执行。
+>**以上三个方法都需要在获取到 Monitor 锁的状态下执行，也就是说在 synchronized 代码块中执行。**
 
 wait() 会释放当前的 Monitor 锁，并使线程进入 WAITING 或者 TIMED_WAITING 状态，在上图中就是进入到 Wait Set 中，另外的wait() 可以指定超时时间。 
 
@@ -133,7 +143,9 @@ notify() 会从当前的 Monitor 的 Wait Set 中随机唤醒一个等待的线�
 >
 >所以如果通过 wait() 阻塞的线程重新执行时候需要重新判断执行条件。
 
+<br>
 
+<br>
 
 
 
@@ -147,11 +159,15 @@ notify() 会从当前的 Monitor 的 Wait Set 中随机唤醒一个等待的线�
 
 锁级别从低到高依次是：无锁状态、偏向锁状态、轻量级锁状态和重量级锁状态，**绝大多数情况下，锁可以升级但不能降级。**
 
+<br>
+
 ### 锁的转换关系
 
 ![](assets/java_synchronized.jpg)
 
 - 我觉得上图已经很好的展示了几个状态之间的转化,就不在赘述了.<font size="1">(估计也讲不好)</font>
+
+<br>
 
 #### 偏向锁相关问题
 
@@ -168,7 +184,7 @@ notify() 会从当前的 Monitor 的 Wait Set 中随机唤醒一个等待的线�
 
 > 并不是十分确定。
 
-
+<br>
 
 ### 自旋锁 & 自适应自旋锁
 
@@ -179,6 +195,8 @@ notify() 会从当前的 Monitor 的 Wait Set 中随机唤醒一个等待的线�
 自旋锁在自旋的过程中也会占用一部分的 CPU 时间，若一直无限制自旋也会白白浪费 CPU 资源，所以在此基础之上又引入了**自适应自旋锁**.
 
 自适应自旋锁是对自旋锁的优化,**为自旋的次数或者时间设定一个上限,若超过这个上限一般会选择挂起线程或别的操作.**
+
+<br>
 
 ### 锁消除
 
@@ -196,6 +214,8 @@ public void test(){
 
 如上面这段代码展示,其中 `StringBuffer` 类是线程安全的，方法都会有 `synchronized` 修饰，所以最少也会有偏向锁的机制在发挥作用，但 a1 和 a2 的作用域就在 test 方法中,完全不会逃逸到方法体外，也不会引起线程安全问题，此时甚至偏向锁都显得很没必要。
 
+<br>
+
 ### 锁粗化
 
 在一段代码中,若同步区域被限制的过小会导致线程频繁的进行锁的释放和获取操作.而此时锁粗化的作用就出来了,**虚拟机探测到该类情况会直接将锁的同步区域扩展到整个操作的外部**,从而消除无谓的锁操作.
@@ -209,7 +229,9 @@ for(int i = 0;i < 10;i++){
 }
 ```
 
+<br>
 
+<br>
 
 ## 相关文章
 
