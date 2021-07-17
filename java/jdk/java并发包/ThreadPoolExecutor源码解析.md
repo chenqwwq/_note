@@ -1,21 +1,8 @@
----
-title: ThreadPoolExecutor源码解析
-excerpt: 线程池是常见的池化技术实现之一，旨在重复使用现有的线程资源，已减少线程创建和销毁的消耗，类似的池化操作还有内存池，连接池等。
-index_img: https://chenqwwq.oss-cn-hangzhou.aliyuncs.com/note/assets/ThreadLocal.png
-banner_img: https://chenqwwq.oss-cn-hangzhou.aliyuncs.com/note/assets/ThreadLocal.png
-date: 2021-05-30 23:08:35
-categories:
-- java
-tags:
-- jdk
----
-
 # ThreadPoolExecutor 源码解析
 
 > ThreadPoolExecutor就是JDK中的线程池实现，基于 JDK 1.8
->
 
-
+<br>
 
 ## 概述
 
@@ -55,7 +42,7 @@ ThreadPoolExecutor 是最基础的线程池，没有任何其他附加功能。
 
 这个基本是面试都会问的问题了，非常重要，因为**设定不同的入参是我们控制线程池执行方式的最主要的方法。**
 
- ![ThreadPoolExecutor构造函数](https://chenqwwq.oss-cn-hangzhou.aliyuncs.com/note/assets/ThreadPoolExecutor构造函数.png)
+ ![ThreadPoolExecutor构造函数](assets/ThreadPoolExecutor构造函数.png)
 
 以上就是 ThreadPoolExecutor 类内所有的构造函数，以下是参数最完整的一个:
 
