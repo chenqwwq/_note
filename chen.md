@@ -4,51 +4,47 @@
 - Email: chenbxxx@gmail.com
 - WeChat: 17826875823
 
-<br>
-
 # 个人信息
 
  - 陈炳鑫/男/1995
  - 本科/浙江农林大学/物联网
  - 工作年限：3年
 
-<br>
-
 
 # 技能清单
 
 以下均为我熟练使用的技能
 
-- 熟练使用 Java，并掌握 JDK，JVM 基础,了解 Go , Lua 等语言
-- 熟悉 Redis，Kafka，RabbitMQ 等中间件
-- 熟悉TCP，HTTP等基本网络协议
-- 熟悉 MySQL，了解 InnoDB 部分原理特性，基本掌握 SQL 调优技巧
-- 熟悉 Spring，SpringMVC，了解 SpringBoot，以及 SpringCloud 部分组件
+- 熟练使⽤ Java，并掌握 JDK 部分实现，JVM 基础,了解 Go , Lua 等语⾔ 
+- 熟悉 Redis，Kafka，RabbitMQ 等中间件 
+- 熟悉 Java IO ，以及 Netty 的基本使⽤ 
+- 熟悉 TCP，HTTP 等基本⽹络协议 
+- 熟悉 MySQL，了解 InnoDB 部分原理特性，基本掌握 SQL 调优技巧 
+- 熟悉 Spring，SpringMVC，了解 SpringBoot，以及 SpringCloud 部分组件 
 - 熟悉基本的算法和数据结构
-
-<br>
 
 # 工作及项目经历
 
 ## 杭州学海教育有限公司（2020年4月 - 至今）
 
-- 基础服务组 - 通讯中心，负责响应，推送，消息网关等通讯相关项目或组件的开发和维护。
-
-<br>
+- 基础服务组 - 通讯中⼼，负责响应，推送，消息⽹关等通讯相关项⽬以及答疑圈 的开发和维护。
 
 ### 响应
 
 #### 项目简介
 
-- 公司平台标配的应用，作为学生/老师/家长聊天的基础工具，承载了所有师生的日常交流。
+> 公司教育平台的标配应⽤，作为学⽣/⽼师/家⻓聊天的基础⼯具，承载了所有师⽣的 ⽇常交流。 
 
-<br>
+- 以读扩散为主的存储模型和表结构设计 
+- 多种消息形式，包含私聊（定时，延时），群聊，群发，转发（逐条和合并），通知等
+- 会话管理，群聊管理以及⽼师为主导的各类权限管理
+-  群组管理，包含群（定时）禁⾔功能
 
-#### 相关技术
+#### 相关技
 
-SpringBoot、SpringClou Feign | Ribbon | Hystrix | Sentinel、Redis、MySQL、RabbitMQ、XXL-JOB
+ SpringBoot、SpringClou Feign | Ribbon | Hystrix | Sentinel | Consul、Redis、MySQL、 RabbitMQ、XXL-JOB
 
-#### <br>项目的关键技术点：
+#### 项目的关键技术点：
 
 2. 消息的多种分表存储
 3. 多应用发送记录同步模块
@@ -57,32 +53,49 @@ SpringBoot、SpringClou Feign | Ribbon | Hystrix | Sentinel、Redis、MySQL、Ra
 5. 以读扩散为存储基础的已读方案的实现
 6. RabbitMQ 做各类消息异步投递方式
 
-<br>
-
 #### 我的职责
 
-- 负责项目迭代需求以及平台内其他应用的调研以及架构设计和研发
-- 维护线上服务稳定运行，处理线上异常
-- 重构大部分历史遗留代码，细分模块
-- 优化接口响应时间，细化内部事务
-- 实现延时消息模块
-- 基于群组实现群发通知机制
-- 补全单元测试，保证75%以上的单元测试覆盖率
+1. 定时消息的设计与实现，Redis + XXL-JOB 实现延时队列 
+2. 消息的多种分表存储模式，消息发送的幂等性保护以及会话状态的增量更新机制
+3. 多应⽤发送记录同步模块，基于 Spring AOP 实现的异步回调 
+4. 多种消息投递机制的实现 
+5. 多推送渠道对接和调度
+6.  以读扩散为存储基础的消息已读实现 
+7.  RabbitMQ 实现各类消息异步投递⽅式，类似逐条转发和合并转发
 
 <br>
+
+### 消息⽹关
+
+#### 项⽬简介 
+
+> 公司内部的消息相关服务集合，包括短信以及 Email 的发送。 
+
+#### 相关技术 
+
+SpringBoot、SpringCloud Feign | Consul，MySQL，Redis 
+
+#### 项⽬的关键技术点 
+
+1. 对接阿⾥云，华为云在内的多家短信⼚商
+2. 以责任链模式和模板模式实现链式的短信发送模块
+3. 以 Consul 为配置中⼼，实现短信渠道优先级的动态配置 
+4.  基于 Redis 的发送频率校验
+
+
 
 ## 杭州玛瑙湾科技有限公司 （2019年〜2020年1月）
 
 - 小贷组，负责网络信用贷软件开发，以及周围丛属服务开发。
 
-<br>
+
 
 ### 玛仔小贷 
 ####  项目简介： 
 
 玛仔小贷是一款网络小额信用贷软件，用户登录后简单操作即可快速出款，800 ~ 5000 的额度。
 
-<br>
+
 
 #### 项目的关键技术点：
 
@@ -91,7 +104,7 @@ SpringBoot、SpringClou Feign | Ribbon | Hystrix | Sentinel、Redis、MySQL、Ra
 3. 分布式锁的实现
 4. JWT 接口验证以及请求体加密
 
-<br>
+
 
 #### 我的职责
 
@@ -102,7 +115,7 @@ SpringBoot、SpringClou Feign | Ribbon | Hystrix | Sentinel、Redis、MySQL、Ra
 5. 银行卡模块，19年10月份上线多卡功能，银行卡根据三方支付的签约之类的会有更多的分类细化。
 6. 提现/还款模块，涉及资金的模块，内网调用公司内部的资产端接口，实现放款和还款。
 
-<br> <br>
+ 
 
 
 
