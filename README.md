@@ -29,7 +29,7 @@
 - [引用类型](java/jvm/引用类型.md)
 - [元空间和永久代](java/jvm/元空间和永久代.md)
 - [synchronized](java/jvm/synchronized.md)
-- [JVM 的类加载子系统](java/jvm/JVM 的类加载子系统.md)
+- [JVM 的类加载子系统](java/jvm/JVM的类加载子系统.md)
 
 
 
@@ -61,21 +61,21 @@
 
 #### Netty 的相关流程
 
-- [0. EventLoop 的初始化流程](netty/netty逻辑流程/0. EventLoop 的初始化.md)
-- [1. NIO服务端启动流程](netty/netty逻辑流程/1. NIO服务端启动流程.md)
-- [2. ChannelPipeline的结构和初始化流程](netty/netty逻辑流程/2. ChannelPipeline的结构和初始化流程.md)
-- [3. NioEventLoop的事件轮询](netty/netty逻辑流程/3. NioEventLoop的事件轮询.md)
-- [4. 客户端Channel的建立过程](netty/netty逻辑流程/4. 客户端Channel的建立过程.md)
+- [0. EventLoop 的初始化流程](netty/netty逻辑流程/0.EventLoop 的初始化.md)
+- [1. NIO服务端启动流程](netty/netty逻辑流程/1.NIO服务端启动流程.md)
+- [2. ChannelPipeline的结构和初始化流程](netty/netty逻辑流程/2.ChannelPipeline的结构和初始化流程.md)
+- [3. NioEventLoop的事件轮询](netty/netty逻辑流程/3.NioEventLoop的事件轮询.md)
+- [4. 客户端Channel的建立过程](netty/netty逻辑流程/4.客户端Channel的建立过程.md)
 - [5.ChannelPipeline事件传递机制](netty/netty逻辑流程/5.ChannelPipeline事件传递机制.md)
-- [6. Netty 中的编解码逻辑](netty/netty逻辑流程/6. Netty 中的编解码逻辑.md)
-- [7. Netty 中写数据的逻辑](netty/netty逻辑流程/7. Netty 中写数据的逻辑.md)
-- [8. Netty 中读数据的流程](netty/netty逻辑流程/8. Netty 中读数据的流程.md)
+- [6. Netty 中的编解码逻辑](netty/netty逻辑流程/6.Netty 中的编解码逻辑.md)
+- [7. Netty 中写数据的逻辑](netty/netty逻辑流程/7.Netty 中写数据的逻辑.md)
+- [8. Netty 中读数据的流程](netty/netty逻辑流程/8.Netty 中读数据的流程.md)
 
 ## Spring 全家桶
 
 ## 消息队列
 
-- [RabbitMQ 如何保证消息不丢失](消息队列/RabbitMQ 如何保证消息不丢失.md)
+- [RabbitMQ 如何保证消息不丢失](消息队列/RabbitMQ如何保证消息不丢失.md)
 
 ## Redis
 
