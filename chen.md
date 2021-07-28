@@ -13,8 +13,6 @@
 
 # 技能清单
 
-以下均为我熟练使用的技能
-
 - 熟练使⽤ Java，并掌握 JDK 部分实现，JVM 基础,了解 Go , Lua 等语⾔ 
 - 熟悉 Redis，Kafka，RabbitMQ 等中间件 
 - 熟悉 Java IO ，以及 Netty 的基本使⽤ 
