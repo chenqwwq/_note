@@ -61,15 +61,15 @@
 
 #### Netty 的相关流程
 
-- [0. EventLoop 的初始化流程](netty/netty逻辑流程/0.EventLoop 的初始化.md)
-- [1. NIO服务端启动流程](netty/netty逻辑流程/1.NIO服务端启动流程.md)
-- [2. ChannelPipeline的结构和初始化流程](netty/netty逻辑流程/2.ChannelPipeline的结构和初始化流程.md)
-- [3. NioEventLoop的事件轮询](netty/netty逻辑流程/3.NioEventLoop的事件轮询.md)
-- [4. 客户端Channel的建立过程](netty/netty逻辑流程/4.客户端Channel的建立过程.md)
-- [5.ChannelPipeline事件传递机制](netty/netty逻辑流程/5.ChannelPipeline事件传递机制.md)
-- [6. Netty 中的编解码逻辑](netty/netty逻辑流程/6.Netty 中的编解码逻辑.md)
-- [7. Netty 中写数据的逻辑](netty/netty逻辑流程/7.Netty 中写数据的逻辑.md)
-- [8. Netty 中读数据的流程](netty/netty逻辑流程/8.Netty 中读数据的流程.md)
+- [EventLoop 的初始化流程](netty/netty逻辑流程/EventLoop 的初始化.md)
+- [NIO服务端启动流程](netty/netty逻辑流程/NIO服务端启动流程.md)
+- [ChannelPipeline的结构和初始化流程](netty/netty逻辑流程/ChannelPipeline的结构和初始化流程.md)
+- [NioEventLoop的事件轮询](netty/netty逻辑流程/NioEventLoop的事件轮询.md)
+- [客户端Channel的建立过程](netty/netty逻辑流程/客户端Channel的建立过程.md)
+- [ChannelPipeline事件传递机制](netty/netty逻辑流程/ChannelPipeline事件传递机制.md) - TODO
+- [Netty 中的编解码逻辑](netty/netty逻辑流程/Netty中的编解码逻辑.md)
+- [Netty 中写数据的逻辑](netty/netty逻辑流程/Netty中写数据的逻辑.md) - 未开始
+- [Netty 中读数据的流程](netty/netty逻辑流程/Netty中读数据的流程.md) - 未开始
 
 ## Spring 全家桶
  > Spring 应该是 Java 必学的框架了，但是源码层面看的并不深。
