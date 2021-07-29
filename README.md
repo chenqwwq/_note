@@ -61,7 +61,7 @@
 
 #### Netty 的相关流程
 
-- [EventLoop 的初始化流程](netty/netty逻辑流程/EventLoop 的初始化.md)
+- [EventLoop 的初始化流程](netty/netty逻辑流程/EventLoop的初始化.md)
 - [NIO服务端启动流程](netty/netty逻辑流程/NIO服务端启动流程.md)
 - [ChannelPipeline的结构和初始化流程](netty/netty逻辑流程/ChannelPipeline的结构和初始化流程.md)
 - [NioEventLoop的事件轮询](netty/netty逻辑流程/NioEventLoop的事件轮询.md)
@@ -85,7 +85,7 @@
 
 ### SpringBoot
 
-- [SpringBoot的事件模型](spring/spring-boot/SpringBoot的事件模型 .md)
+- [SpringBoot的事件模型](spring/spring-boot/SpringBoot的事件模型.md)
 - [SpringBoot的启动流程简述](spring/spring-boot/springboot的启动流程简述.md)
 - [SpringBoot的工厂加载模式](spring/spring-boot/SpringBoot的工厂加载模式.md)
 
@@ -112,8 +112,6 @@
 
 ## Redis
 
-- []()
-- []
 - [Redis缓存相关](redis/Redis缓存相关.md)
 
 ## Go 语言深入
