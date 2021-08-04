@@ -12,31 +12,31 @@
 
 ConcurrentHashMap 是 Java 中线程安全的 HashMap，1.8的实现中，内部采用了 CAS 以及 synchronized 实现并发安全。
 
-
-
-> HashMap 有良好的存取性能，但并不支持并发环境，`HashTable`支持并发环境,但在存取方法上直接加`synchronized`的方式太过粗暴会使性能明显暴跌，即使在JDK1.6的优化之后。
-
-在`ConcurrentHashMap`中，所有的锁都是针对其中的某个桶，也就是数组的某个节点的，而非全局上锁，锁的粒度小，自然性能就高。
+在 ConcurrentHashMap 中，所有的锁都是针对其中的某个桶，也就是数组的某个节点的，而非全局上锁，锁的粒度小，自然并发性能就高。
 
 
 
----
+> 为什么需要 ConcurrentHashMap ？
 
-#### 成员变量
+HashMap 有良好的存取性能，但并不支持并发环境。
+
+HashTable 支持并发环境,但在存取方法上直接加 synchronized 的方式太过粗暴会使性能明显下降。
+
+## 成员变量
 
 ```java
 1. transient volatile Node<K,V>[] table;
 ```
 
-实际存储数据的Node数组，`volatile`保证可见性。
+实际存储数据的 Node 数组，volatile 保证可见性。
 
 ```java
 2. private transient volatile Node<K,V>[] nextTable;
 ```
 
-下一个使用的数组，仅在扩容更新的时候不为空,扩容时会慢慢把数据移动到这个数组.
+下一个使用的数组，仅在扩容更新的时候不为空，扩容时会逐渐把数据移动到这个数组。
 
-该数组作为扩容的过度，类外无法访问
+该数组仅作为扩容的过渡，类外无法访问。
 
 ```java
 3. private transient volatile long baseCount;
