@@ -18,6 +18,37 @@ CountDownLatch 是利用 AQS 的**共享锁机制**实现的计数器，实现�
 
 **调用 CountDownLatch#await 方法的所有线程会阻塞直到有指定个线程调用 CountDownLatch#countDown 方法。**
 
+使用示例如下：
+
+```java
+public class Main {
+	public static void main(String[] args) throws InterruptedException {
+		CountDownLatch countDownLatch = new CountDownLatch(3);
+		ExecutorService executorService = Executors.newFixedThreadPool(3);
+		for (int i = 0; i < 3; i++) {
+			executorService.submit(new Runnable() {
+				@SneakyThrows
+				@Override
+				public void run() {
+					TimeUnit.SECONDS.sleep(10);
+					System.out.println("count down");
+					countDownLatch.countDown();
+				}
+			});
+		}
+		countDownLatch.await();
+		System.out.println("I am ready");
+	}
+}
+// 输出结果:
+// count down
+// count down
+// count down
+// I am ready
+```
+
+
+
 
 
 ## 源码实现
