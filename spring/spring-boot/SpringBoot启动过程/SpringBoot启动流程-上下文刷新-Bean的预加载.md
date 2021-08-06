@@ -1,6 +1,6 @@
-# SpringBoot启动过程中单例Bean的预加载
+# SpringBoot 启动过程中单例 Bean 的预加载
 
-> SpringBoot启动过程中需要调用refresh方法，refresh方法末期就会实例化所有符合条件的单例Bean
+> SpringBoot 启动过程中需要调用 refresh 方法，refresh 方法末期就会实例化所有符合条件的单例 Bean
 
 <!-- more -->
 
