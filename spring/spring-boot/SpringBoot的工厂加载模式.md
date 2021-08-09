@@ -1,8 +1,8 @@
 # SpringBoot的工厂加载机制
 
-> 工厂加载机制是`SpringBoot`的扩展点之一。
+> 工厂加载机制是 SpringBoot 的扩展点之一。
 >
-> 首先`META-INF/spring.factories` 路径下配置相关子类，在框架启动时借由`SpringFactoriesLoader`加载到框架的上下文，实现自定义扩展。
+> 首先 META-INF/spring.factories` 路径下配置相关子类，在框架启动时借由`SpringFactoriesLoader`加载到框架的上下文，实现自定义扩展。
 
 <!-- more -->
 
@@ -16,7 +16,7 @@
 
 ![image-20210330215015366](/home/chen/_note/pic/image-20210330215015366.png)
 
-SpringFactoriesLoader 可以独立于整个 Spring 的体系，作为一个动态加载机制。
+SpringFactoriesLoader 可以独立于整个 Spring 的体系，作为一个动态加载（SPI）机制。
 
 
 
@@ -24,15 +24,15 @@ SpringFactoriesLoader 可以独立于整个 Spring 的体系，作为一个动�
 
 <img src="/home/chen/_note/pic/image-20210330215839441.png" alt="image-20210330215839441" style="zoom:67%;" />
 
-一个配置以等号划分key和value，以逗号划分多个value，斜杠换行。
+一个配置以等号划分 key 和 value，以逗号划分多个 value，斜杠换行。
 
-> 要注意的是，value中的类名必须是key的子类，否则会报`IllegalArgumentException`。
+> 要注意的是，value 中的指定的类必须是 key 的子类，否则会报`IllegalArgumentException`。
 
 
 
-## SpringFactoriesLoader
+## 内部变量
 
-`SpringFactoriesLoader`就是Spring工厂加载机制的核心工具类，但是其源码并不复杂。
+SpringFactoriesLoader 就是 Spring 工厂加载机制的核心工具类，但是其源码并不复杂。
 
 以下为其中的成员变量：
 
@@ -46,38 +46,13 @@ private static final Log logger = LogFactory.getLog(SpringFactoriesLoader.class)
 private static final Map<ClassLoader, MultiValueMap<String, String>> cache = new ConcurrentReferenceHashMap<>();
 ```
 
-> spring.factories 配置类的地址是写死的，无法修改。
+> spring.factories 配置类的地址是固定的，无法修改。
 
+## 根据 Class 对象获取
 
-
-在 SpringBoot 的应用启动过程中就使用了该类实现动态的加载，例如在 SpringApplication 的构造函数中，使用了该机制加载应用上下文初始化器以及应用监听器：
-
-```java
-   // 这两行是SpringApplication构造函数中的两行代码	
-   setInitializers((Collection) getSpringFactoriesInstances(ApplicationContextInitializer.class));
-	setListeners((Collection) getSpringFactoriesInstances(ApplicationListener.class));
-    
-  // 可以看到最终调用还是使用的SpringFactoriesLoader.loadFactoryNames获取类的全限定名
-  // 简单的可以看作，入参为一个类对象，获取配置文件中该类对象对应的所有实现的子类。
-	private <T> Collection<T> getSpringFactoriesInstances(Class<T> type) {
-		return getSpringFactoriesInstances(type, new Class<?>[] {});
-	}
-	private <T> Collection<T> getSpringFactoriesInstances(Class<T> type, Class<?>[] parameterTypes, Object... args) {
-		ClassLoader classLoader = getClassLoader();
-		// Use names and ensure unique to protect against duplicates
-		Set<String> names = new LinkedHashSet<>(SpringFactoriesLoader.loadFactoryNames(type, classLoader));
-		List<T> instances = createSpringFactoriesInstances(type, parameterTypes, classLoader, args, names);
-		AnnotationAwareOrderComparator.sort(instances);
-		return instances;
-	}
-```
-
-
-
-### loadFactoryNames
-
-- 该方法是获取全部的扩展类的全限定名。
-- 只是读取配置文件中的信息，相关类的实例化流程需要自己实现。
+> 该方法是获取全部的扩展**类的全限定名**。
+>
+> 只是读取配置文件中的信息，相关类的实例化流程需要自己实现。
 
 ```java
  
@@ -94,16 +69,16 @@ private static Map<String, List<String>> loadSpringFactories(@Nullable ClassLoad
                 	return result;
             }
             try {
-                    // 使用ClassLoader获取工厂配置资源的全路径
+                    // 使用 ClassLoader 获取工厂配置资源的全路径
                     Enumeration<URL> urls = (classLoader != null ?
                             classLoader.getResources(FACTORIES_RESOURCE_LOCATION) :
                             ClassLoader.getSystemResources(FACTORIES_RESOURCE_LOCATION));
                     result = new LinkedMultiValueMap<>();
-                    // 遍历获取到的spring.factories文件
+                    // 遍历获取到的 spring.factories 文件
                     while (urls.hasMoreElements()) {
                         URL url = urls.nextElement();
                         UrlResource resource = new UrlResource(url);
-                        // 获取其中的Properties属性值。
+                        // 获取其中的 Properties 属性值。
                         Properties properties = PropertiesLoaderUtils.loadProperties(resource);
                         for (Map.Entry<?, ?> entry : properties.entrySet()) {
                                 // 获取key值,去空
@@ -124,11 +99,9 @@ private static Map<String, List<String>> loadSpringFactories(@Nullable ClassLoad
 	}
 ```
 
-另外的`SpringFactoriesLoader`中也有提供默认的实例化方法，以及获取已经实例化的类的方法。
+另外的 SpringFactoriesLoader 中也有提供默认的实例化方法，以及获取已经实例化的类的方法。
 
-
-
-### loadFactories
+## 根据 Class 对象获取实例对象
 
 - 和`loadFactoryNames`方法的区别就是该类返回的是实例化好的类
 
@@ -158,29 +131,43 @@ public static <T> List<T> loadFactories(Class<T> factoryType, @Nullable ClassLoa
 
 
 
-### instantiateFactory
-
-`SpringFactoriesLoader`中默认的实例化方法。
+## 默认的实例化方法
 
 ```java
-// 实例化的核心方法，还是调用ClassUtils的forName方法，其他的都是异常处理
-// ClassUtils.forName还包含各种数组的二维数组的实例化。
-// 对于普通对象来说，就相当于Class.forName()方法
-Class<?> factoryImplementationClass = ClassUtils.forName(factoryImplementationName, classLoader);
+@SuppressWarnings("unchecked")
+private static <T> T instantiateFactory(String instanceClassName, Class<T> factoryClass, ClassLoader classLoader) {
+    try {
+        Class<?> instanceClass = ClassUtils.forName(instanceClassName, classLoader);
+        if (!factoryClass.isAssignableFrom(instanceClass)) {
+            throw new IllegalArgumentException(
+                "Class [" + instanceClassName + "] is not assignable to [" + factoryClass.getName() + "]");
+        }
+        return (T) ReflectionUtils.accessibleConstructor(instanceClass).newInstance();
+    }
+    catch (Throwable ex) {
+        throw new IllegalArgumentException("Unable to instantiate factory class: " + factoryClass.getName(), ex);
+    }
+}
 
-// 实际就相当于clazz.newInstance()
-return (T) ReflectionUtils.accessibleConstructor(factoryImplementationClass).newInstance();
+// ReflectionUtils#accessibleConstructor
+public static <T> Constructor<T> accessibleConstructor(Class<T> clazz, Class<?>... parameterTypes)
+    throws NoSuchMethodException {
+
+    Constructor<T> ctor = clazz.getDeclaredConstructor(parameterTypes);
+    makeAccessible(ctor);
+    return ctor;
+}
 ```
 
+SpringFactoriesLoader 中默认的实例化方法，就是通过默认的无参构造 newInstance() 方法创建。
+
+## 工厂加载机制在启动流程中的应用
+
+> SpringBoot 启动流程个中也会使用工厂加载机制加载一些类，但并不一定使用默认的构造函数，而是使用自定义的带参构造。
 
 
-## SpringBoot启动流程中的工厂加载机制
 
-- SpringBoot启动流程个中也会使用工厂加载机制加载一些类，但并不一定使用默认的构造函数，而是使用自定义的带参构造。
-
-
-
-### SpringApplication
+### SpringApplication 的构造函数
 
 ```java
 // SpringApplication的构造函数中的两行初始化代码
@@ -191,7 +178,8 @@ setListeners((Collection) getSpringFactoriesInstances(ApplicationListener.class)
 private SpringApplicationRunListeners getRunListeners(String[] args) {
     Class<?>[] types = new Class<?>[] { SpringApplication.class, String[].class };
     return new SpringApplicationRunListeners(logger,
-			getSpringFactoriesInstances(SpringApplicationRunListener.class, types, this, args));	}
+			getSpringFactoriesInstances(SpringApplicationRunListener.class, types, this, args));	
+}
 ```
 
 
