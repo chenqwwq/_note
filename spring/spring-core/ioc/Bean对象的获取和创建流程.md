@@ -48,7 +48,7 @@ AbstractBeanFactory#doGetBean --> transformedBeanName
 2. 获取 Class 对象
 3. 处理 Ovriride 方法
 4. InstantiationAwareBeanPostProcessor#postProcessBeforeInstantiation(Class<?> beanClass, String beanName) 可以自定义实现对象的实例化
-   - 如果 Before 中已经创建，继续执行 BeanPostProcessor#applyBeanPostProcessorsAfterInitialization
+   - 如果 Before 中已经创建 Bean，继续执行 BeanPostProcessor#applyBeanPostProcessorsAfterInitialization
 5. AbstractAutowiredCapableBeanFactory#doCreateBean 
 6. 实例化具体对象，返回 BeanWrapper
    - InstanceSupplier
@@ -66,5 +66,7 @@ AbstractBeanFactory#doGetBean --> transformedBeanName
 13. 注册 DisposableBean
 
 
+
+### 相关参考
 
 [BeanPostProcessor相关类](beanpostprocessor/BeanPostProcessor类族概述.md)

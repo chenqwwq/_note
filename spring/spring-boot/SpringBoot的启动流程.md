@@ -56,11 +56,11 @@ public SpringApplication(ResourceLoader resourceLoader, Class<?>... primarySourc
 
 ### ApplicationContextInitializer - 初始化器
 
-通过 spring.factories 文件的 SPI 机制获取到所有 ApplicationContextinitializer 的实现类。
+**通过 spring.factories 文件的 SPI 机制获取到所有 ApplicationContextinitializer 的实现类。**
 
 ApplicationContextInitializer 作为应用初始化器，在 prepareContext 阶段中调用，用来完成部分初始化流程。
 
-<img src="/home/chen/github/_note/pic/image-20210301235004087.png" style="zoom:67%;" />
+<img src="/home/chen/_note/pic/image-20210301235004087.png" style="zoom:67%;" />
 
 initialize(C applicationContext) 方法就初始化方法，参数为正在创建的 ApplicationContext。
 
@@ -74,7 +74,7 @@ initialize(C applicationContext) 方法就初始化方法，参数为正在创�
 
 这里采用的是观察者模式，所以被观察者 ApplicationCopntext 需要持有所有观察者 ApplicationListener 的引用。
 
-<img src="/home/chen/github/_note/pic/image-20210301235318332.png" style="zoom:67%;" />
+<img src="/home/chen/_note/pic/image-20210301235318332.png" style="zoom:67%;" />
 
 ApplicationListener 继承与 JDK 的EventListener类，监听某个 ApplicationEvent。
 
@@ -256,7 +256,7 @@ public EventPublishingRunListener(SpringApplication application, String[] args) 
 
 EventPublishingRunListener 是对应用运行期的监听者，但处理事件的方式是包装被广播相对应的事件并进一步广播，如下图
 
-<img src="/home/chen/github/_note/pic/image-20210302000737616.png" alt="image-20210302000737616" style="zoom:67%;" />
+<img src="/home/chen/_note/pic/image-20210302000737616.png" alt="image-20210302000737616" style="zoom:67%;" />
 
 
 
@@ -637,3 +637,8 @@ private void callRunners(ApplicationContext context, ApplicationArguments args) 
 响应的监听器有如下几个：
 
  ![image-20200518233344657](../../../pic/image-20200518233344657.png)
+
+
+
+
+

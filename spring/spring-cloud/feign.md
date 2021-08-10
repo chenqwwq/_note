@@ -39,6 +39,60 @@
 
 
 
+## 相关组件
+
+### FeignContext 
+
+FeignContext 是整个 Feign 的核心，保存着每个服务对应的 ApplicationContext，并且该 ApplicationContext 以 SpringBoot 的 ApplicationContext 为父上下文。
+
+> 为了每个服务调用之间的配置隔离，SpringCloud 会为每个 FeignClient 生成一个 ApplicationContext，包括 Client 在内的组件都会尝试从这个上下文中取（**如果获取不到则会继续向上获取**·）。
+
+
+
+
+
+### Encoder / Decoder
+
+Feign 的编解码。
+
+
+
+### Contract
+
+FeignClient 接口中各方法的上的注解解析。
+
+
+
+### Client 
+
+Cleint 接口用于执行请求，并返回结果。
+
+![Feign-Client接口](assets/image-20210810002230979.png)
+
+每个 FeignClient 实例都会有一个 Client 的实现，然后由上层将请求包装为 Request 和 Options 的形式进行调用。
+
+
+
+
+
+### InvocationHandler
+
+> InvocationHandler 严格来说并不算是 SpringCloud 中的相关组件。
+
+InvocationHandler 就是 JDK 中，对于动态代理的实现的关键，Feign 的基本原理就是通过对接口的动态代理转发接口的调用请求，所以 InvocationHandler 也是非常关键的一环。
+
+Feign 中默认的是  ReflectiveFeign.FeignInvocationHandler。
+
+
+
+### MethodHandler
+
+Feign 基于动态代理完成的请求转发也是间接的，InvocationHandler 完成的只是 Method 到 MethodHandler 的映射和转发调用。
+
+对于每个 FeignClient 中的每个方法都会进行包装，将每个方法包装为一个 MethodHandler。
+
+
+
 <br>
 
 ## 二、Bean 注册流程

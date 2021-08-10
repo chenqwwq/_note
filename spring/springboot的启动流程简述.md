@@ -1,6 +1,6 @@
-# SpringBoot 的启动流程简述
+# Spring 相关启动流程综述
 
-> SpringBoot 是对于 Spring 的进一步封装和扩展，并且在 Spring 的基础上对一些配置采取默认化，减少组装应用的时间。
+> SpringBoot 是对于 Spring 的进一步封装和扩展，并且在 Spring 的基础上对一些配置采取默认化，减少组装应用模块的时间。
 
 ---
 
@@ -12,25 +12,27 @@
 
 ## 概述
 
-SpringBoot 的整个启动流程包含了环境（Environment）以及应用上下文（ApplicationContext）的准备，另外启动过程中还会穿插有**监听器**和**应用初始化器**以及另外一些扩展点的执行。
+SpringBoot 的整个启动流程包含了环境（Environment）以及应用上下文（ApplicationContext）的准备。
 
+启动过程中还会穿插有**监听器**和**应用初始化器**以及另外一些扩展点的执行。
 
+<br>
 
-
-
-## 相关角色和组件
+## 相关组件
 
 ### Environment 应用环境
 
 Environment 包含了整个 SpringBoot 中必要的环境配置以及参数，对整个应用作支持。
 
-Environment 中包含了两类参数，profiles 以及 PropertySources 。
+Environment 中包含了两类参数：Profiles 以及 PropertySources 。
 
-profiles 决定了当前应用处于某种环境，根据 profiles 会加载到不同的 PropertySource。
+Profiles 决定了当前应用处于某种环境，根据 Profiles 会加载到不同的 PropertySource。
+
+> 实际的开发过程中，会根据开发和测试环境指定不同的 Profiles。
 
 PropertySource 简单来说就是一个 K/V 对，对应的参数名以及参数值。
 
-
+<br>
 
 ### ApplicationContext 应用上下文
 

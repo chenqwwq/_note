@@ -14,39 +14,62 @@
 
 
 
-## BeanPostProcessors
+## BeanPostProcessor
 
-Spring中最基础的扩展类，**提供了初始化前后的钩子方法。**
+> BeanPostProcessor 类族中最基础的扩展类，**提供了初始化前后的钩子方法。**
+>
+> **这里的初始化是指在 Bean 的创建过程中的初始化，在调用 InitMethod 方法前后。**
+
+以下是 BeanPostProcessor 的方法列表：
 
  ![image-20200512111500702](../../../../pic/image-20200512111500702.png)
 
-postProcessBeforeInitialization是在初始化前调用的钩子方法，而postProcessAfterInitialization则是初始化之后调用。
+- postProcessBeforeInitialization 是在初始化前调用
 
-下图是doCreateBean -> initializeBean方法片段：
+-  postProcessAfterInitialization 是初始化之后调用
+
+两个方法都**提供了完整的 Bean 对象以及 beanName 可供修改**。
+
+<br>
+
+<br>
+
+### 调用场景
+
+下图是 doCreateBean -> initializeBean 方法片段：
 
  ![image-20200514214941902](../../../../pic/image-20200514214941902.png)
 
-如图所示，在调用init-method方法的前后分别会调用before和after两个钩子方法。
+如图所示，在调用 init-method 方法的前后分别会调用 before 和 after 两个钩子方法。
 
-另外的postProcessAfterInitialization方法还会在完成自定义实例化之后调用。
+**除此之外 postProcessAfterInitialization 方法还会在完成自定义实例化之后调用。**
 
  ![image-20200514215136761](../../../../pic/image-20200514215136761.png)
 
-上图的片段在createBean方法的中间部分，解析出Class对象，处理完覆写方法，就会调用该方法尝试自定义实例化。
+上图的片段在 createBean 方法的中间部分，再通过 InstantiationAwareBeanPostProcessor#postProcessBeforeInstantiation 创建 Bean 之后，也会遍历调用 postProcessAfterInitialization 方法。
 
-如果自定义实例化成功，也会遍历调用postProcessAfterInitialization方法。
-
-在调用postProcessAfterInitialization方法之上的applyBeanPostProcessorsBeforeInstantiation方法就是自定义的实例化方法的调用，是对InstantiationAwareBeanPostProcessor的前置钩子方法的处理。
-
-
-
-
+<br>
 
 ## InstantiationAwareBeanPostProcessor
 
-该接口在继承BeanPostProcessor的基础上**扩展了在实例化前后的钩子方法。**
+> 该类是在 Bean 实例化前后调用的钩子方法。
+>
+> **该接口在继承BeanPostProcessor的基础上扩展了在实例化前后的钩子方法。**
+
+以下是 InstantiationAwareBeanPostProcessor 的方法列表（不包含 BeanPostProcessor  继承的类）：
 
  ![image-20200513065845525](../../../../pic/image-20200513065845525.png)
+
+- postProcessBeforeInstantiation 方法提供了 Class 对象和 BeanName 作为参数，可以在此基础上自定义对 Bean 的实例化以及初始化
+
+> 尤其注意的是，如果通过该方法创建了 Bean 对象，就不会有 InitMethod 的调用。
+
+- postProcessAfterInstantiation 方法提供了 Bean 对象以及 BeanName 作为参数，理论上可以完成和 BeanPostProcessor 两个方法相同的功能，但是该方法的调用时机有所区别。
+- postProcessProperties 和 postProcessPropertyValues 都是对于属性填充
+
+
+
+### 调用场景
 
 调用postProcessBeforeInstantiation方法可以在Spring默认的实例化方法之前，定义自己的实例化方法。
 
