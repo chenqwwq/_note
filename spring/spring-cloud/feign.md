@@ -127,9 +127,10 @@ Feign 基于动态代理完成的请求转发也是间接的，InvocationHandler
 
 <br>
 
-## 文章引用
+## 相关参考
 
 [Feign 终级解析](https://mp.weixin.qq.com/s?__biz=MzUwOTk1MTE5NQ==&mid=2247483724&idx=1&sn=03b5193f49920c1d286b56daff8b1a09&chksm=f90b2cf8ce7ca5ee6b56fb5e0ffa3176126ca3a68ba60fd8b9a3afd2fd1a2f8a201a2b765803&token=302932053&lang=zh_CN&scene=21#wechat_redirect)
 
 [Feign原理 （图解）](https://www.cnblogs.com/crazymakercircle/p/11965726.html)
 
+[OpenFeign与Ribbon源码分析总结与面试题](https://juejin.cn/post/6844904200841740302)

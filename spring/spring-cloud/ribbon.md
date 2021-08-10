@@ -22,3 +22,10 @@ Ribbon 为 SpringCloud 提供了服务定位，负载均衡的功能，可以结
 
 
 
+
+
+
+
+## 参考
+
+[官方文档](https://github.com/Netflix/ribbon/wiki/Getting-Started)
