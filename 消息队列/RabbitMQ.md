@@ -153,3 +153,9 @@ MANUAL 需要用户在 listener 中手动调用 ack / nack / reject 方法。
 
 
 ## 消费者端流控
+
+## RabbitMQ 的消费模式
+
+MQ 的消费模式可以分为 Push（推模式）和 Poll（拉模式）两种。
+
+RabbitMQ 可以

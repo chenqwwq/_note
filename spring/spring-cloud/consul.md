@@ -210,6 +210,12 @@ public void add(String instanceId) {
 
 <img src="/home/chen/_note/pic/image-20210225230155968.png" alt="image-20210225230155968" style="zoom:67%;" />
 
+### Consul 的缺点
+
+Consul 靠轮询 REST API，查询节点是否可用，所以无法做到即时的服务列表更新。
+
+在和 Ribbon 整合的时候，Ribbon 会有 ServletList 的本地缓存
+
 
 
 
