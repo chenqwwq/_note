@@ -2,9 +2,9 @@
 
 > 尽量不会有太多的代码，以理清楚流程为主，复杂的代码会单独一个文件。
 >
-> 以SpringBoot Servlet Web应用为基础分析.
+> 以 SpringBoot Servlet Web 应用为基础分析.
 >
-> SpringBoot版本为2.2.6.RELEASE
+> SpringBoot 版本为 2.2.6.RELEASE
 
 ---
 
@@ -27,7 +27,7 @@ public class MvcApplication {
 
 以上是最基础的 SpringBoot 应用启动代码，调用 SpringApplication 的 run 静态方法启动 SpringBoot 的整个容器。
 
-
+<br>
 
 ## SpringApplication 构造函数
 
@@ -52,39 +52,37 @@ public SpringApplication(ResourceLoader resourceLoader, Class<?>... primarySourc
 }
 ```
 
-包含流程如下：
-
 ### ApplicationContextInitializer - 初始化器
 
 **通过 spring.factories 文件的 SPI 机制获取到所有 ApplicationContextinitializer 的实现类。**
 
-ApplicationContextInitializer 作为应用初始化器，在 prepareContext 阶段中调用，用来完成部分初始化流程。
+**ApplicationContextInitializer 作为应用初始化器，在 prepareContext 阶段中调用，用来在容器启动过程中对应用的上下文进行自定义配置。**
 
-<img src="/home/chen/_note/pic/image-20210301235004087.png" style="zoom:67%;" />
+<img src="assets/image-20210301235004087.png" style="zoom:67%;" />
 
 initialize(C applicationContext) 方法就初始化方法，参数为正在创建的 ApplicationContext。
 
-> 对于 SpringCloud，此时还会有 PropertySourceBootstrapConfiguration 类，该类用于获取配置中心的数据。
+> 对于 SpringCloud，此时还会有 **PropertySourceBootstrapConfiguration** 类，该类用于获取配置中心的数据。
 
-
+<br>
 
 ### ApplicationListener - 监听器
 
 通过 spring.factories 文件的 SPI 机制获取到所有 ApplicationListener 的实现类。
 
-这里采用的是观察者模式，所以被观察者 ApplicationCopntext 需要持有所有观察者 ApplicationListener 的引用。
+这里采用的是观察者模式，所以**被观察者 ApplicationCopntext** 需要持有所有**观察者 ApplicationListener** 的引用。
 
-<img src="/home/chen/_note/pic/image-20210301235318332.png" style="zoom:67%;" />
+<img src="assets/image-20210301235318332.png" style="zoom:67%;" />
 
-ApplicationListener 继承与 JDK 的EventListener类，监听某个 ApplicationEvent。
+ApplicationListener 继承与 JDK 的 EventListener 类，监听某个 ApplicationEvent。
 
-> 在容器初始化的各个阶段都会发布不同类型的事件，借助监听器可以在特定的事件执行自定义操作。
+> **在容器初始化的各个阶段都会发布不同类型的事件，借助监听器可以在特定的事件执行自定义操作。**
 
 
 
 ### 推断主类
 
-mainApplicationClass的推断过程很有意思，直接构造一个RuntimeException然后遍历异常的堆栈信息查找main方法，获取当前主类。
+mainApplicationClass 的推断过程很有意思，直接构造一个 RuntimeException 然后遍历异常的堆栈信息查找 main 方法，获取当前主类。
 
 ```java
 ...
@@ -104,9 +102,9 @@ mainApplicationClass的推断过程很有意思，直接构造一个RuntimeExcep
 
 ## Run()方法
 
-run方法是启动的核心方法，包含了环境准备，监听事件的发布，上下文的刷新及后续处理等等。
+run 方法是启动的核心方法，包含了环境准备，监听事件的发布，上下文的刷新及后续处理等等。
 
-执行方法的结果就是返回一个可使用的 ConfigurationApplicationContext ，也可以理解为就是应用上下文的装配过程.
+执行方法的结果就是返回一个可使用的 ConfigurationApplicationContext ，也可以理解为就是**应用上下文的装配过程。**
 
 ```java
 	public ConfigurableApplicationContext run(String... args) {
@@ -192,6 +190,7 @@ public void start(String taskName) throws IllegalStateException {
             	throw new IllegalStateException("Can't start StopWatch: it's already running");
         }
         this.currentTaskName = taskName;
+    	// 采用本地系统时钟
         this.startTimeNanos = System.nanoTime();
 }
 ```
@@ -200,7 +199,7 @@ public void start(String taskName) throws IllegalStateException {
 
 
 
-### 2. 配置Headless
+### 2. 配置 Headless
 
 ```java
 private static final String SYSTEM_PROPERTY_JAVA_AWT_HEADLESS = "java.awt.headless";
@@ -212,7 +211,7 @@ private void configureHeadlessProperty() {
 }
 ```
 
-Headless模式是应用的一种配置模式。
+Headless 模式是应用的一种配置模式。
 
 在服务器可能缺少显示设备、键盘、鼠标等外设的情况下可以使用这种模式。
 
@@ -231,15 +230,13 @@ private SpringApplicationRunListeners getRunListeners(String[] args) {
 }
 ```
 
-这里获取的监听器和之前构造函数中的不同，这里获取的是 SpringApplicationRunListener 的实现类，并包装为 SpringApplicationRunListeners。
+这里获取的监听器和之前构造函数中的不同，这里获取的是 **SpringApplicationRunListener** 的实现类，并包装为 SpringApplicationRunListeners。
 
-> **Spring中的事件发布一般是通过 ApplicationContext 实现，但是此时并没有准备好应用上下文，所以会以SpringApplicationRunListeners 这个临时工具类的形式发布事件**
+> SpringApplicationRunListener 是专门的对容器启动时各个阶段的监听，从接口上就定义了启动的各个阶段。
 
-SpringApplicationRunListener 是对应用运行期内事件监听，从下图可知，应用上下文创建期会发布的各类**基础事件**。
+![image-20200518230122762](../../pic/image-20200518230122762.png)
 
-![image-20200518230122762](../../../pic/image-20200518230122762.png)
-
-SpringApplicationRunListener 其默认的实现只有 EventPublishingRunListener，以下为EventPublishingRunListener的构造函数：
+**SpringApplicationRunListener 其默认的实现只有 EventPublishingRunListener**，以下为 EventPublishingRunListener 的构造函数：
 
 ```java
 // EventPublishingRunListener的构造函数
@@ -258,13 +255,25 @@ EventPublishingRunListener 是对应用运行期的监听者，但处理事件�
 
 <img src="/home/chen/_note/pic/image-20210302000737616.png" alt="image-20210302000737616" style="zoom:67%;" />
 
+> 另外值得注意的是，在 contextLoaded 事件之后事件的发布又是使用 ApplicationContext 来完成的，因为 ApplicationContext 的基本初始化已经完成了。
 
+![EventPublishingRunListener的部分方法](assets/image-20210813175138196.png)
 
-> 另外值得注意的是，在 contextLoaded 事件之后事件的发布又是使用 ApplicationContext 来完成的。
+#### 小结
 
+SpringBoot 的启动阶段，各类监听器起了非常关键的角色，包括配置文件的加载都是通过监听器完成的。
 
+ApplicationContext 本身就是一个事件广播器，但是在 SpringBoot 的启动阶段，ApplicationContext 还没有初始化好的时候就需要广播部分事件。
 
-### 3. 发布ApplicationStartingEvent
+所以出现了 SpringApplicationRunListener，它定义了启动流程的各个阶段，也作为初期的事件广播器。
+
+> SpringApplicationRunListener 和 ApplicationContext 广播事件也都是通过 SimpleApplicationEventMulticaster 实现的。
+
+在 contextLoaded 中，SpringApplicationRunListener 将它持有的所有监听者全部添加到了 ApplicationContext 中，所以后续的事件广播又是通过 ApplicationContext 自己来了。
+
+<br>
+
+### 3. 发布 ApplicationStartingEvent
 
 NOOP。
 
