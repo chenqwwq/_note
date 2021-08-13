@@ -1,4 +1,4 @@
-# SpringCloud
+# SpringCloud 的启动流程
 
 ---
 
@@ -13,4 +13,12 @@ BootstrapApplicationListener 监听了 **ApplicationEnvironmentPreparedEvent** �
 新创建的 Context 作为原先 SpringBoot Context的上下文。
 
 > SpringCloud 的容器作为 SpringBoot 容器的父容器。
+>
+> 因为 SpringBoot 先开始初始化，途中在完成 SpringCloud 容器的启动，所以 SpringBoot 的容器无法直接设置父容器，而是通过 **ParentContextApplicationContextInitializer** 来完成的。
+
+
+
+
+
+
 

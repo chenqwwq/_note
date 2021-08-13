@@ -246,3 +246,4 @@ public void refresh() throws BeansException, IllegalStateException {
 }
 ```
 
+ConfigurationClassPostProcessor 读取所有的 Bean 对象。

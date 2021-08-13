@@ -145,42 +145,47 @@ public synchronized Set<String> refreshEnvironment() {
 
 ## 以Consul作为注册中心
 
-### 注册服务
+> Consul 可以作为 SpringCloud 的服务注册中心。
 
-以 ConsulAutoServiceRegistrationListener 监听 WebServerInitializedEvent 事件，该事件在 WebServerStartStopLifecycle#start() 中发布。
+### Consul 的服务注册流程
 
-> 以 Web 服务启动完成之后开始向注册中心注册，非常合理。
+Consul 的服务注册由 WebServerInitializedEvent 触发，**以 ConsulAutoServiceRegistrationListener 监听 WebServerInitializedEvent 事件**。
+
+> 该事件在 WebServerStartStopLifecycle#start() 中发布，表示 Web 服务初始化成功。
 >
 > 对于一些在 Web 服务启动后的操作也可以监听该事件，比如启动完成的状态上报等。
 
+ConsulAutoServiceRegistrationListener 在监听到该事件之后会逐步调用到 AbstractAutoServiceRegistration#start()。
 
-
-AbstractAutoServiceRegistration#start() 中基本包含了完整的注册逻辑，以下是 start 方法中的部分源码:
+AbstractAutoServiceRegistration#start() 中基本包含了完整的注册逻辑，以下是 start() 方法中的部分源码:
 
 <img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210304214711556.png" alt="image-20210304214711556" style="zoom:67%;" />
 
 
 
-> 在服务注册的前后发布了 InstancePreRegisteredEvent 和 InstanceRegisteredEvent
+> **在服务注册的前后发布了 InstancePreRegisteredEvent 和 InstanceRegisteredEvent。**
 
-后续就是 register() 方法中，调用了 serviceRegistry#register 方法: 
+后续就是 register() 方法中，调用了 ServiceRegistry#register 方法: 
 
 <img src="/home/chen/_note/pic/image-20210304214940999.png" alt="image-20210304214940999" style="zoom:67%;" />
 
-在 Consul 中，就是 ConsulServiceRegistry，以下是 ConsulServiceRegistry#register 的源码:
+> ServiceRegistry 是 SpringCloud 中服务注册的顶级接口，接口中有 register/disRegistry 方法提供注册和取消注册的逻辑。
+
+**在 Consul 中对应的就是 ConsulServiceRegistry**，以下是 ConsulServiceRegistry#register 的源码:
 
 ```java
     @Override
 	public void register(ConsulRegistration reg) {
 		log.info("Registering service with consul: " + reg.getService());
 		try {
+            		// 获取 ConsulClient，并调用其实现的注册方法，指定服务名
 			this.client.agentServiceRegister(reg.getService(),
 					this.properties.getAclToken());
 			NewService service = reg.getService();
 			if (this.heartbeatProperties.isEnabled() && this.ttlScheduler != null
 					&& service.getCheck() != null
 					&& service.getCheck().getTtl() != null) {
-                // 这里注册一个定时任务
+               			 // 这里注册一个定时任务，用来实现服务的定时心跳
 				this.ttlScheduler.add(reg.getInstanceId());
 			}
 		}
@@ -210,11 +215,19 @@ public void add(String instanceId) {
 
 <img src="/home/chen/_note/pic/image-20210225230155968.png" alt="image-20210225230155968" style="zoom:67%;" />
 
-### Consul 的缺点
+依旧是调用 ConsulClient 的客户端事件，检查服务是否正常。
 
-Consul 靠轮询 REST API，查询节点是否可用，所以无法做到即时的服务列表更新。
 
-在和 Ribbon 整合的时候，Ribbon 会有 ServletList 的本地缓存
+
+### Consul 的优缺点
+
+Consul 的优点来说，Consul 的 Java 客户端原生支持服务注册逻辑，还提供了服务检查的相关逻辑，实现起来相对简单。
+
+但是 Consul 并没有提供长连接服务，所有的服务更新只能依靠客户端的轮询来处理，**就有服务更新延时的问题。**
+
+以 Ribbon 来说，更新了 ServiceList 之后，会定时 10s~30s 才会更新服务列表，如果其间有服务下线，最多需要几十秒的事件，才能将节点剔除。
+
+> 个人来看，此时可以使用 Ribbon 的 Aviliable 相关的负载均衡策略，将服务的质量作为选择的标准，减少延迟带来的影响。
 
 
 
