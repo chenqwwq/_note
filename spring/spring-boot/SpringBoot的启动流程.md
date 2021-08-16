@@ -251,11 +251,13 @@ public EventPublishingRunListener(SpringApplication application, String[] args) 
 }
 ```
 
-EventPublishingRunListener 是对应用运行期的监听者，但处理事件的方式是包装被广播相对应的事件并进一步广播，如下图
+> **EventPublishingRunListener 会获取 SpringApplication 中已有的监听器。**
+
+EventPublishingRunListener 是应用启动初期的监听者，也是借助于 SimpleApplicationEventMulticaster 广播事件，实现如下图：
 
 <img src="/home/chen/_note/pic/image-20210302000737616.png" alt="image-20210302000737616" style="zoom:67%;" />
 
-> 另外值得注意的是，在 contextLoaded 事件之后事件的发布又是使用 ApplicationContext 来完成的，因为 ApplicationContext 的基本初始化已经完成了。
+> 另外值得注意的是，**在 contextLoaded 事件之后事件的发布又是使用 ApplicationContext 来完成的**，因为 ApplicationContext 的基本初始化已经完成了。
 
 ![EventPublishingRunListener的部分方法](assets/image-20210813175138196.png)
 
@@ -279,7 +281,7 @@ NOOP。
 
 
 
-### 4. 创建并准备环境容器
+### 4. 创建并准备环境
 
 ```java
 // SpringApplication#prepareEnvironment 
@@ -301,23 +303,23 @@ private ConfigurableEnvironment prepareEnvironment(SpringApplicationRunListeners
 }
 ```
 
-该方法中首先创建了 Environment，并且进一步配置了部分 PropertySources 以及 Profile 属性。
+该方法中首先**创建了 Environment**，并且进一步**配置了部分 PropertySources 以及 Profile 属性。**
 
-> profile 属性就只活跃的环境，例如项目中往往存在 application-dev.yml 以及 application-test.yml 两种环境的配置文件。
+- profile 属性就只活跃的环境，例如项目中往往存在 application-dev.yml 以及 application-test.yml 两种环境的配置文件。
 
-PropertySource 主要是对项目启动参数的包装，以及在初始化的时候带有的一些系统级的 PropertySource
+- PropertySource 主要是对项目启动参数的包装，以及在初始化的时候带有的一些系统级的 PropertySource
 
 > PropertySource 简单来说就是一个 K/V 的配置属性。
 
-简单配置之后发布了 ApplicationEnvironmentPreparedEvent 。
+<br>
 
-> **ConfigFileApplicationListener 会监听该事件并读取配置文件，Consul 等远程配置中心的配置并不会在这是读取。**
->
-> **BootstrapApplicationListener 会监听该事件，插队创建 SpringCloud 的 bootstrap 应用上下文。**
+简单配置之后发布了 ApplicationEnvironmentPreparedEvent ，监听该事件的主要监听器：
 
-**并在该时间的响应中通过`ConfigFileApplicationListener`读取了配置文件的所有配置。**
+- ConfigFileApplicationListener 会监听该事件并读取配置文件，Consul 等远程配置中心的配置并不会在这是读取。
 
+- BootstrapApplicationListener 会监听该事件，插队创建 SpringCloud 的 bootstrap 应用上下文。
 
+<br>
 
 ### 5. 配置忽略的Bean信息
 
@@ -335,7 +337,7 @@ private void configureIgnoreBeanInfo(ConfigurableEnvironment environment) {
 
 方法逻辑很简单，就是在系统配置中没有 spring.beaninfo.ignore 时，将当前环境容器中的对应属性塞进去。
 
-
+<TODO> 忽略的 Bean 具体是干啥的还不清楚。
 
 ### 6. 输出Banner
 
@@ -343,9 +345,7 @@ private void configureIgnoreBeanInfo(ConfigurableEnvironment environment) {
 Banner printedBanner = printBanner(environment);
 ```
 
-一家人就应该整整齐齐所以我把代码放这里，但Banner相关的事情我觉得可以先忽略。
-
-
+打印 Banner 的。
 
 ### 7.  创建应用上下文
 
@@ -357,11 +357,9 @@ Banner printedBanner = printBanner(environment);
 | Servlet  | AnnotationConfigServletWebServerApplicationContext  |
 | Reactive | AnnotationConfigReactiveWebServerApplicationContext |
 
-
-
 应用类型是在 SpringApplication 的构造函数中推断出来的。
 
-
+<br>
 
 ### 8. 获取异常的报告方法
 
@@ -370,11 +368,9 @@ exceptionReporters = getSpringFactoriesInstances(SpringBootExceptionReporter.cla
                                                  new Class[] { ConfigurableApplicationContext.class }, context);
 ```
 
-getSpringFactoriesInstances 应该熟得不能再熟了，就是通过工厂加载机制获取实现类的方法。
+通过工厂加载模式获取 SpringBootExceptionReporter 实现类，获取的 exceptionReporters 会在 catch 的逻辑里使用，来报告出现的异常情况。
 
-获取的 exceptionReporters 会在 catch 的逻辑里使用，来报告出现的异常情况。
-
-
+<br>
 
 ### 9. 准备上下文
 
@@ -416,11 +412,17 @@ private void prepareContext(ConfigurableApplicationContext context, Configurable
 }
 ```
 
-该方法首先配置了环境，而后最主要的就是应用了所有的 ApplicationContextInitializer 类。
+该方法首先配置了环境，而后调用所有的所有的 ApplicationContextInitializer 实现类，重点的实现如下：
 
-> BootstrapApplicationListener#AncestorInitializer 作用就是将 SpringCloud 的 bootstrap 上下文设置为当前的父上下文。
->
-> PropertySourceBootstrapConfiguration 作用是加载远程的配置文件。
+- **BootstrapApplicationListener#AncestorInitializer** 作用是将 SpringCloud 的 bootstrap 上下文设置为当前的父上下文，AncestorInitializer** 会进一步创建 ParentContextApplicationContextInitializer 进行初始化。
+
+- **PropertySourceBootstrapConfiguration** 作用是加载远程的配置。
+- **DelegatingApplicationContextInitializer** 会进一步执行 context.initializer.classes 配置下的 ApplicationContextInitializer 实现类。
+- **ServletContextApplicationContextInitializer** 会进一步配置 ServiceContext。
+
+> ApplicationContextInitializer 是附加的对 ApplicationContext 的初始化，在 SpringBoot 中算是非常重要的扩展点了，因为参数中就将 ApplicationContext 整个暴露出来了，随便操作。
+
+<br>
 
 之后是调用 load 加载 BeanDefinition，如下图所示：
 
@@ -428,15 +430,25 @@ private void prepareContext(ConfigurableApplicationContext context, Configurable
 
 所有的 BeanDefinition 都是通过 BeanDefinitionLoader 获取的。
 
-> 这里的 BeanDefinition 并不会对 Import 等做扩展，可能仅仅注册了 Bootstrap 类。
+> **这里的 BeanDefinition 并不会对 Import 等做扩展，仅仅注册了 Bootstrap 类。**
 
-
+<br>
 
 ###  10.刷新应用上下文
 
-<img src="/home/chen/_note/pic/image-20210303234454959.png" alt="image-20210303234454959" style="zoom:67%;" />
+![image-20210814232056137](assets/image-20210814232056137.png)
 
-该方法层层往上最终会调用到 AbstractApplicationContext#refresh 方法，如下图：
+refresh() 最终会调用到 AbstractApplicationContext#refresh 方法，方法注释如下图：
+
+![image-20210814232147274](assets/image-20210814232147274.png)
+
+> 加载或者刷新配置的持久化表示，可能从 Java 类、XML 文件、Properties 文件，关系型数据库系统或者别的格式。
+>
+> 作为一个启动方法，如果失败之后会销毁所有已经创建的单例对象，防止资源的悬挂。
+>
+> 或者说，**调用该方法会实例化全部的单例对象或者全部不实例化。**
+
+源码如下：
 
 ```java
 @Override
@@ -507,49 +519,65 @@ public void refresh() throws BeansException, IllegalStateException {
 
 ```
 
-
+每行方法都有注释，方法的作用已经很明确了。
 
 该方法的主要流程：
 
 1. 调用所有的 BeanFactoryPostProcessor
 
-> ConfigurationClassPostProcessor 该类用来加载所有的配置类
->
-> RefreshSchpe 
->
-> PropertySourcesPlaceholderConfigurer 
+> BeanFactoryPostProcessor 是堆 BeanFactory 的扩展点，暴露创建的 BeanFactory 对象，允许用户自定义修改 BeanDefinition。
+
+主要的 BeanFactoryPostProcessor 
+
+- **ConfigurationClassPostProcessor** - 该类用来加载所有的配置类，也加载了大多数的 Bean 对象
+
+- RefreshSchpe - 
+
+- **PropertySourcesPlaceholderConfigurer** - 该类主要用来替换 BeanDefinition 中属性的的表达式 `${}`
+
+<br>
 
 2. 注册 BeanPostProcessor
 
-> ConfigurationPropertiesBindingPostProcessor
->
-> CommonAnnotationBeanPostProcessor
->
-> AutowiredAnnotationBeanPostProcessor
->
-> AnnotationAwareAspectJAutoProxyCreator
->
-> MethodValidationPostProcessor
->
-> PersistenceExceptionTranslationPostProcessor
->
-> WebServerFactoryCustomizerBeanPostProcessor
->
-> ConfigurationPropertiesBeans
+> BeanPostProcessor 是 Spring 中最终要的扩展点，可以使用该扩展插手 Bean 的所有声明周期，包括实例化和初始化。
 
-3. 加载所有必要的 Bean 对象，在 finishRefresh 中
+此时默认加载的内置类，有如下几种：
+
+- **ConfigurationPropertiesBindingPostProcessor** - 解析 @ConfigurationProperties 
+- **CommonAnnotationBeanPostProcessor** - 解析 @Resource，@PostConstruct，@PreDestroy
+- **AutowiredAnnotationBeanPostProcessor** - 解析 @Autowired，@Inject
+- **AnnotationAwareAspectJAutoProxyCreator** - 根据收集到的 Advisor，拦截对象并创建代理。
+- **MethodValidationPostProcessor** - 对 @Validdation 注解的解析，生成判断的代理类
+- **ApplicationContextAwareProcessor** - 解析类似 ApplicationContextAware 和 EnvironmentAware 接口的实现。
+- **ImportAwareBeanPostProcessor** - 解析 ImportAware 接口
+
+<br>
+
+3. 初始化事件广播器
+
+![image-20210815001659798](assets/image-20210815001659798.png)
+
+事件广播器也可以自定义，只需要**继承 ApplicationEventMulticaster 并且声明为 applicationEventMulticaster 的 Bean 对象。**
+
+默认还是采用的 SimpleApplicationEventMulticaster 来广播事件。
+
+4. **finishBeanFactoryInitialization 初始化所有单例 Bean（除去懒加载部分）**
+
+![image-20210815003208054](assets/image-20210815003208054.png)
+
+在最后的方法 beanFactor#preInstantiateSingletons 中，会初始化所有非懒加载的单例 Bean 对象。
+
+4.  finishRefresh 初始化 LifecycleProcessor 
+
+​     ![image-20210815001931060](assets/image-20210815001931060.png)
 
 
 
-> 如果是 SpringMVC 的应用，在 onRefresh 方法中会创建内置的 Tomcat 服务。
-
-以下是 ServletWebServerApplicationContext#onRefresh() 的源码实现:
-
-<img src="/home/chen/_note/pic/image-20210304000521337.png" alt=" " style="zoom:67%;" />
+> 如果是 Web 容器的话，在 onRefresh 方法中还会创建 ServletContext 并启动。
 
 
 
-### 11. 计时结束
+### 1. 计时结束
 
 ```java
 // SpringApplication
@@ -634,20 +662,6 @@ private void callRunners(ApplicationContext context, ApplicationArguments args) 
 然后排序并遍历调用run方法。
 
 这个排序需要注意的是只有Ordered接口或者@Order。
-
-
-
-
-
-### 14. 发布ApplicationReadyEvent事件
-
-事件发布的逻辑和发布ApplicationStartedEvent一致。
-
-响应的监听器有如下几个：
-
- ![image-20200518233344657](../../../pic/image-20200518233344657.png)
-
-
 
 
 

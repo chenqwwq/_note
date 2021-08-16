@@ -22,3 +22,7 @@ BootstrapApplicationListener 监听了 **ApplicationEnvironmentPreparedEvent** �
 
 
 
+
+
+PropertySourceBootstrapConfiguration 继承 ApplicationContextInitializer 接口，用于远程配置中心的配置拉取。
+
