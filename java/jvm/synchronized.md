@@ -30,6 +30,8 @@ synchronized 修饰的代码块只能由单个线程执行，以互斥锁的形�
 
 另外和 synchronized 搭配使用的还有 wait()/notify()/notifyAll() 三个方法。
 
+> 常有博客说 synchronized 是不可中断的，这个不可中断实际上是**在获取阶段**，在执行阶段还是可以中断的。
+
 <br>
 
 <br>
@@ -142,7 +144,7 @@ notify() 会从当前的 Monitor 的 Wait Set 中唤醒一个等待的线程，n
 
 >notify() 唤醒的线程会进入到 Entry Set，而不是直接获取到锁，当前线程也不会直接释放锁。
 >
->所以如果通过 wait() 阻塞的线程重新执行时候需要重新判断执行条件。
+>所以即使被唤醒，**wait() 的线程也只会进入阻塞队列，只有重新获取到锁之后才会继续执行。（Condition#await 也一样）**
 
 <br>
 

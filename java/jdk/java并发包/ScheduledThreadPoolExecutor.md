@@ -21,7 +21,7 @@
 
  ScheduleThreadPoolExecutor 的类图如下:
 
-![image-20210103234108744](assets/ScheduledThreadPoolExecutor%E7%B1%BB%E5%9B%BE.png)
+![ScheduleThreadPoolExecutor类图](assets/ScheduledThreadPoolExecutor%E7%B1%BB%E5%9B%BE.png)
 
 首先 ScheduledThreadPoolExecutor 直接继承了 ThreadPoolExecutor ，**所以它也完全可以当做一个线程池来使用，可以 submit 相关任务**。
 
@@ -29,7 +29,7 @@
 
 以下是 ScheduledExecutorService 接口的方法API列表:
 
-![image-20210103234428384](assets/image-20210103234428384.png)
+![ScheduleThreadPoolExecutor接口的方法列表](assets/image-20210103234428384.png)
 
 其中 scheduleAtFixedRate() 方法就是定时任务，如果上一次任务结束时下次任务时间已到则直接开始下一次任务。
 
@@ -56,9 +56,9 @@ x另外 scheduleWithFixedDelay() 方法就是固定延时的任务，任意两�
 
  ScheduledThreadPoolExecutor 使用的内部类 DelayedWorkQueue ，就是类似于JDK中 DelayQueue 的实现，**使用堆排序保证每次获取的任务的时间戳都是最小的。**
 
-以下是DelayedWorkerQueue的成员变量:
+以下是 DelayedWorkerQueue 的成员变量:
 
-![image-20210104115620871](assets/image-20210104115620871.png)
+![ScheduleThreadPoolExecutor$DelayedWorkerQueue的成员变量](assets/image-20210104115620871.png)
 
 因为是内部类只供内部使用，所以直接使用的 RunnableScheduledFuture 的数组保存等待任务。
 
@@ -168,7 +168,7 @@ public RunnableScheduledFuture<?> take() throws InterruptedException {
 
 添加任务的流程就是一个常规的往堆里添加元素并且重新调整堆的流程，主要源码如下:
 
-![image-20210105231957745](assets/image-20210105231957745.png)
+![ScheduleThreadPoolExecutor$DelayedWorkQueue添加任务](assets/image-20210105231957745.png)
 
 主要关注的是在添加的元素为堆首元素的时候会调用 signal 方法唤醒其中一个线程。
 
@@ -200,7 +200,7 @@ ScheduledFutureTask 是在 ScheduledThreadPoolExecutor 中特殊实现的 Future
 
 以下为 ScheduledFutureTask 的类图：
 
-![image-20210105233253715](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210105233253715.png)
+![ScheduledThreadPoolExecutor$ScheduledFutureTask类图](assets/image-20210105233253715.png)
 
  ScheduledFutureTask 直接继承了 FutureTask ，本身就是一个 Runnable 对象，在 ScheduledThreadPoolExecutor 中所有的任务都由它来表示，所有的 Runnable/Callable 都会被转化为 ScheduledFutureTask 执行或者保存。
 
@@ -212,7 +212,7 @@ ScheduledFutureTask 是在 ScheduledThreadPoolExecutor 中特殊实现的 Future
 
 以下是 ScheduledFutureTask#run() 的源码:
 
-![](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210302174317480.png)
+![ScheduledThreadPoolExecutor$ScheduledFutureTask#run](assets/image-20210302174317480.png)
 
 首先检查状态是否正确，如果状态不正确则执行取消方法。
 
@@ -222,17 +222,17 @@ ScheduledFutureTask 是在 ScheduledThreadPoolExecutor 中特殊实现的 Future
 
 setNextRunTime 方法用来设定下一个任务执行时间:
 
-![image-20210302175054230](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210302175054230.png)
+![ScheduledThreadPoolExecutor$ScheduledFutureTask#setNextRunTime](assets/image-20210302175054230.png)
 
 这里就涉及到了周期性任务的两个种类，就是固定频率任务（FixedRate）固定延迟任务 （FixedDelay）。
 
-<img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/QQ图片20210302175619.png" alt="img" style="zoom:80%;" />
+![ScheduledThreadPoolExecutor$ScheduledFutureTask#scheduleWithFixedDelay](assets/QQ%E5%9B%BE%E7%89%8720210302175619.png)
 
 **在包装的方法中可以看到固定延迟的任务 time 为负数的，**计算出下次方法执行的时间之后就是将任务重新添加到阻塞队列。
 
 以下是 ScheduledThreadPoolExecutor#reExecutePeriodic 的方法源码:
 
-![image-20210302180643601](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210302180643601.png)
+![ScheduledThreadPoolExecutor#reExecutePeriodic ](assets/image-20210302180643601.png)
 
 调用了 getQueue().add() 方法直接将任务添加回 DelayedWorkQueue。
 
@@ -240,7 +240,7 @@ setNextRunTime 方法用来设定下一个任务执行时间:
 
 
 
-
+<br>
 
 ## 小结
 

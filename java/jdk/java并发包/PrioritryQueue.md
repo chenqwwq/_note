@@ -1,6 +1,6 @@
 # PriorityQueue
 
-> `PriorityQueue`是在JDK1.5中引入的数据结构，基于堆实现的优先级队列(或者说就是堆)。
+> `PriorityQueue`是在JDK1.5中引入的数据结构，基于堆实现的优先级队列（或者说就是堆）。
 
 
 

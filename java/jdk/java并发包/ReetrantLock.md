@@ -8,7 +8,7 @@
 
 ####  内部类
 
-##### Sync  
+## Sync  
 
 - ***注意：使用AQS的state表示锁的重入数***
 
@@ -163,7 +163,7 @@ static final class FairSync extends Sync {		// 继承Sync
 
 
 
-##### 常用方法、
+##### 常用方法
 
 - getHoldCount();			  获取当前线程的重入数
 - isLocked();				  是否被上锁
