@@ -43,6 +43,17 @@ AbstractAdvisingBeanPostProcessor 对实例化后，初始化的 Bean 进行拦�
 
 
 
+## Retryable
+
+Spring 提供的重试框架。
+
+Retryable 的解析依靠的是 RetryConfiguration，该类继承了 AbstractPointcutAdvisor，并且在类中定义了成员变量 Advice 以及 Pointcut，用来定义切面和切点。
+
+定义 Advisor 之后就是依靠 Spring 中自带的 AnnotationAwareAspectJAutoProxyCreator（继承了 BeanPostProcessor 类）来实现逻辑织入。
+
+> AnnotationAwareAspectJAutoProxyCreator 会持有 BeanFactory 的引用，并从中获取所有 Advisor 类型的 Bean 对象。
+
+
 
 
 

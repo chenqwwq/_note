@@ -93,7 +93,7 @@ ${spring.cloud.config.consul.prefix}/application,dev/。
 
 > Enviroment继承了PropertyResolver，所以可以使用类似`environment.resolvePlaceholders("${logging.config:}")`的方式直接获得占位符的实际值。
 
-
+> **Consul 相关的配置保存在 SpringBoot 的容器中，而非 SpringCloud。**
 
 
 
