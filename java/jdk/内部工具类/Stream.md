@@ -90,10 +90,12 @@ Sink 继承于 Consumer，并且定义了几个用于上下 Stage 串联的方�
 
 | 方法名                          | 作用                                                         |
 | ------------------------------- | ------------------------------------------------------------ |
-| void begin(long size)           | 开始遍历元素之前调用该方法，通知Sink做好准备，例如 sort 会向下传递元素的个数，而 map 则是个空方法。 |
+| void begin(long size)           | 开始遍历元素之前调用该方法，通知Sink做好准备，例如 sort 会向下传递元素的个数，而 map 则是个空方法，filter 不确定数据大小所以传递的是个 -1。 |
 | void end()                      | 所有元素遍历完成之后调用，通知Sink没有更多的元素了。         |
 | boolean cancellationRequested() | 是否可以结束操作，可以让短路操作尽早结束。                   |
 | void accept(T t)                | 遍历元素时调用，接受一个待处理元素，并对元素进行处理。Stage把自己包含的操作和回调方法封装到该方法里，前一个Stage只需要调用当前Stage.accept(T t)方法就行了。 |
+
+**Stream 就是以 Sink 的四个方法串联起整个执行链路。**
 
 参考 Sink 的实现可能更好的理解：
 
@@ -140,12 +142,9 @@ private static final class SizedRefSortingSink<T> extends AbstractRefSortingSink
 }
 ```
 
-
-
-
-
 ReferencePipeline 中声明了 Head 类，表示的就是整个流水线的头节点，存放了原始数据。
 
 另外还有 StatelessOp 以及 StatefulOp 类，分别表示无状态的操作以及有状态的操作。
 
 而结束操作一般直接定义在 ReferencePipeline 内部方法里。
+
