@@ -283,5 +283,4 @@ DelayQueue 需要在任务到期的时候唤醒一个线程去获取，leader �
 
 **队列不允许 null 元素**。
 
-
-
+[SynchronousQueue 源码实现](./SynchronousQueue.md)
