@@ -9,7 +9,9 @@
 
 ## 概述
 
-NioEventLoop就是Netty中事件轮询器，负责处理Netty框架中产生的一些Event。
+NioEventLoop 是 Netty 中事件轮询器，负责处理 Netty 框架中产生的一些 Event。
+
+> 这里的事件处理机制可以类比于 Redis 的事件处理器，不过 Redis 毕竟是单线程处理事件比较简单。
 
 在服务端启动的流程中，NioServerSocketChannel在创建并初始化之后会绑定到一个NioEventLoop上，然后在绑定到本地的端口。
 
@@ -29,7 +31,7 @@ NioEventLoop自身只会绑定单个线程，所以线程的轮询以及对事�
 
 以上时NioEventLoop的类图：
 
-![image-20201227232339822](/home/chen/github/_note/pic/image-20201227232339822.png)
+![image-20201227232339822](../../pic/image-20201227232339822.png)
 
 NioEventLoop继承了SingleThreadEventLoop类，所以是**绝对单线程结构**。
 
