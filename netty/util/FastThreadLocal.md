@@ -4,23 +4,23 @@
 
 [TOC]
 
-## ThreadLocal回顾
+## ThreadLocal 回顾
 
-回顾下ThreadLocal的实现原理。
+回顾下 ThreadLocal 的实现原理。
 
-首先ThreadLocal，中文可以叫做线程局部变量，**以空间换时间的方式，将变量和线程绑定，不同的线程使用不同的变量，以此来解决共享变量的争用问题。**
+首先 ThreadLocal，中文可以叫做线程局部变量，**以空间换时间的方式，将变量和线程绑定，不同的线程使用不同的变量，以此来解决共享变量的争用问题。**
 
-这里的绑定形式就是在**Thread类中增加可以一个ThreadLocalMap的数据结构。**
+这里的绑定形式就是在 **Thread 类中增加可以一个 ThreadLocalMap 的数据结构。**
 
-这个数据结构是懒加载的，只有在第一次使用的时候初始化，是个Map实现，**以ThreadLocal对象作为Key，具体数据作为Value，使用开放寻址法确定元素下标。**
+这个数据结构是懒加载的，只有在第一次使用的时候初始化，是一个 Map 的实现，**以 ThreadLocal 对象作为 Key，具体数据作为 Value，使用开放寻址法解决 Hash 冲突。**
 
-调用ThreadLocal.get()会获取当前的Thread对象并获取ThreadLocalMap，此种实现就保证了不同的线程也就是Thread使用的是不同的对象。
+调用 ThreadLocal.get() 会获取当前的 Thread 对象并获取 ThreadLocalMap，此种实现就**保证了不同的线程使用的是不同的对象**。
 
-有一个问题，就是内存泄露的问题，ThreadLocal的内存泄露主要还是Thread对象和ThreadLocal对象的生命周期的不同<font size=2>(个人理解)</font>，Thread对象需要当前的调用链结束，或者在线程池中Thread对象被回收，但在这之前可能ThreadLocal的对象已经被回收了，此时按照正常的get方法，ThreadLocalMap中的对应数据已经是不可见了。
+有一个问题，就是内存泄露的问题，ThreadLocal 的内存泄露主要还是 Thread 对象和 ThreadLocal 对象的生命周期的不同<font size=2>（个人理解）</font>，Thread 对象需要当前的调用链结束，或者在线程池中 Thread 对象被回收，但在这之前可能 ThreadLocal 的对象已经被回收了，此时按照正常的 get 方法， ThreadLocalMap 中的对应数据已经是不可见了。
 
-ThreadLocal解决内存泄漏的方式很暴力，就是增加检查次数，时不时就检查一下，但是这个只是治标不治本，ThreadLocal的回收和ThreadLocalMap中对应的Value的回收还是会有差异。
+ThreadLocal 解决内存泄漏的方式很暴力，就是增加检查次数，时不时就检查一下，但是这个只是治标不治本，ThreadLocal 的回收和 ThreadLocalMap 中对应的 Value 的回收还是会有差异。
 
-
+<br>
 
 FastThreadLcoal是对ThreadLocal的另一种实现方式，但是它也兼容ThreadLocal的使用方法。
 
@@ -32,9 +32,9 @@ FastThreadLocal也需要和FastThreadLocalThread以及InternalThreadLocalMap搭�
 
 ## 概述
 
-总的来说FastThreadLocal的结构如下图所示:
+FastThreadLocal 的结构如下图所示:
 
-![](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/未命名文件-1605978194604.png)
+![FastThreadLoca 的结构](assets/%E6%9C%AA%E5%91%BD%E5%90%8D%E6%96%87%E4%BB%B6-1605978194604.png)
 
 看上去也蛮简单的。
 
@@ -42,46 +42,46 @@ FastThreadLocal也需要和FastThreadLocalThread以及InternalThreadLocalMap搭�
 
 ![image-20201121225244191](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201121225244191.png)
 
-以上就是FastThreadLocal#get方法的全部代码了。
+以上就是 FastThreadLocal#get 方法的全部代码了。
 
 可以粗略的分为以下几步:
 
 ### 一、获取Map结构
 
-首先通过InternalThreadLocalMap的get方法获取到具体的Map对象，类似于ThreadLocal中的ThreadLocalMap，是一个和线程绑定的数据结构。
+首先通过 InternalThreadLocalMap 的 get 方法获取到具体的 Map 对象，类似于 ThreadLocal 中的 ThreadLocalMap，是一个和线程绑定的数据结构。
 
 ![image-20201121225351351](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201121225351351.png)
 
-获取InternalThreadLocalMap的方法会通过当前的Thread类型来选择不同的获取方式。
+获取 InternalThreadLocalMap 的方法会通过当前的 Thread 类型来选择不同的获取方式。
 
-这里的`ThreadLocal.currentThread`方法会获取当前的Thread对象，native方法没有深入看源码，但只要改变创建的线程对象的类型，这里就会发生改变。
+这里的 ThreadLocal.currentThread 方法会获取当前的Thread对象，native方法没有深入看源码，但只要改变创建的线程对象的类型，这里就会发生改变。
 
-例如使用`new MyThread().start()`启动线程获取到的class类型就是MyThrea类型的。
+> **例如使用 new MyThread().start() 启动线程获取到的 class 类型就是 MyThread 类型的。**
 
+<br>
 
+**fastGet 方法直接就是 FastThreadLocalThread 中获取了 Map 对象，如果 Map 对象为空则进行初始化，然后返回。**
 
-**fastGet方法直接就是FastThreadLocalThread中获取了Map对象，如果Map对象为空则进行初始化，然后返回。**
-
-在FastThreadLocalThread的源码中直接可以看到InternalThreadLocalMap的变量声明。
+在 FastThreadLocalThread 的源码中直接可以看到 InternalThreadLocalMap 的变量声明。
 
 ![image-20201121230705274](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201121230705274.png)
 
-slowGet方法麻烦一点，会通过UnpaddedInternalThreadLocalMap.slowThreadLocalMap这个静态变量来获取存储在Thread的数据，这个数据就是InternalThreadLocalMap对象。
+slowGet 方法麻烦一点，会通过 UnpaddedInternalThreadLocalMap.slowThreadLocalMap 这个静态变量来获取存储在 Thread 的数据，这个数据就是 InternalThreadLocalMap 对象。
 
 ![image-20201122010644770](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201122010644770.png)
 
 
 
-**也就是说如果是FastThreadLocalThread的线程对象，则是直接保存InternalThreadLocalMap对象，而如果是原生的Thread对象，InternalThreadLocalMap就是它ThreadLocalMap中的一个Key-Value。**
+**也就是说如果是 FastThreadLocalThread 的线程对象，则是直接保存 InternalThreadLocalMap 对象，而如果是原生的 Thread 对象，InternalThreadLocalMap 就是它 ThreadLocalMap 中的一个 Key-Value。**
 
-
+<br>
 
 以上就能有个大概的结构了：
 
-1. FastThreadLocalThread和Thread对象类似，保存了一个InternalThreadLocalMap对象。
-2. 如果当前线程不是FastThreadLocalThread，则以原生的ThreadLocal形式，将Map对象作为Value存储。
+1. FastThreadLocalThread 和 Thread 对象类似，保存了一个 InternalThreadLocalMap 对象。
+2. 如果当前线程不是 FastThreadLocalThread，则以原生的 ThreadLocal 形式，将 Map 对象作为 Value 存储。
 
-
+<br>
 
 整个Map的获取流程就是根据Thread对象类型分别从以上的两个途径获取。
 
@@ -89,15 +89,15 @@ slowGet方法麻烦一点，会通过UnpaddedInternalThreadLocalMap.slowThreadLo
 
 ###  二、获取具体的数据
 
-从上图可知，具体的数据获取就是InternalThreadLocalMap#indexedVariable方法。
+从上图可知，具体的数据获取就是 InternalThreadLocalMap#indexedVariable 方法。
 
 ![image-20201121230531314](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201121230531314.png)
 
-**indeedVariables就是Map中底层的数据结构，就是一个Object数组。**
+**indeedVariables 就是 Map 中底层的数据结构，就是一个 Object 数组。**
 
-从这里就能看到FastThreadLocal和ThreadLocal数据结构好像并没有实质上的不同，都是数组。
+从这里就能看到 FastThreadLocal 和 ThreadLocal 数据结构好像并没有实质上的不同，都是数组。
 
-ThreadLocal是通过类似Hash的方式组织结构的，需要先通过Key的HashCode计算标记下标，而FastThreadLocal直接是通过下标来确定的并获取数据的。
+ThreadLocal是通过类似Hash的方式组织结构的，需要先通过 Key 的 HashCode 计算标记下标，而FastThreadLocal直接是通过下标来确定的并获取数据的。
 
 如果没有数据，返回的是UNSET对象。
 
