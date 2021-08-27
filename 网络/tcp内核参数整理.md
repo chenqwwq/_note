@@ -1,3 +1,5 @@
+
+
 # TCP 内核参数
 
 > 内核的 TCP 参数大部分保存在 /proc/sys/net/ipv4/ 目录，以 tcp 开头。
@@ -99,8 +101,6 @@ tcp 的快速打开机制，用于绕过三次握手的延时，但是必须是�
 
 
 ### tcp_orphan_retries
-
-
 
 ### tcp_max_orphans
 
