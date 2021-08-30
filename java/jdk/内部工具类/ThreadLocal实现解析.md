@@ -12,13 +12,13 @@ tags:
 
 
 
-# ThreadLocal
+# ThreadLocalan
 
 
 
 ## 思维导图
 
-![ThreadLocal思维导图](https://chenqwwq.oss-cn-hangzhou.aliyuncs.com/note/assets/ThreadLocal.png)
+![ThreadLocal思维导图](assets/ThreadLocal.png)
 
 <br>
 
@@ -36,7 +36,7 @@ ThreadLocal（线程局部变量），作用是**保存每个线程的私有变�
 
 以下就是 ThreadLocalMap 在Thread中的变量声明:
 
- ![ThreadLocalMap的变量声明](https://chenqwwq.oss-cn-hangzhou.aliyuncs.com/note/assets/ThreadLocalMap的变量声明.png)
+ ![ThreadLocalMap的变量声明](assets/ThreadLocalMap的变量声明.png)
 
 >threadLocals 是给 ThreadLocal 用的，该类只能访问当前线程中的数据。
 >
