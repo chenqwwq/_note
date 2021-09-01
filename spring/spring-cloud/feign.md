@@ -49,6 +49,56 @@ FeignContext 是整个 Feign 的核心，保存着每个服务对应的 Applicat
 
 
 
+### Feign
+
+Feign 的创建接口，核心方法其实只有一个。
+
+![Feign#newInstance](assets/image-20210831224552675.png)
+
+**newInstance 方法用于根据 Contract 创建一个 HTTP API 的代理对象。**
+
+Feign 中的默认实现是 ReflectiveFeign，并且 Feign 的抽象类定义中就包含了默认的 Builder（建造者模式）。
+
+![Feign$Builder#build](assets/image-20210831224759975.png)
+
+Builder 中持有了大部分的常规配置，包括 Contract 以及 Encode / Decoder，并且基本都是默认配置。
+
+> 源码中好像很少直接调用 Fiegn$Builder#build 方法，而是调用另外一个 target 方法。
+
+![image-20210831231920042](assets/image-20210831231920042.png)
+
+通过 build 创建出 Feign 之后，直接 newInstance 出代理对象。
+
+### Targeter
+
+![image-20210831231242522](assets/image-20210831231242522.png)
+
+> （其实我也不是很理解 Targeter 的作用。
+
+明面上就是接收 FeignClientFactoryBean 、Feign.Builder 、FeignContext、Tareget 等参数，创建一个最终可用的代理对象，所以简单的理解是一个串联的类。
+
+**Targeter 整合现有资源创建了最终的代理对象。**
+
+targeter 的默认实现如下：
+
+![image-20210831231612063](assets/image-20210831231612063.png)
+
+就是调用 Feign.Builder#target 方法。（甚至好几个参数没用上
+
+另外是在 Hystrix 整合的时候，Targeter 通过判断 Feign$Builder 的类型来抽取出  Fallback 相关配置，并创建各自对象。
+
+
+
+### Target
+
+**Target 是对被代理对象的封装。**
+
+![image-20210831232157202](assets/image-20210831232157202.png)
+
+三个方法返回**被代理的接口，服务名称，请求地址**。
+
+**Target 的默认实现是 HardCodedTarget，使用 RequestTemplate 返回 Request 对象。**
+
 
 
 ### Encoder / Decoder
@@ -71,6 +121,8 @@ Cleint 接口用于执行请求，并返回结果。
 
 每个 FeignClient 实例都会有一个 Client 的实现，然后由上层将请求包装为 Request 和 Options 的形式进行调用。
 
+**Feign 使用的是装饰器模式**，层层包装完成不同的功能，例如 Ribbon 使用 LoadBalanceFeignClient 完成负载均衡的功能。
+
 
 
 
@@ -81,19 +133,39 @@ Cleint 接口用于执行请求，并返回结果。
 
 InvocationHandler 就是 JDK 中，对于动态代理的实现的关键，Feign 的基本原理就是通过对接口的动态代理转发接口的调用请求，所以 InvocationHandler 也是非常关键的一环。
 
-Feign 中默认的是  ReflectiveFeign.FeignInvocationHandler。
+**Feign 中默认的是  ReflectiveFeign.FeignInvocationHandler，**该类通过工厂模式创建，也就是 InvocationHandlerFactory。
+
+
 
 
 
 ### MethodHandler
 
-Feign 基于动态代理完成的请求转发也是间接的，InvocationHandler 完成的只是 Method 到 MethodHandler 的映射和转发调用。
+![image-20210831222209078](assets/image-20210831222209078.png)
 
-对于每个 FeignClient 中的每个方法都会进行包装，将每个方法包装为一个 MethodHandler。
+Feign 基于动态代理完成的请求转发也是间接的，**InvocationHandler 完成的只是 Method 到 MethodHandler 的映射和转发调用。**
+
+内部还会对每个 FeignClient 中的每个方法都会进行包装，将每个方法包装为一个 MethodHandler。
+
+**MethodHandler 的默认实现是 SynchronousMethodHandler。**
+
+类和 MethodHandler 在 InvocationHandler 中以 dispatch（Map<Method,MethodHandler>）的形式保存。
+
+
+
+> 请求调用的粗略过程：
+
+使用 Feign 的调用，首先通过的是接口的 InvocationHandler，通过 Map 映射获取到对应的 MethodHandle
 
 
 
 <br>
+
+
+
+> 老子发现 Feign 很喜欢使用建造者模式或者工厂模式，而且写在一个类里面。
+>
+> ReflectiveFeign 的创建方法竟然在 Feign$Builder 里面，
 
 ## 二、Bean 注册流程
 
@@ -134,3 +206,5 @@ Feign 基于动态代理完成的请求转发也是间接的，InvocationHandler
 [Feign原理 （图解）](https://www.cnblogs.com/crazymakercircle/p/11965726.html)
 
 [OpenFeign与Ribbon源码分析总结与面试题](https://juejin.cn/post/6844904200841740302)
+
+[Spring Cloud OpenFeign源码分析](https://blog.csdn.net/baidu_28523317/article/details/106935370)
