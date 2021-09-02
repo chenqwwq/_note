@@ -38,7 +38,7 @@
 - 会话管理，群聊管理以及⽼师为主导的各类权限管理
 -  群组管理，包含群（定时）禁⾔功能
 
-#### 相关技
+#### 相关计数
 
  SpringBoot、SpringClou Feign | Ribbon | Hystrix | Sentinel | Consul、Redis、MySQL、 RabbitMQ、XXL-JOB
 
