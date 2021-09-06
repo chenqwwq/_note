@@ -8,24 +8,25 @@
 
  - 陈炳鑫/男/1995
  - 本科/浙江农林大学/物联网
- - 工作年限：3年
+ - 工作年限：3年+
 
 
 # 技能清单
 
-- 熟练使⽤ Java，并掌握 JDK 部分实现，JVM 基础,了解 Go , Lua 等语⾔ 
+- 熟悉 Java 语言，了解 Go 等其他语言，掌握 JDK 部分实现，JVM 基础
 - 熟悉 Redis，Kafka，RabbitMQ 等中间件 
-- 熟悉 Java IO ，以及 Netty 的基本使⽤ 
+- 熟悉 Java IO ，熟练使用 Netty，了解其基本原理 
 - 熟悉 TCP，HTTP 等基本⽹络协议 
-- 熟悉 MySQL，了解 InnoDB 部分原理特性，基本掌握 SQL 调优技巧 
-- 熟悉 Spring，SpringMVC，了解 SpringBoot，以及 SpringCloud 部分组件 
-- 熟悉基本的算法和数据结构
+- 熟悉 MySQL，了解 InnoDB 原理特性，掌握 SQL 调优技巧 
+- 熟悉 Spring，SpringBoot，以及 SpringCloud 部分组件 
+- 熟悉常用设计模式，有良好的编码能力
+- 熟悉基本的数据结构和算法
 
 # 工作及项目经历
 
 ## 杭州学海教育有限公司（2020年4月 - 至今）
 
-- 基础服务组 - 通讯中⼼，负责响应，推送，消息⽹关等通讯相关项⽬以及答疑圈 的开发和维护。
+**基础服务组 - 通讯中⼼组**，负责响应，推送，消息⽹关等通讯相关项⽬以及答疑圈 的开发和维护。
 
 ### 响应
 
@@ -38,15 +39,15 @@
 - 会话管理，群聊管理以及⽼师为主导的各类权限管理
 -  群组管理，包含群（定时）禁⾔功能
 
-#### 相关计数
+#### 相关技术
 
- SpringBoot、SpringClou Feign | Ribbon | Hystrix | Sentinel | Consul、Redis、MySQL、 RabbitMQ、XXL-JOB
+ SpringBoot、SpringCloud Feign | Ribbon | Hystrix | Sentinel | Consul、Redis、MySQL、 RabbitMQ、XXL-JOB
 
 #### 项目的关键技术点：
 
-2. 消息的多种分表存储，以及冷热和归档策略
-3. 多应用发送记录同步模块
-3. 定时消息的实现，Redis + XXL-JOB 延时队列
+1. 消息的多种分表存储，以及冷热和归档策略
+2. 多应用发送记录同步模块
+3. 定时消息的实现，Redis + XXL-JOB 实现延时队列
 4. 多种消息投递机制的实现
 5. 以读扩散为存储基础的已读方案的实现
 6. RabbitMQ 做各类消息异步投递方式
@@ -102,8 +103,7 @@ SpringBoot、SpringCloud Feign | Consul，MySQL，Redis
 ### 推送
 
 ####  项⽬简介
-> 以 Netty4 为基础的⻓连接单向推送系统，维护公司教学平台客⼾端到服务器的⻓
-> 连接，承载公司内部的推送需求。
+> 以 Netty4 为基础的⻓连接单向推送系统，维护公司教学平台客⼾端到服务器的⻓连接，承载公司内部的推送需求。
 
 #### 相关技术
 Netty |  SpringBoot |  Redis |  Mongo
@@ -118,9 +118,9 @@ Netty |  SpringBoot |  Redis |  Mongo
 
 
 
-## 杭州玛瑙湾科技有限公司 （2019年〜2020年1月）
+## 杭州玛瑙湾科技有限公司 
 
-- 小贷组，负责网络信用贷软件开发，以及周围丛属服务开发。
+小贷组，负责网络信用贷软件开发，以及周围丛属服务开发。
 
 
 
@@ -150,10 +150,4 @@ Netty |  SpringBoot |  Redis |  Mongo
 5. 银行卡模块，19年10月份上线多卡功能，银行卡根据三方支付的签约之类的会有更多的分类细化。
 6. 提现/还款模块，涉及资金的模块，内网调用公司内部的资产端接口，实现放款和还款。
 
- 
 
-
-
-## 杭州齐圣科技有限公司（2018年4月 - 2019年初）
-
-大四的实习公司。
