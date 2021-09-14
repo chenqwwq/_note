@@ -10,125 +10,67 @@
 
 ## 概述
 
-ConcurrentHashMap 是 Java 中线程安全的 HashMap，1.8的实现中，内部采用了 CAS 以及 synchronized 实现并发安全。
+ConcurrentHashMap 就是线程安全的 HashMap。
 
-在 ConcurrentHashMap 中，所有的锁都是针对其中的某个桶，也就是数组的某个节点的，而非全局上锁，锁的粒度小，自然并发性能就高。
+在 1.8 以前的实现中，ConcurrentHashMap 以**分段锁**来实现并发安全，**而在 1.8 之后并发安全的实现依靠 CAS 以及 synchronize 关键字，并且上锁的粒度变成了单个桶，在写操作中只会对桶的头节点上锁**
 
-
-
-> 为什么需要 ConcurrentHashMap ？
-
-HashMap 有良好的存取性能，但并不支持并发环境。
-
-HashTable 支持并发环境,但在存取方法上直接加 synchronized 的方式太过粗暴会使性能明显下降。
-
-## 成员变量
-
-```java
-1. transient volatile Node<K,V>[] table;
-```
-
-实际存储数据的 Node 数组，volatile 保证可见性。
-
-```java
-2. private transient volatile Node<K,V>[] nextTable;
-```
-
-下一个使用的数组，仅在扩容更新的时候不为空，扩容时会逐渐把数据移动到这个数组。
-
-该数组仅作为扩容的过渡，类外无法访问。
-
-```java
-3. private transient volatile long baseCount;
-```
-
-在没有发生争用时的元素统计
-
-```Java
-4. private transient volatile int transferIndex;
-```
-
-扩容索引值,表示已经分配给扩容线程的table数组索引位置,主要用来协调多个线程间迁移任务的并发安全.
-
-```java
-private transient volatile int sizeCtl;
-```
-
-重要程度堪比`AQS`的`state`,是一个在多线程间共享的竞态变量,用于维护各种状态,保存各类信息.
-
-- `sizeCtl > 0`时可分为两种情况:
-  - 未初始化时,`sizeCtl`表示初始容量.
-  - 初始化后表示扩容的阈值,为**当前数组长度length*0.75**
-
-- `sizeCtl = -1`: 表示正在初始化或者扩容阶段.
-
-- ` sizeCtl < -1` : `sizeCtl`承担起了扩容时**标识符**(高16位)和**参与线程数目**(低16位)的存储
-
-  - 在`addCount`和`helpTransfer`的方法代码中,**如果需要帮助扩容,则会CAS替换为`sizeCtl+1`**
-
-  - **在完成当前扩容内容,且没有再分配的区域时,会CAS替换为`sizeCtl-1`**
-
-    
-
-##### Node 
-
-- 构成链表元素的节点类,保存K/V键值对
-
-```java
- static class Node<K,V> implements Map.Entry<K,V> {
-        final int hash;
-        final K key;
-        volatile V val;
-        volatile Node<K,V> next;
-        Node(int hash, K key, V val, Node<K,V> next) {
-            this.hash = hash;
-            this.key = key;
-            this.val = val;
-            this.next = next;
-        }
-        public final K getKey()       { return key; }
-        public final V getValue()     { return val; }
-        public final int hashCode()   { return key.hashCode() ^ val.hashCode(); }
-        public final String toString(){ return key + "=" + val; }
-        public final V setValue(V value) {
-            throw new UnsupportedOperationException();
-        }
-        public final boolean equals(Object o) {
-            Object k, v, u; Map.Entry<?,?> e;
-            return ((o instanceof Map.Entry) &&
-                    (k = (e = (Map.Entry<?,?>)o).getKey()) != null &&
-                    (v = e.getValue()) != null &&
-                    (k == key || k.equals(key)) &&
-                    (v == (u = val) || v.equals(u)));
-        }
-      	/**
-         * Virtualized support for map.get(); overridden in subclasses.
-         * 为map.get()提供虚拟化支持;在子类中覆盖.
-         */
-        Node<K,V> find(int h, Object k) {
-            Node<K,V> e = this;
-            if (k != null) {
-                do {
-                    // 里面就是普通的链表循环,直到拿到相应的值
-                    K ek;
-                    if (e.hash == h &&
-                        ((ek = e.key) == k || (ek != null && k.equals(ek))))
-                        return e;
-                } while ((e = e.next) != null);
-            }
-            return null;
-        }
-    }
-```
-
-- 和`ConcurrentHashMap`,`HashMap`中`Node`的差别
-  - `val`和`next`使用`volatile`关键字修饰,确保多线程之间的可见性.
-  - `hashCode`方法略有不同,因为`ConcurrentHashMap`不支持`key`或`value`为NULL值,所以直接使用`key.hashCode() ^ val.hashCode()`跳过了为空判断.
-- `find()`方法用来在特定时间段帮忙获取节点后的元素.一般作为桶的头节点调用,用来查询桶中元素.
+> synchronized 关键字的性能在 1.8 之后得到了很大的提升（加入了偏向锁，轻量级锁等。
 
 
 
-##### ForwardingNode 
+
+
+## 成员变量（关键的
+
+![ConcurrentHashMap#成员变量表](assets/image-20210911184252767.png)
+
+以上是 ConcurrentHashMap 中大部分关键的成员列表，含义如下：
+
+| 变量名        | 变量类型         | 变量含义                                                     |
+| ------------- | ---------------- | ------------------------------------------------------------ |
+| table         | Node 数组        | Hash 桶数组，保存真实的数据                                  |
+| nextTable     | Node 数组        | 扩容时的过渡数组，扩容成功之后和 table 互换引用（类似 Redis 中 Dict 的实现 |
+| baseCount     | Long             | 基础的元素个数（在没有任何 CAS 失败的情况下                  |
+| counterCells  | CounterCell 数组 | **结合 baseCount 得到真实的元素个数，在 CAS 失败后，每个组的变动元素个数会保存在各自的 Cell 里** |
+| transferIndex | int              | 扩容索引值,表示已经分配给扩容线程的table数组索引位置，主要用来协调多个线程间迁移任务的并发安全。 |
+| sizeCtl       | int              | 表示  ConcurrentHashMap 中的状态变化。                       |
+
+
+
+
+
+
+
+
+
+> sizeCtl 变量的作用？
+
+sizeCtl 表示的是 ConcurrentHashMap 的状态，可以分为如下情况：
+
+- sizeCtl > 0 时，表示 ConcurrentHashMap 的容量：
+  1. 表示初始容量
+  2. 表示初始之后的扩容阈值
+- sizeCtl = -1 表示当前正处于初始化或者扩容阶段
+- sizeCtl < -1 时，高16位表示扩容的标识符号，低16位表示参与的线程
+
+
+
+## 内部类
+
+（ ConcurrentHashMap 的内部类太多了，只看关键的吧。
+
+
+### Node 
+
+Node 表示一个 K/V 的数据对，并且也是桶中链表节点，具体源码如下：
+
+![image-20210911192655248](assets/image-20210911192655248.png)
+
+常规的链表节点实现，但是它继承了 Map.Entry。
+
+<br>
+
+### ForwardingNode 
 
 - 转发节点
 
@@ -180,6 +122,109 @@ static final class ForwardingNode<K,V> extends Node<K,V> {
 
 
 ---
+
+## 元素的获取方法
+
+Hash 算法的作用就是以 O(1) 的时间复杂度得出桶的下标。
+
+```java
+public V get(Object key) {
+        Node<K,V>[] tab; Node<K,V> e, p; int n, eh; K ek;
+        int h = spread(key.hashCode());
+        if ((tab = table) != null && (n = tab.length) > 0 &&  (e = tabAt(tab, (n - 1) & h)) != null) {
+            if ((eh = e.hash) == h) {
+                if ((ek = e.key) == key || (ek != null && key.equals(ek)))
+                    return e.val;
+            } else if (eh < 0){
+                return (p = e.find(h, key)) != null ? p.val : null;
+            }
+            while ((e = e.next) != null) {
+                if (e.hash == h &&
+                    ((ek = e.key) == key || (ek != null && key.equals(ek))))
+                    return e.val;
+            }
+        }
+        return null;
+}
+```
+
+首先就是**通过 spread 方法调整 Key 的 HashCode**，并获取。
+
+![image-20210911193130318](assets/image-20210911193130318.png)
+
+将高低16位做并发，增加 HashCode 的随机性，减少 Hash 冲突的产生。
+
+之后就是在常规判断后，**使用 (n-1) & h 计算桶的下标**，并且使用 tabAt 方法获取到桶的头节点。
+
+如果 hash 正常则判断头节点是否就是想要的节点，如果小于 0，表示可能处于桶迁移或者转红黑树的步骤，所以调用 Node 的 find 方法查询。
+
+> 节点相等的判断是通过 == 或者 equals 实现的。
+
+如果大于等于0，表示节点正常，遍历整个链表节点。
+
+
+
+
+
+## 元素个数统计方法
+
+ConcurrentHashMap 中的元素统计采用了特殊的方式。
+
+使用了上文说到了 baseCount 和 ConuterCell 两个成员变量，统计的逻辑如下：
+
+> baseCount 表示的是基础的元素个数，而 CounterCell 数组中保存的是对应的各个桶中的变化的元素个数。
+>
+> 所以统计的时候，需要从 CounterCell 数组中统计所有的个数加上 baseCount。
+
+
+
+### 元素个数新增方法
+
+```java
+private final void addCount(long x, int check) {
+        CounterCell[] as; long b, s;
+        if ((as = counterCells) != null ||
+            !U.compareAndSwapLong(this, BASECOUNT, b = baseCount, s = b + x)) {
+            CounterCell a; long v; int m;
+            boolean uncontended = true;
+            if (as == null || (m = as.length - 1) < 0 ||
+                (a = as[ThreadLocalRandom.getProbe() & m]) == null ||
+                !(uncontended =
+                  U.compareAndSwapLong(a, CELLVALUE, v = a.value, v + x))) {
+                fullAddCount(x, uncontended);
+                return;
+            }
+            if (check <= 1)
+                return;
+            s = sumCount();
+        }
+        if (check >= 0) {
+            Node<K,V>[] tab, nt; int n, sc;
+            while (s >= (long)(sc = sizeCtl) && (tab = table) != null &&
+                   (n = tab.length) < MAXIMUM_CAPACITY) {
+                int rs = resizeStamp(n);
+                if (sc < 0) {
+                    if ((sc >>> RESIZE_STAMP_SHIFT) != rs || sc == rs + 1 ||
+                        sc == rs + MAX_RESIZERS || (nt = nextTable) == null ||
+                        transferIndex <= 0)
+                        break;
+                    if (U.compareAndSwapInt(this, SIZECTL, sc, sc + 1))
+                        transfer(tab, nt);
+                }
+                else if (U.compareAndSwapInt(this, SIZECTL, sc,
+                                             (rs << RESIZE_STAMP_SHIFT) + 2))
+                    transfer(tab, null);
+                s = sumCount();
+            }
+        }
+}
+
+
+```
+
+
+
+
 
 #### 元素新增方法
 

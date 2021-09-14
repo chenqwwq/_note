@@ -13,15 +13,15 @@
 ## 工作经历
 
 - 杭州学海教育有限公司（2020年4月 - 至今）
-- 杭州玛瑙湾科技有限公司（2019年3月 - 2020年1月）
-- 杭州齐圣科技有限公司 （2018年4月 - 2018年11月，实习公司）
+- 杭州玛瑙湾科技有限公司（2019年3月 - 2020年1月，公司于20年1月解散）
+- 杭州齐圣科技有限公司 （2018年4月 - 2018年11月，实习公司，11月公司裁员）
 
 ## 技能清单
 
 - 熟悉 Java 语言，了解 Go 等其他语言，掌握 JDK 部分实现，JVM 基础
-- 熟悉 Redis，Kafka，RabbitMQ 等中间件 
+- 熟悉 Redis，Kafka，RabbitMQ，Zookeeper 等中间件 
 - 熟悉 Java IO ，熟练使用 Netty，了解其基本原理 
-- 熟悉 TCP，HTTP 等基本⽹络协议 
+- 熟悉 TCP，HTTP，HTTPS 等基本⽹络协议 
 - 熟悉 MySQL，了解 InnoDB 原理特性，掌握 SQL 调优技巧 
 - 熟悉 Spring，SpringBoot，以及 SpringCloud 部分组件 
 - 熟悉常用设计模式，有良好的编码能力
@@ -50,7 +50,7 @@
 
 > 相关技术
 
- SpringBoot、SpringCloud Feign | Ribbon | Hystrix | Sentinel | Consul、Redis、MySQL、 RabbitMQ、XXL-JOB
+ SpringBoot、SpringCloud Feign | Ribbon | Hystrix | Consul、Redis、MySQL、 RabbitMQ、XXL-JOB
 
 <br>
 
