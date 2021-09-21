@@ -75,6 +75,10 @@ AbstractNioMessageChannel#doReadMessages 是一个模板方法，以下是 NioSe
 
 
 
+> ChannelPipeline 此时只是定义并未初始化，在注册到 EventLoop 之后才会正式的初始化。
+
+
+
 ## 总结
 
 > SocketChannel 创建的整体流程
