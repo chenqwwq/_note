@@ -152,10 +152,22 @@ MANUAL 需要用户在 listener 中手动调用 ack / nack / reject 方法。
 
 
 
-## 消费者端流控
-
 ## RabbitMQ 的消费模式
 
-MQ 的消费模式可以分为 Push（推模式）和 Poll（拉模式）两种。
+MQ 的消费模式可以分为 Push（推模式）和 Pull（拉模式）两种。
 
-RabbitMQ 可以
+> 类似的，Kafka 实现的是 Pull 模式，Facebook 的 Scribe 实现的是 Push 模式。
+
+相对于 Pull 模式来说，Push 模式的问题在于发送速率由 Broker 决定，所以无法很好的适应不同速率的消费者。
+
+但是 RabbitMQ 不同，RabbitMQ 实现了 Prefetch 机制，类似于 TCP 的接收窗口，是接收方对发送方的背压，借此保证速率的合理。
+
+> Prefetch 更像是一个 Push 的上限，上限就是 Prefetch 条消息未消费。
+>
+> 
+
+
+
+
+
+## 消费者端流控
