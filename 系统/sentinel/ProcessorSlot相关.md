@@ -18,11 +18,19 @@ Sentinel 实现了
 
 ## ProcessorSlotChain
 
-处理槽执行链，Pro
+从 Ctspn 中获取的 ProcessorSlotChain，缓存在 static 的 chainMap 中，以 ResourceWrapper 作为 Key。
 
+> 所以全局范围内，对于相同的 ResourceWrapper 获取的都是同个 ProcessorSlotChain。
 
+使用 ProcessorSlotProvider 创建，内部又包含了 SlotChainBuilder（可以通过  SpiLoader 加载），Builder 中又包含了 ProcessorSlot 的创建（同样可以通过 SpiLoader 加载）。
 
+> SlotChainBuilder 和 ProcessorSlot 都可以通过 SpiLoader 做自定义配置。
 
+<br>
+
+默认加载到的 ProcessorSlot 如下：
+
+![image-20210929164819248](./ProcessorSlot%E7%9B%B8%E5%85%B3.assets/image-20210929164819248.png)
 
 
 
