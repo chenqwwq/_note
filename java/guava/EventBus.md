@@ -20,6 +20,11 @@ EventBus（事件总线），是 Guava 中事件驱动机制的实现。
 
 另外，观察者模式的需要**被观察者持有观察者的引用**，这就造成了两者之间的耦合，在 Guava 中**使用三方代持的方式**，进一步消除了耦合性。
 
+> 简单总结 EventBus 对于观察者模式的优化：
+>
+> 1. 将观察的参数抽象为 Event 事件
+> 2. 将观察者和被观察者解耦，更易于扩展
+
 
 
 
@@ -76,6 +81,8 @@ public class Main {
 
 <br>
 
+EventBus 是核心中的核心，注册、取消注册、事件发布等操作都通过其调用实现（类似 SpringBoot 的 ApplicationContext，所以下文基本都是 EventBus 的源码。
+
 
 
 ### 监听器注册流程
@@ -104,33 +111,29 @@ LoadingCache 中如果缓存不存在，则调用内部的 AnnotatedHandlerFinde
 
 ![image-20210905165704462](assets/image-20210905165704462.png)
 
-**通过是否标注 @AllowConcurrentEvents 表示方法的执行是否线程安全**，@AllowConcurrentEvents 也是一个标示性注解。
+**通过是否标注 @AllowConcurrentEvents 表示方法是否允许并发执行**。（@AllowConcurrentEvents 也是一个标示性注解。
 
 **如果非线程安全方法，则会创建 SynchronizedEventHandler 对象，线程安全则创建 EventHandler。**
 
 SynchronizedEventHandler 直接继承了 EventHandler，并标记 handleEvent 方法为 synchronize。
 
+> EventBus 的线程安全是直接使用 synchronized 来实现的。
+
 <br>
 
 解析完整个类之后，最终的结果以 Multimap 保存，并添加到外层的 EventBus 中。
 
-> 以最后的第一个参数的初始类型为 Key，不考虑父类。
+> 以方法的第一个参数的 Class 类型为 Key，不考虑父类。
 
 
 
 #### 监听器注册流程小结
 
-**EventBus#register 方法会对参数类进行解析，获取其中的监听方法（默认为 @Subscribe 注解标识的方法），并包装为 EventHandler 对象，最终以 Map<EventType,Set<EventHandler>> 类似的结构保存。**
+简单理解，注册就是通过 EventBus#register 将事件的处理器抽取出来，和所监听的事件组成一种映射关系缓存到 EventBus。
 
-EventBus 是核心中的核心，注册、取消注册、事件发布等操作都通过其调用实现（类似 SpringBoot 的 ApplicationContext。
+处理器的抽取依靠的是 @Subscribe 注解，监听的事件是被其标记的方法的第一个参数。
 
-默认情况下，监听方法都是非线程安全的，会使用 synchronized 保证并发的安全性，所以在方法并发安全的情况下可以标记 @AllowConcurrentEvents 注解。
-
-**以监听方法的第一个参数作为监听的事件类型，并且以基本类型注册，忽略父类。（注册的时候忽略父类**
-
-> **EventBus 的事件并不需要特殊的类型**，注册的时候也是以 Class 对象为 Key。
-
-
+另外使用 @AllowConcurrentEvents 来表示处理器是否允许并发执行，可以并发执行的方法会直接被包装为 EventHandler，如果不是则包装为 SynchronizedEventHandler。
 
 <br>
 
@@ -154,7 +157,7 @@ EventBus 是核心中的核心，注册、取消注册、事件发布等操作�
 
 之后就是遍历所有的  Class 对象，获取所有的监听的 EventHandler。
 
-> handlersByType 就是 Map<Class,Set<EventHandler>> 的映射关系，以此作为事件调度。
+> handlersByType 就是 Map<Class,Set<EventHandler>> ，是缓存的映射关系，以此作为事件调度。
 
 事件及其处理入队列，实现逻辑如下：
 
@@ -162,7 +165,7 @@ EventBus 是核心中的核心，注册、取消注册、事件发布等操作�
 
 **入队列就是通过 ThreadLocal 的 Queue 保存了该 <Event,EventHandler> 的集合。**
 
-如果没有响应该事件的 EventHandler，事件会进一步被包装为 DeadEvent，然后继续率先发布该事件，**所有的类和接口只要有一个存在对应的 EventHandler 对象，就表示调度成功。**
+如果没有响应该事件的 EventHandler，事件会进一步被包装为 DeadEvent，然后继续直接发布该事件，**所有的类和接口只要有一个存在对应的 EventHandler 对象，就表示调度成功。**
 
 ![image-20210905223557284](assets/image-20210905223557284.png)
 
@@ -184,7 +187,15 @@ event 不能为 DeadEvent 是避免套娃，先调用的 post 方法发布 DeadE
 
 ![image-20210905231300726](assets/image-20210905231300726.png)
 
+
+
 ### 事件发布小结
+
+事件发布的关键就是通过发布的事件类型获取对应的处理器（ EventBus 直接使用 Map 保存，所以这一步是简单的），并且执行处理器。
+
+发布的事件不单单是当前类型，而是整个类族都会遍历一遍查找对应的执行器（为了 Map 读取的线程安全，所以查找的时候也是会上锁的。），并且不是找到了立马执行，因为如果单个事件处理器执行缓慢，会影响到后续的调度，所以 EventBus 会讲获取到的执行器和事件打包缓存在 ThreadLocal 中，整体结束之后在一起执行。
+
+EventBus 新增了 DeadEvent（类比于 RabbitMQ 的死信？），在没有找到映射的处理器时会直接将原事件包装为 DeadEvent 并发布。
 
 事件的发布和处理流程如下：
 
@@ -192,6 +203,43 @@ event 不能为 DeadEvent 是避免套娃，先调用的 post 方法发布 DeadE
 2. 遍历所有类和接口获取对应的 EventHandler，并存入 ThreadLocal
 3. 若当前事件没有找到对应 EventHandler，则发布 DeadEvent 事件
 4. 遍历 ThreadLocal 的 Queue ，触发对应 EventHandler 调用
+
+
+
+
+
+
+
+## EventBus 总结
+
+
+
+> EventBus 对于观察者模式的优化
+
+观察者模式的要点就是被观察者持有观察者的饮用，并且在特定的时间调用，组织被观察者想要的参数并调用观察者。
+
+整个流程就有如下两个问题：
+
+1. 被观察者和观察者高度耦合，被观察者需要持有观察者的引用，并要在特定的时期调用
+2. 观察参数的修改
+
+EventBus
+
+
+
+
+
+<br>
+
+> @AllowConcurrentEvents 注解的作用：
+
+未被标记的监听方法使用 syncrhonrized 包裹执行，效率相对来说会比较慢。
+
+如果是无状态的方法执行，还是标记上的好。
+
+
+
+
 
 <br>
 

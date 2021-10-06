@@ -74,7 +74,7 @@ final long reserveEarliestAvailable(int requiredPermits, long nowMicros) {
     long returnValue = nextFreeTicketMicros;
     // 需要消耗的 permit
     double storedPermitsToSpend = min(requiredPermits, this.storedPermits);
-    // 需要等待的令牌树
+    // 需要等待的令牌数
     double freshPermits = requiredPermits - storedPermitsToSpend;
     // storePermitsToWaitTime 由子类实现
     long waitMicros =

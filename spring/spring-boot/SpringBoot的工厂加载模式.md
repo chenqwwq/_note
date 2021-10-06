@@ -14,7 +14,7 @@
 
 ## 示例
 
-![image-20210330215015366](/home/chen/_note/pic/image-20210330215015366.png)
+![image-20210330215015366](../../pic/image-20210330215015366.png)
 
 SpringFactoriesLoader 可以独立于整个 Spring 的体系，作为一个动态加载（SPI）机制。
 
@@ -22,7 +22,7 @@ SpringFactoriesLoader 可以独立于整个 Spring 的体系，作为一个动�
 
 ## spring.factories文件
 
-<img src="/home/chen/_note/pic/image-20210330215839441.png" alt="image-20210330215839441" style="zoom:67%;" />
+<img src="../../pic/image-20210330215839441.png" alt="image-20210330215839441" style="zoom:67%;" />
 
 一个配置以等号划分 key 和 value，以逗号划分多个 value，斜杠换行。
 
