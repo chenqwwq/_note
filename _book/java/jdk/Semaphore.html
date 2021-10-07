@@ -1,0 +1,1597 @@
+
+<!DOCTYPE HTML>
+<html lang="" >
+    <head>
+        <meta charset="UTF-8">
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <title>Semaphore 源码分析 · GitBook</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 3.2.3">
+        
+        
+        
+    
+    <link rel="stylesheet" href="../../gitbook/style.css">
+
+    
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-intopic-toc/style.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-chapter-fold/chapter-fold.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-splitter/splitter.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-expandable-chapters/expandable-chapters.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-back-to-top-button/plugin.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-anchor-navigation-ex/style/plugin.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-highlight/website.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-search/search.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-fontsettings/website.css">
+                
+            
+        
+
+    
+
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+
+        
+    
+    
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../../gitbook/images/apple-touch-icon-precomposed-152.png">
+    <link rel="shortcut icon" href="../../gitbook/images/favicon.ico" type="image/x-icon">
+
+    
+    
+    <link rel="prev" href="ScheduledThreadPoolExecutor.html" />
+    
+
+    </head>
+    <body>
+        
+<div class="book">
+    <div class="book-summary">
+        
+            
+<div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search" />
+</div>
+
+            
+                <nav role="navigation">
+                
+
+
+<ul class="summary">
+    
+    
+
+    
+
+    
+        
+        
+    
+        <li class="chapter " data-level="1.1" data-path="../../">
+            
+                <a href="../../">
+            
+                    
+                    Introduction
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2" data-path="../">
+            
+                <a href="../">
+            
+                    
+                    Java
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1" >
+            
+                <span>
+            
+                    
+                    JDK 源码分析
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1.1" >
+            
+                <span>
+            
+                    
+                    JUC
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1.1.1" data-path="AbstractQueuedSynchronizer.html">
+            
+                <a href="AbstractQueuedSynchronizer.html">
+            
+                    
+                    AbstractQueueSynchronized 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.2" data-path="ConcurrentHashMap.html">
+            
+                <a href="ConcurrentHashMap.html">
+            
+                    
+                    ConcurrentHashMap 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.3" data-path="FutureTask.html">
+            
+                <a href="FutureTask.html">
+            
+                    
+                    FutureTask 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.4" data-path="ReetrantLock.html">
+            
+                <a href="ReetrantLock.html">
+            
+                    
+                    ReetrantLocak 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.5" data-path="ThreadPoolExecutor.html">
+            
+                <a href="ThreadPoolExecutor.html">
+            
+                    
+                    ThreadPoolExecutor 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.6" data-path="BlockingQueue.html">
+            
+                <a href="BlockingQueue.html">
+            
+                    
+                    BlockingQueue 类族
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.7" data-path="SynchronousQueue.html">
+            
+                <a href="SynchronousQueue.html">
+            
+                    
+                    SynchronousQueue
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.8" data-path="CountDownLatch.html">
+            
+                <a href="CountDownLatch.html">
+            
+                    
+                    CountDownLatch 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.9" data-path="CyclicBarrier.html">
+            
+                <a href="CyclicBarrier.html">
+            
+                    
+                    CyclicBarrier 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.10" data-path="CopyOnWriteArrayList.html">
+            
+                <a href="CopyOnWriteArrayList.html">
+            
+                    
+                    CopyOnWriteArrayList 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.11" data-path="CopyOnWriteArraySet.html">
+            
+                <a href="CopyOnWriteArraySet.html">
+            
+                    
+                    CopyOnWriteArraySet 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.12" data-path="ConcurrentSkipListMap.html">
+            
+                <a href="ConcurrentSkipListMap.html">
+            
+                    
+                    ConcurrentSkipListMap 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.13" data-path="ScheduledThreadPoolExecutor.html">
+            
+                <a href="ScheduledThreadPoolExecutor.html">
+            
+                    
+                    cheduledThreadPoolExecutor 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter active" data-level="1.2.1.1.14" data-path="Semaphore.html">
+            
+                <a href="Semaphore.html">
+            
+                    
+                    Semaphore 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2" >
+            
+                <span>
+            
+                    
+                    Java 集合框架
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1.2.1" data-path="HashMap源码阅读.html">
+            
+                <a href="HashMap源码阅读.html">
+            
+                    
+                    HashMap 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2.2" data-path="HashMap.html">
+            
+                <a href="HashMap.html">
+            
+                    
+                    HashMap 原理(文字表述)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2.3" data-path="LinkedHashMap源码阅读.html">
+            
+                <a href="LinkedHashMap源码阅读.html">
+            
+                    
+                    LinkedHashMap 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2.4" data-path="ArrayList.html">
+            
+                <a href="ArrayList.html">
+            
+                    
+                    ArrayList 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2.5" data-path="LinkedList源码阅读.html">
+            
+                <a href="LinkedList源码阅读.html">
+            
+                    
+                    LinkedList 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.3" >
+            
+                <span>
+            
+                    
+                    其他
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1.3.1" data-path="ThreadLocal.html">
+            
+                <a href="ThreadLocal.html">
+            
+                    
+                    ThreadLocal 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.3.2" data-path="Stream.html">
+            
+                <a href="Stream.html">
+            
+                    
+                    Stream 分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2" >
+            
+                <span>
+            
+                    
+                    JVM（Java 虚拟机）
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.2.1" data-path="../jvm/关键字.html">
+            
+                <a href="../jvm/关键字.html">
+            
+                    
+                    Java 关键字整理
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.2" data-path="../jvm/引用类型.html">
+            
+                <a href="../jvm/引用类型.html">
+            
+                    
+                    Java 中的引用类型
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.3" data-path="../jvm/元空间和永久代.html">
+            
+                <a href="../jvm/元空间和永久代.html">
+            
+                    
+                    元空间和永久代
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.4" data-path="../jvm/synchronized.html">
+            
+                <a href="../jvm/synchronized.html">
+            
+                    
+                    synchronized 关键字
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.5" data-path="../jvm/JVM的类加载子系统.html">
+            
+                <a href="../jvm/JVM的类加载子系统.html">
+            
+                    
+                    JVM 的类加载子系统
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.3" >
+            
+                <span>
+            
+                    
+                    Guava 源码分析
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.3.1" data-path="../guava/EventBus.html">
+            
+                <a href="../guava/EventBus.html">
+            
+                    
+                    EventBus 相关源码解析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.3.2" data-path="../guava/RateLimiter.html">
+            
+                <a href="../guava/RateLimiter.html">
+            
+                    
+                    RateLimiter 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3" >
+            
+                <span>
+            
+                    
+                    Netty
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.3.1" data-path="../../netty/netty逻辑流程/EventLoop的初始化.html">
+            
+                <a href="../../netty/netty逻辑流程/EventLoop的初始化.html">
+            
+                    
+                    EventLoop 的初始化流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2" data-path="../../netty/netty逻辑流程/NIO服务端启动流程.html">
+            
+                <a href="../../netty/netty逻辑流程/NIO服务端启动流程.html">
+            
+                    
+                    NIO服务端启动流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.3" data-path="../../netty/netty逻辑流程/ChannelPipeline的结构和初始化流程.html">
+            
+                <a href="../../netty/netty逻辑流程/ChannelPipeline的结构和初始化流程.html">
+            
+                    
+                    ChannelPipeline的结构和初始化流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.4" data-path="../../netty/netty逻辑流程/NioEventLoop的事件轮询.html">
+            
+                <a href="../../netty/netty逻辑流程/NioEventLoop的事件轮询.html">
+            
+                    
+                    NioEventLoop的事件轮询
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.5" data-path="../../netty/netty逻辑流程/客户端Channel的创建流程.html">
+            
+                <a href="../../netty/netty逻辑流程/客户端Channel的创建流程.html">
+            
+                    
+                    客户端Channel的建立过程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.6" data-path="../../netty/netty逻辑流程/ChannelPipeline事件传递机制.html">
+            
+                <a href="../../netty/netty逻辑流程/ChannelPipeline事件传递机制.html">
+            
+                    
+                    ChannelPipeline事件传递机制
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.7" data-path="../../netty/netty逻辑流程/Netty中的编解码逻辑.html">
+            
+                <a href="../../netty/netty逻辑流程/Netty中的编解码逻辑.html">
+            
+                    
+                    Netty 中的编解码逻辑
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.8" data-path="../../netty/netty逻辑流程/Netty中写数据的逻辑.html">
+            
+                <a href="../../netty/netty逻辑流程/Netty中写数据的逻辑.html">
+            
+                    
+                    Netty 中写数据的逻辑
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.9" data-path="../../netty/netty逻辑流程/Netty中读数据的流程.html">
+            
+                <a href="../../netty/netty逻辑流程/Netty中读数据的流程.html">
+            
+                    
+                    Netty 中读数据的流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.10" data-path="../../netty/util/FastThreadLocal.html">
+            
+                <a href="../../netty/util/FastThreadLocal.html">
+            
+                    
+                    FastThreadLocal 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.11" data-path="../../netty/util/ChannelPool.html">
+            
+                <a href="../../netty/util/ChannelPool.html">
+            
+                    
+                    ChannelPool 相关分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.12" data-path="../../netty/ChannelOption整理.html">
+            
+                <a href="../../netty/ChannelOption整理.html">
+            
+                    
+                    ChannelOption 整理
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4" >
+            
+                <span>
+            
+                    
+                    Spring
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.1" >
+            
+                <span>
+            
+                    
+                    Spring Core
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.1.1" data-path="../../spring/spring-core/aop/aop 概念.md">
+            
+                <span>
+            
+                    
+                    AOP相关概念
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.1.2" data-path="../../spring/spring-core/aop/ProxyFactory.html">
+            
+                <a href="../../spring/spring-core/aop/ProxyFactory.html">
+            
+                    
+                    ProxyFactory
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.1.3" data-path="../../spring/spring-core/aop/Aop实现的不同方式.html">
+            
+                <a href="../../spring/spring-core/aop/Aop实现的不同方式.html">
+            
+                    
+                    Aop 实现的不同方式
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.1.4" data-path="../../spring/spring-core/module/async.html">
+            
+                <a href="../../spring/spring-core/module/async.html">
+            
+                    
+                    Async的实现原理
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.2" >
+            
+                <span>
+            
+                    
+                    SpringBoot
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.2.1" data-path="../../spring/spring-boot/SpringBoot的事件模型 .html">
+            
+                <a href="../../spring/spring-boot/SpringBoot的事件模型 .html">
+            
+                    
+                    SpringBoot的事件模型
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.2.2" data-path="../../spring/spring-boot/SpringBoot的启动流程.html">
+            
+                <a href="../../spring/spring-boot/SpringBoot的启动流程.html">
+            
+                    
+                    SpringBoot的启动流程简述
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.2.3" data-path="../../spring/spring-boot/SpringBoot的工厂加载模式.html">
+            
+                <a href="../../spring/spring-boot/SpringBoot的工厂加载模式.html">
+            
+                    
+                    SpringBoot的工厂加载模式
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.3" >
+            
+                <span>
+            
+                    
+                    SpringCloud
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.3.1" data-path="../../spring/spring-cloud/consul.html">
+            
+                <a href="../../spring/spring-cloud/consul.html">
+            
+                    
+                    consul 简述
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.3.2" data-path="../../spring/spring-cloud/feign.html">
+            
+                <a href="../../spring/spring-cloud/feign.html">
+            
+                    
+                    feign 简述
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.3.3" data-path="../../spring/spring-cloud/zuul.html">
+            
+                <a href="../../spring/spring-cloud/zuul.html">
+            
+                    
+                    zuul 简述
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5" >
+            
+                <span>
+            
+                    
+                    设计模式
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.5.1" data-path="../../系统设计/Gof设计模式.html">
+            
+                <a href="../../系统设计/Gof设计模式.html">
+            
+                    
+                    Gof 的设计模式
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6" >
+            
+                <span>
+            
+                    
+                    中间件
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.6.1" >
+            
+                <span>
+            
+                    
+                    RabbitMQ
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.6.1.1" data-path="../../消息队列/RabbitMQ如何保证消息不丢失.html">
+            
+                <a href="../../消息队列/RabbitMQ如何保证消息不丢失.html">
+            
+                    
+                    RabbitMQ 如何保证消息不丢失
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6.2" >
+            
+                <span>
+            
+                    
+                    Redis
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.6.2.1" data-path="../../redis/Redis的五种数据结构.html">
+            
+                <a href="../../redis/Redis的五种数据结构.html">
+            
+                    
+                    Redis 的五种数据结构
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6.2.2" data-path="../../redis/Redis的Sentinel模式.html">
+            
+                <a href="../../redis/Redis的Sentinel模式.html">
+            
+                    
+                    Redis 的哨兵模式
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6.2.3" data-path="../../redis/Redis的主从复制模式.html">
+            
+                <a href="../../redis/Redis的主从复制模式.html">
+            
+                    
+                    Redis 的主从复制模式
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.7" >
+            
+                <span>
+            
+                    
+                    网络
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.7.1" >
+            
+                <span>
+            
+                    
+                    TCP
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.7.1.1" data-path="../../网络/tcp协议整理1.html">
+            
+                <a href="../../网络/tcp协议整理1.html">
+            
+                    
+                    TCP 协议总结（一）
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.7.1.2" data-path="../../网络/tcp内核参数整理.html">
+            
+                <a href="../../网络/tcp内核参数整理.html">
+            
+                    
+                    Linux 中的相关 TCP 参数
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+    
+
+    <li class="divider"></li>
+
+    <li>
+        <a href="https://www.gitbook.com" target="blank" class="gitbook-link">
+            Published with GitBook
+        </a>
+    </li>
+</ul>
+
+
+                </nav>
+            
+        
+    </div>
+
+    <div class="book-body">
+        
+            <div class="body-inner">
+                
+                    
+
+<div class="book-header" role="navigation">
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href="../.." >Semaphore 源码分析</a>
+    </h1>
+</div>
+
+
+
+
+                    <div class="page-wrapper" tabindex="-1" role="main">
+                        <div class="page-inner">
+                            
+<div id="book-search-results">
+    <div class="search-noresults">
+    
+                                <section class="normal markdown-section">
+                                
+                                <div id="anchor-navigation-ex-navbar"><i class="fa fa-navicon"></i><ul><ul><ul><li><span class="title-icon "></span><a href="#semaphore"><b></b>Semaphore</a></li></ul></ul></ul></div><h3 id="semaphore"><a name="semaphore" class="anchor-navigation-ex-anchor" href="#semaphore"><i class="fa fa-link" aria-hidden="true"></i></a>Semaphore</h3>
+<ul>
+<li><p>Java&#x5E76;&#x53D1;&#x5DE5;&#x5177;&#x4E4B;&#x4E00;&#xFF0C;&#x7528;&#x4E8E;&#x63A7;&#x5236;&#x540C;&#x65F6;&#x8BBF;&#x95EE;&#x67D0;&#x4E2A;&#x516C;&#x5171;&#x8D44;&#x6E90;&#x7684;&#x7EBF;&#x7A0B;&#x6570;&#xFF0C;&#x4FDD;&#x8BC1;&#x8D44;&#x6E90;&#x7684;&#x5408;&#x7406;&#x4F7F;&#x7528;&#x3002;</p>
+</li>
+<li><p>&#x548C;<code>CountDownLatch</code>&#x4E00;&#x6837;&#x5728;&#x5185;&#x90E8;&#x5B9E;&#x73B0;&#x4E86;&#x4E00;&#x4E2A;&#x901A;&#x8FC7;&#x96C6;&#x6210;<code>AQS</code>&#x5B9E;&#x73B0;&#x4E86;&#x4E00;&#x4E2A;<code>Sync</code>&#x7684;&#x5185;&#x90E8;&#x7C7B;(&#x4F7F;&#x7528;<code>AQS</code>&#x4E2D;&#x7684;<strong>&#x5171;&#x4EAB;&#x6A21;&#x5F0F;</strong>&#x4FDD;&#x8BC1;&#x8D44;&#x6E90;&#x5728;&#x591A;&#x4E2A;&#x7EBF;&#x7A0B;&#x5171;&#x4EAB;&#x65F6;&#x5E76;&#x53D1;&#x7684;&#x6B63;&#x786E;&#x6027;).</p>
+</li>
+</ul>
+<hr>
+<h4 id="&#x5185;&#x90E8;&#x7C7B;"><a name="&#x5185;&#x90E8;&#x7C7B;" class="anchor-navigation-ex-anchor" href="#&#x5185;&#x90E8;&#x7C7B;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x5185;&#x90E8;&#x7C7B;</h4>
+<pre><code class="lang-java">  <span class="hljs-keyword">abstract</span> <span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Sync</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AbstractQueuedSynchronizer</span> </span>{
+        <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> serialVersionUID = <span class="hljs-number">1192457210091910933L</span>;
+        <span class="hljs-comment">// state&#x5728;Semaphore&#x4E2D;&#x89E3;&#x91CA;&#x4E3A;permits(&#x8BB8;&#x53EF;&#x8BC1;)</span>
+        Sync(<span class="hljs-keyword">int</span> permits) {
+            setState(permits);
+        }
+        <span class="hljs-function"><span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> <span class="hljs-title">getPermits</span><span class="hljs-params">()</span> </span>{
+            <span class="hljs-keyword">return</span> getState();
+        }
+
+          <span class="hljs-comment">// &#x975E;&#x516C;&#x5E73;&#x6A21;&#x5F0F;&#x4E0B;&#x7684;&#x9501;&#x83B7;&#x53D6; </span>
+          <span class="hljs-comment">// param&#xFF1A;`acquires`&#x8868;&#x793A;&#x9700;&#x8981;&#x83B7;&#x53D6;&#x7684;`permits`&#x6570;&#x76EE;</span>
+          <span class="hljs-comment">// return&#xFF1A;&#x8D1F;&#x6570;&#x8868;&#x793A;&#x83B7;&#x53D6;&#x5931;&#x8D25;</span>
+        <span class="hljs-function"><span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> <span class="hljs-title">nonfairTryAcquireShared</span><span class="hljs-params">(<span class="hljs-keyword">int</span> acquires)</span> </span>{
+            <span class="hljs-keyword">for</span> (;;) {
+                <span class="hljs-comment">// state&#x5373;&#x4E3A;&#x6700;&#x5927;&#x5141;&#x8BB8;&#x83B7;&#x53D6;&#x6570;&#x76EE;</span>
+                <span class="hljs-keyword">int</span> available = getState();
+                <span class="hljs-keyword">int</span> remaining = available - acquires;
+                <span class="hljs-comment">// &#x77ED;&#x8DEF;&#x7279;&#x6027;</span>
+                <span class="hljs-comment">// `remaining`&#x4E3A;&#x8D1F;&#x76F4;&#x63A5;&#x8FD4;&#x56DE;&#x8D1F;&#x6570;,&#x8868;&#x793A;&#x83B7;&#x53D6;&#x5931;&#x8D25;</span>
+                <span class="hljs-comment">// `remaining`&#x4E3A;&#x6B63;&#xFF0C;&#x5219;`CAS`&#x7F6E;&#x6362;&#xFF0C;&#x8FD4;&#x56DE;&#x5269;&#x4F59;&#xFF0C;&#x83B7;&#x53D6;&#x6210;&#x529F;</span>
+                <span class="hljs-keyword">if</span> (remaining &lt; <span class="hljs-number">0</span> ||
+                    compareAndSetState(available, remaining))
+                    <span class="hljs-keyword">return</span> remaining;
+            }
+        }
+
+          <span class="hljs-comment">// &#x5171;&#x4EAB;&#x6A21;&#x5F0F;&#x4E0B;&#x7684;&#x91CA;&#x653E;&#x64CD;&#x4F5C;</span>
+          <span class="hljs-comment">// return: true&#x8868;&#x793A;&#x91CA;&#x653E;&#x6210;&#x529F;</span>
+        <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">tryReleaseShared</span><span class="hljs-params">(<span class="hljs-keyword">int</span> releases)</span> </span>{
+            <span class="hljs-keyword">for</span> (;;) {
+                <span class="hljs-keyword">int</span> current = getState();
+                <span class="hljs-keyword">int</span> next = current + releases;
+                <span class="hljs-keyword">if</span> (next &lt; current) <span class="hljs-comment">// overflow</span>
+                    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error(<span class="hljs-string">&quot;Maximum permit count exceeded&quot;</span>);
+                <span class="hljs-keyword">if</span> (compareAndSetState(current, next))
+                    <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
+            }
+        }
+
+          <span class="hljs-comment">// &#x51CF;&#x5C11;&#x8BB8;&#x53EF;&#x8BC1;&#x6570;&#x91CF;</span>
+        <span class="hljs-comment">// param: `reductions`&#x51CF;&#x5C11;&#x7684;&#x6570;&#x91CF;</span>
+        <span class="hljs-function"><span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">reducePermits</span><span class="hljs-params">(<span class="hljs-keyword">int</span> reductions)</span> </span>{
+            <span class="hljs-keyword">for</span> (;;) {
+                <span class="hljs-keyword">int</span> current = getState();
+                <span class="hljs-keyword">int</span> next = current - reductions;
+                <span class="hljs-keyword">if</span> (next &gt; current) <span class="hljs-comment">// underflow</span>
+                    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error(<span class="hljs-string">&quot;Permit count underflow&quot;</span>);
+                <span class="hljs-keyword">if</span> (compareAndSetState(current, next))
+                    <span class="hljs-keyword">return</span>;
+            }
+        }
+
+          <span class="hljs-comment">// &#x8FD9;&#x4E2A;&#x72E0;...&#x76F4;&#x63A5;&#x6E05;&#x7A7A;&#x6240;&#x6709;&#x7684;`permits`</span>
+          <span class="hljs-comment">// return: &#x8FD4;&#x56DE;&#x5F53;&#x524D;&#x7684;`permits`&#x6570;&#x76EE;</span>
+        <span class="hljs-function"><span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> <span class="hljs-title">drainPermits</span><span class="hljs-params">()</span> </span>{
+            <span class="hljs-keyword">for</span> (;;) {
+                <span class="hljs-keyword">int</span> current = getState();
+                <span class="hljs-keyword">if</span> (current == <span class="hljs-number">0</span> || compareAndSetState(current, <span class="hljs-number">0</span>))
+                    <span class="hljs-keyword">return</span> current;
+            }
+        }
+    }
+
+    <span class="hljs-comment">/**
+     * NonFair version
+     */</span>
+    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">NonfairSync</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Sync</span> </span>{
+        <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> serialVersionUID = -<span class="hljs-number">2694183684443567898L</span>;
+
+        NonfairSync(<span class="hljs-keyword">int</span> permits) {
+            <span class="hljs-keyword">super</span>(permits);
+        }
+        <span class="hljs-comment">// &#x975E;&#x516C;&#x5E73;&#x6A21;&#x5F0F;&#x4E0B;&#x7684;&#x83B7;&#x53D6;&#x64CD;&#x4F5C;,&#x76F4;&#x63A5;&#x8C03;&#x7528;&#x7684;`Sync`&#x7684;`nonfairTryAcquireShared`</span>
+        <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">int</span> <span class="hljs-title">tryAcquireShared</span><span class="hljs-params">(<span class="hljs-keyword">int</span> acquires)</span> </span>{
+            <span class="hljs-keyword">return</span> nonfairTryAcquireShared(acquires);
+        }
+    }
+
+    <span class="hljs-comment">/**
+     * Fair version
+     */</span>
+    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">FairSync</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Sync</span> </span>{
+        <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> serialVersionUID = <span class="hljs-number">2014338818796000944L</span>;
+
+        FairSync(<span class="hljs-keyword">int</span> permits) {
+            <span class="hljs-keyword">super</span>(permits);
+        }
+        <span class="hljs-comment">// &#x516C;&#x5E73;&#x6A21;&#x5F0F;&#x4E0B;&#x7684;&#x83B7;&#x53D6;&#x5C31;&#x6BD4;&#x975E;&#x516C;&#x5E73;&#x6A21;&#x5F0F;&#x591A;&#x4E00;&#x4E2A;`&#x68C0;&#x67E5;&#x524D;&#x9A71;&#x64CD;&#x4F5C;`</span>
+        <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">int</span> <span class="hljs-title">tryAcquireShared</span><span class="hljs-params">(<span class="hljs-keyword">int</span> acquires)</span> </span>{
+            <span class="hljs-keyword">for</span> (;;) {
+                <span class="hljs-comment">// `hasQueuedPredecessors`&#x5C31;&#x662F;`AQS`&#x4E2D;&#x68C0;&#x67E5;&#x524D;&#x9A71;&#x7684;&#x65B9;&#x6CD5;</span>
+                <span class="hljs-keyword">if</span> (hasQueuedPredecessors())
+                    <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span>;
+                <span class="hljs-keyword">int</span> available = getState();
+                <span class="hljs-keyword">int</span> remaining = available - acquires;
+                <span class="hljs-keyword">if</span> (remaining &lt; <span class="hljs-number">0</span> ||
+                    compareAndSetState(available, remaining))
+                    <span class="hljs-keyword">return</span> remaining;
+            }
+        }
+    }
+</code></pre>
+<h4 id="&#x6784;&#x9020;&#x51FD;&#x6570;"><a name="&#x6784;&#x9020;&#x51FD;&#x6570;" class="anchor-navigation-ex-anchor" href="#&#x6784;&#x9020;&#x51FD;&#x6570;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x6784;&#x9020;&#x51FD;&#x6570;</h4>
+<pre><code class="lang-java"><span class="hljs-comment">// &#x9ED8;&#x8BA4;&#x4E3A;&#x975E;&#x516C;&#x5E73;&#x6A21;&#x5F0F;  </span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Semaphore</span><span class="hljs-params">(<span class="hljs-keyword">int</span> permits)</span> </span>{
+        sync = <span class="hljs-keyword">new</span> NonfairSync(permits);
+    }
+
+ <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Semaphore</span><span class="hljs-params">(<span class="hljs-keyword">int</span> permits, <span class="hljs-keyword">boolean</span> fair)</span> </span>{
+        sync = fair ? <span class="hljs-keyword">new</span> FairSync(permits) : <span class="hljs-keyword">new</span> NonfairSync(permits);
+    }
+</code></pre>
+<h4 id="&#x8D44;&#x6E90;&#xFF08;permits&#xFF09;&#x83B7;&#x53D6;&#x65B9;&#x6CD5;"><a name="&#x8D44;&#x6E90;&#xFF08;permits&#xFF09;&#x83B7;&#x53D6;&#x65B9;&#x6CD5;" class="anchor-navigation-ex-anchor" href="#&#x8D44;&#x6E90;&#xFF08;permits&#xFF09;&#x83B7;&#x53D6;&#x65B9;&#x6CD5;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x8D44;&#x6E90;&#xFF08;<code>permits</code>&#xFF09;&#x83B7;&#x53D6;&#x65B9;&#x6CD5;</h4>
+<ul>
+<li>&#x83B7;&#x53D6;<code>permits</code>&#x7684;&#x65B9;&#x6CD5;&#x6709;&#x70B9;&#x591A;...</li>
+<li>&#x56E0;&#x4E3A;&#x8C03;&#x7528;&#x7684;<code>AQS</code>&#x65B9;&#x6CD5;&#xFF0C;&#x6240;&#x4EE5;&#x83B7;&#x53D6;<code>permits</code>&#x7684;&#x5177;&#x4F53;&#x6D41;&#x7A0B;&#x5C31;&#x662F;<code>AQS</code>&#x4E2D;&#x83B7;&#x53D6;&#x5171;&#x4EAB;&#x9501;&#x7684;&#x6D41;&#x7A0B;(&#x5C1D;&#x8BD5;&#x83B7;&#x53D6;&#xFF0C;&#x5931;&#x8D25;&#x5219;&#x8FDB;&#x5165;&#x540C;&#x6B65;&#x961F;&#x5217;&#xFF0C;&#x7B49;&#x5F85;&#x5524;&#x9192;)</li>
+</ul>
+<pre><code class="lang-java"><span class="hljs-comment">//     &#x83B7;&#x53D6;&#x5931;&#x8D25;&#x8FDB;&#x5165;&#x7B49;&#x5F85;&#x961F;&#x5217;&#xFF0C;&#x4E2D;&#x65AD;&#x5219;&#x629B;&#x9519;</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">acquire</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> InterruptedException </span>{
+        sync.acquireSharedInterruptibly(<span class="hljs-number">1</span>);
+    }
+<span class="hljs-comment">// &#x83B7;&#x53D6;&#x5931;&#x8D25;&#x8FDB;&#x5165;&#x7B49;&#x5F85;&#x961F;&#x5217;&#xFF0C;&#x4E0D;&#x53EF;&#x4E2D;&#x65AD;</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">acquireUninterruptibly</span><span class="hljs-params">()</span> </span>{
+        sync.acquireShared(<span class="hljs-number">1</span>);
+    }
+<span class="hljs-comment">// &#x83B7;&#x53D6;&#x5931;&#x8D25;&#x76F4;&#x63A5;&#x8FD4;&#x56DE;false&#xFF0C;&#x4E0D;&#x8FDB;&#x5165;&#x961F;&#x5217;</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">tryAcquire</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">return</span> sync.nonfairTryAcquireShared(<span class="hljs-number">1</span>) &gt;= <span class="hljs-number">0</span>;
+    }
+<span class="hljs-comment">// &#x5C1D;&#x8BD5;&#x83B7;&#x53D6;,&#x5E26;&#x8D85;&#x65F6;&#x65F6;&#x95F4;,&#x65F6;&#x95F4;&#x5230;&#x8FD4;&#x56DE;false</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">tryAcquire</span><span class="hljs-params">(<span class="hljs-keyword">long</span> timeout, TimeUnit unit)</span>
+        <span class="hljs-keyword">throws</span> InterruptedException </span>{
+        <span class="hljs-keyword">return</span> sync.tryAcquireSharedNanos(<span class="hljs-number">1</span>, unit.toNanos(timeout));
+    }
+<span class="hljs-comment">// &#x2191;&#x2191;&#x2191; &#x4E0A;&#x9762;&#x90FD;&#x662F;&#x9ED8;&#x8BA4;&#x83B7;&#x53D6;&#x4E00;&#x4E2A;`permits`   </span>
+<span class="hljs-comment">//                         &#x5168;&#x519B;&#x51FA;&#x51FB;(((&#xA3A4;&apos;&#x3C9;&apos;)&#x648;&#x4E09; &#xA3A4;&apos;&#x3C9;&apos;)-o&#x2261;</span>
+<span class="hljs-comment">// &#x2193;&#x2193;&#x2193; &#x4E0B;&#x9762;&#x53EF;&#x4EE5;&#x6307;&#x5B9A;&#x83B7;&#x53D6;`permits`&#x7684;&#x4E2A;&#x6570;</span>
+ <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">acquire</span><span class="hljs-params">(<span class="hljs-keyword">int</span> permits)</span> <span class="hljs-keyword">throws</span> InterruptedException </span>{
+        <span class="hljs-keyword">if</span> (permits &lt; <span class="hljs-number">0</span>) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException();
+        sync.acquireSharedInterruptibly(permits);
+    }
+ <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">acquireUninterruptibly</span><span class="hljs-params">(<span class="hljs-keyword">int</span> permits)</span> </span>{
+        <span class="hljs-keyword">if</span> (permits &lt; <span class="hljs-number">0</span>) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException();
+        sync.acquireShared(permits);
+    }
+ <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">tryAcquire</span><span class="hljs-params">(<span class="hljs-keyword">int</span> permits)</span> </span>{
+        <span class="hljs-keyword">if</span> (permits &lt; <span class="hljs-number">0</span>) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException();
+        <span class="hljs-keyword">return</span> sync.nonfairTryAcquireShared(permits) &gt;= <span class="hljs-number">0</span>;
+    }
+ <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">tryAcquire</span><span class="hljs-params">(<span class="hljs-keyword">int</span> permits, <span class="hljs-keyword">long</span> timeout, TimeUnit unit)</span>
+        <span class="hljs-keyword">throws</span> InterruptedException </span>{
+        <span class="hljs-keyword">if</span> (permits &lt; <span class="hljs-number">0</span>) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException();
+        <span class="hljs-keyword">return</span> sync.tryAcquireSharedNanos(permits, unit.toNanos(timeout));
+    }
+</code></pre>
+<h4 id="&#x8D44;&#x6E90;permits&#x91CA;&#x653E;&#x65B9;&#x6CD5;"><a name="&#x8D44;&#x6E90;permits&#x91CA;&#x653E;&#x65B9;&#x6CD5;" class="anchor-navigation-ex-anchor" href="#&#x8D44;&#x6E90;permits&#x91CA;&#x653E;&#x65B9;&#x6CD5;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x8D44;&#x6E90;(<code>permits</code>)&#x91CA;&#x653E;&#x65B9;&#x6CD5;</h4>
+<pre><code class="lang-java"> <span class="hljs-comment">// &#x91CA;&#x653E;&#x4E00;&#x4EFD;`permits`&#x7684;&#x65B9;&#x6CD5;</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">release</span><span class="hljs-params">()</span> </span>{
+        sync.releaseShared(<span class="hljs-number">1</span>);
+    }
+
+<span class="hljs-comment">// param: `permits`&#x8868;&#x793A;&#x91CA;&#x653E;&#x7684;&#x6570;&#x76EE;</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">release</span><span class="hljs-params">(<span class="hljs-keyword">int</span> permits)</span> </span>{
+        <span class="hljs-keyword">if</span> (permits &lt; <span class="hljs-number">0</span>) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException();
+        sync.releaseShared(permits);
+    }
+
+<span class="hljs-comment">// &#x2193;&#x2193;&#x2193; &#x4E0B;&#x9762;&#x7684;&#x65B9;&#x6CD5;&#x5728;`AQS`&#x4E2D;&#x770B;&#x8FC7;...&#x5C31;&#x5F53;&#x590D;&#x4E60;&#x4E00;&#x4E0B;</span>
+<span class="hljs-comment">// &#x5171;&#x4EAB;&#x8282;&#x70B9;&#x7684;&#x5524;&#x9192;&#x5728;&#x540E;&#x7EE7;&#x8282;&#x70B9;&#x5524;&#x9192;&#x540E;</span>
+
+<span class="hljs-comment">// `AQS`&#x65B9;&#x6CD5;</span>
+ <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">releaseShared</span><span class="hljs-params">(<span class="hljs-keyword">int</span> arg)</span> </span>{
+         <span class="hljs-comment">// &#x5C1D;&#x8BD5;&#x91CA;&#x653E;&#x65B9;&#x6CD5;,`CAS`&#x64CD;&#x4F5C;&#x6210;&#x529F;&#x8FD4;&#x56DE;&#xB7;true&#xB7; </span>
+        <span class="hljs-keyword">if</span> (tryReleaseShared(arg)) {
+            doReleaseShared();
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
+        }
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+ }
+<span class="hljs-comment">// `AQS`&#x65B9;&#x6CD5;</span>
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doReleaseShared</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">for</span> (;;) {
+            Node h = head;
+            <span class="hljs-comment">// &#x5934;&#x8282;&#x70B9;&#x4E0D;&#x4E3A;&#x7A7A;&#xFF0C;&#x4E14;&#x4E0D;&#x4E3A;&#x5C3E;&#x8282;&#x70B9;(&#x961F;&#x5217;&#x8FD8;&#x6709;&#x5176;&#x4ED6;&#x7EBF;&#x7A0B;)</span>
+            <span class="hljs-keyword">if</span> (h != <span class="hljs-keyword">null</span> &amp;&amp; h != tail) {
+                <span class="hljs-keyword">int</span> ws = h.waitStatus;
+                <span class="hljs-comment">// `SIGNAL`&#x72B6;&#x6001;&#x65F6;&#x5524;&#x9192;&#x540E;&#x7EED;&#x8282;&#x70B9;</span>
+                <span class="hljs-keyword">if</span> (ws == Node.SIGNAL) {
+                    <span class="hljs-keyword">if</span> (!compareAndSetWaitStatus(h, Node.SIGNAL, <span class="hljs-number">0</span>))
+                        <span class="hljs-keyword">continue</span>;            <span class="hljs-comment">// loop to recheck cases</span>
+                    <span class="hljs-comment">// &#x5524;&#x9192;&#x540E;&#x7EE7;&#x8282;&#x70B9;&#x540E;&#xFF0C;&#x540E;&#x7EE7;&#x8282;&#x70B9;&#x7EE7;&#x7EED;&#x6267;&#x884C;`doAcquireShared`&#x4E2D;&#x7684;&#x5FAA;&#x73AF;</span>
+                    <span class="hljs-comment">// `doAcquireShared`&#x4E2D;&#x7684;`setHeadAndPropagate`&#x4F1A;&#x6539;&#x53D8;head</span>
+                    unparkSuccessor(h);
+                }
+                <span class="hljs-comment">// &#x786E;&#x4FDD;&#x4F20;&#x64AD;</span>
+                <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (ws == <span class="hljs-number">0</span> &amp;&amp;
+                         !compareAndSetWaitStatus(h, <span class="hljs-number">0</span>, Node.PROPAGATE))
+                    <span class="hljs-keyword">continue</span>;                <span class="hljs-comment">// loop on failed CAS</span>
+            }
+            <span class="hljs-keyword">if</span> (h == head)                   <span class="hljs-comment">// loop if head changed</span>
+                <span class="hljs-keyword">break</span>;
+        }
+    }
+
+  <span class="hljs-comment">// `AQS`&#x65B9;&#x6CD5;</span>
+ <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">unparkSuccessor</span><span class="hljs-params">(Node node)</span> </span>{
+        <span class="hljs-keyword">int</span> ws = node.waitStatus;
+         <span class="hljs-comment">// &#x4E0D;&#x4E3A;&#x53D6;&#x6D88;&#x72B6;&#x6001;&#x7684;&#x90FD;&#x53D8;&#x4E3A;&#x521D;&#x59CB;&#x72B6;&#x6001;</span>
+        <span class="hljs-keyword">if</span> (ws &lt; <span class="hljs-number">0</span>)
+            compareAndSetWaitStatus(node, ws, <span class="hljs-number">0</span>);
+        Node s = node.next;
+         <span class="hljs-comment">// &#x540E;&#x7EE7;&#x8282;&#x70B9;&#x4E0D;&#x4E3A;&#x7A7A; &#x6216;&#x8005; &#x540E;&#x7EE7;&#x8282;&#x70B9;&#x72B6;&#x6001;&#x4E3A;&#x53D6;&#x6D88;&#x65F6;</span>
+        <span class="hljs-keyword">if</span> (s == <span class="hljs-keyword">null</span> || s.waitStatus &gt; <span class="hljs-number">0</span>) {
+            <span class="hljs-comment">// &#x540E;&#x5F80;&#x524D;&#x9009;&#x62E9;&#x6700;&#x9760;&#x8FD1;&#x7684;&#x4E0D;&#x4E3A;&#x521D;&#x59CB;&#x548C;&#x53D6;&#x6D88;&#x72B6;&#x6001;&#x7684;&#x8282;&#x70B9;</span>
+            s = <span class="hljs-keyword">null</span>;
+            <span class="hljs-keyword">for</span> (Node t = tail; t != <span class="hljs-keyword">null</span> &amp;&amp; t != node; t = t.prev)
+                <span class="hljs-keyword">if</span> (t.waitStatus &lt;= <span class="hljs-number">0</span>)
+                    s = t;
+        }
+         <span class="hljs-comment">// &#x4E0D;&#x4E3A;&#x7A7A;&#x5C31;&#x5524;&#x9192;</span>
+        <span class="hljs-keyword">if</span> (s != <span class="hljs-keyword">null</span>)
+            LockSupport.unpark(s.thread);
+    }
+</code></pre>
+
+<script>console.log("plugin-popup....");document.onclick = function(e){ e.target.tagName === "IMG" && window.open(e.target.src,e.target.src)}</script><style>img{cursor:pointer}</style>
+                                
+                                </section>
+                            
+    </div>
+    <div class="search-results">
+        <div class="has-results">
+            
+            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+            <ul class="search-results-list"></ul>
+            
+        </div>
+        <div class="no-results">
+            
+            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+            
+        </div>
+    </div>
+</div>
+
+                        </div>
+                    </div>
+                
+            </div>
+
+            
+                
+                <a href="ScheduledThreadPoolExecutor.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page: cheduledThreadPoolExecutor 源码分析">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+                
+                
+            
+        
+    </div>
+
+    <script>
+        var gitbook = gitbook || [];
+        gitbook.push(function() {
+            gitbook.page.hasChanged({"page":{"title":"Semaphore 源码分析","level":"1.2.1.1.14","depth":4,"next":{"title":"Java 集合框架","level":"1.2.1.2","depth":3,"ref":"","articles":[{"title":"HashMap 源码分析","level":"1.2.1.2.1","depth":4,"path":"java/jdk/HashMap源码阅读.md","ref":"java/jdk/HashMap源码阅读.md","articles":[]},{"title":"HashMap 原理(文字表述)","level":"1.2.1.2.2","depth":4,"path":"java/jdk/HashMap.md","ref":"java/jdk/HashMap.md","articles":[]},{"title":"LinkedHashMap 源码分析","level":"1.2.1.2.3","depth":4,"path":"java/jdk/LinkedHashMap源码阅读.md","ref":"java/jdk/LinkedHashMap源码阅读.md","articles":[]},{"title":"ArrayList 源码分析","level":"1.2.1.2.4","depth":4,"path":"java/jdk/ArrayList.md","ref":"java/jdk/ArrayList.md","articles":[]},{"title":"LinkedList 源码分析","level":"1.2.1.2.5","depth":4,"path":"java/jdk/LinkedList源码阅读.md","ref":"java/jdk/LinkedList源码阅读.md","articles":[]}]},"previous":{"title":"cheduledThreadPoolExecutor 源码分析","level":"1.2.1.1.13","depth":4,"path":"java/jdk/ScheduledThreadPoolExecutor.md","ref":"java/jdk/ScheduledThreadPoolExecutor.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":["intopic-toc","chapter-fold","splitter","expandable-chapters","back-to-top-button","popup","anchor-navigation-ex","livereload"],"pluginsConfig":{"chapter-fold":{},"intopic-toc":{"isCollapsed":true,"isScrollspyActive":true,"label":"Catalogue","maxDepth":6,"mode":"nested","selector":".markdown-section h1, .markdown-section h2, .markdown-section h3, .markdown-section h4, .markdown-section h5, .markdown-section h6","visible":true},"livereload":{},"splitter":{},"search":{},"popup":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"highlight":{},"anchor-navigation-ex":{"associatedWithSummary":true,"float":{"floatIcon":"fa fa-navicon","level1Icon":"","level2Icon":"","level3Icon":"","showLevelIcon":false},"mode":"float","multipleH1":true,"pageTop":{"level1Icon":"","level2Icon":"","level3Icon":"","showLevelIcon":false},"printLog":false,"showGoTop":false,"showLevel":false},"back-to-top-button":{},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false},"expandable-chapters":{}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"java/jdk/Semaphore.md","mtime":"2021-07-24T13:05:27.227Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-10-07T13:39:58.281Z"},"basePath":"../..","book":{"language":""}});
+        });
+    </script>
+</div>
+
+        
+    <script src="../../gitbook/gitbook.js"></script>
+    <script src="../../gitbook/theme.js"></script>
+    
+        
+        <script src="../../gitbook/gitbook-plugin-intopic-toc/anchor.min.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-intopic-toc/gumshoe.polyfills.min.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-intopic-toc/plugin.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-chapter-fold/chapter-fold.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-splitter/splitter.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-expandable-chapters/expandable-chapters.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-back-to-top-button/plugin.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-livereload/plugin.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-search/search-engine.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-search/search.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-lunr/lunr.min.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-lunr/search-lunr.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-sharing/buttons.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-fontsettings/fontsettings.js"></script>
+        
+    
+
+    </body>
+</html>
+

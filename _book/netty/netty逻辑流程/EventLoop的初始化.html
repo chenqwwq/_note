@@ -1,0 +1,1630 @@
+
+<!DOCTYPE HTML>
+<html lang="" >
+    <head>
+        <meta charset="UTF-8">
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <title>EventLoop 的初始化流程 · GitBook</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 3.2.3">
+        
+        
+        
+    
+    <link rel="stylesheet" href="../../gitbook/style.css">
+
+    
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-intopic-toc/style.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-chapter-fold/chapter-fold.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-splitter/splitter.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-expandable-chapters/expandable-chapters.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-back-to-top-button/plugin.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-anchor-navigation-ex/style/plugin.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-highlight/website.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-search/search.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-fontsettings/website.css">
+                
+            
+        
+
+    
+
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+
+        
+    
+    
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../../gitbook/images/apple-touch-icon-precomposed-152.png">
+    <link rel="shortcut icon" href="../../gitbook/images/favicon.ico" type="image/x-icon">
+
+    
+    <link rel="next" href="NIO服务端启动流程.html" />
+    
+    
+
+    </head>
+    <body>
+        
+<div class="book">
+    <div class="book-summary">
+        
+            
+<div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search" />
+</div>
+
+            
+                <nav role="navigation">
+                
+
+
+<ul class="summary">
+    
+    
+
+    
+
+    
+        
+        
+    
+        <li class="chapter " data-level="1.1" data-path="../../">
+            
+                <a href="../../">
+            
+                    
+                    Introduction
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2" data-path="../../java/">
+            
+                <a href="../../java/">
+            
+                    
+                    Java
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1" >
+            
+                <span>
+            
+                    
+                    JDK 源码分析
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1.1" >
+            
+                <span>
+            
+                    
+                    JUC
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1.1.1" data-path="../../java/jdk/AbstractQueuedSynchronizer.html">
+            
+                <a href="../../java/jdk/AbstractQueuedSynchronizer.html">
+            
+                    
+                    AbstractQueueSynchronized 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.2" data-path="../../java/jdk/ConcurrentHashMap.html">
+            
+                <a href="../../java/jdk/ConcurrentHashMap.html">
+            
+                    
+                    ConcurrentHashMap 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.3" data-path="../../java/jdk/FutureTask.html">
+            
+                <a href="../../java/jdk/FutureTask.html">
+            
+                    
+                    FutureTask 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.4" data-path="../../java/jdk/ReetrantLock.html">
+            
+                <a href="../../java/jdk/ReetrantLock.html">
+            
+                    
+                    ReetrantLocak 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.5" data-path="../../java/jdk/ThreadPoolExecutor.html">
+            
+                <a href="../../java/jdk/ThreadPoolExecutor.html">
+            
+                    
+                    ThreadPoolExecutor 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.6" data-path="../../java/jdk/BlockingQueue.html">
+            
+                <a href="../../java/jdk/BlockingQueue.html">
+            
+                    
+                    BlockingQueue 类族
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.7" data-path="../../java/jdk/SynchronousQueue.html">
+            
+                <a href="../../java/jdk/SynchronousQueue.html">
+            
+                    
+                    SynchronousQueue
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.8" data-path="../../java/jdk/CountDownLatch.html">
+            
+                <a href="../../java/jdk/CountDownLatch.html">
+            
+                    
+                    CountDownLatch 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.9" data-path="../../java/jdk/CyclicBarrier.html">
+            
+                <a href="../../java/jdk/CyclicBarrier.html">
+            
+                    
+                    CyclicBarrier 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.10" data-path="../../java/jdk/CopyOnWriteArrayList.html">
+            
+                <a href="../../java/jdk/CopyOnWriteArrayList.html">
+            
+                    
+                    CopyOnWriteArrayList 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.11" data-path="../../java/jdk/CopyOnWriteArraySet.html">
+            
+                <a href="../../java/jdk/CopyOnWriteArraySet.html">
+            
+                    
+                    CopyOnWriteArraySet 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.12" data-path="../../java/jdk/ConcurrentSkipListMap.html">
+            
+                <a href="../../java/jdk/ConcurrentSkipListMap.html">
+            
+                    
+                    ConcurrentSkipListMap 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.13" data-path="../../java/jdk/ScheduledThreadPoolExecutor.html">
+            
+                <a href="../../java/jdk/ScheduledThreadPoolExecutor.html">
+            
+                    
+                    cheduledThreadPoolExecutor 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.14" data-path="../../java/jdk/Semaphore.html">
+            
+                <a href="../../java/jdk/Semaphore.html">
+            
+                    
+                    Semaphore 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2" >
+            
+                <span>
+            
+                    
+                    Java 集合框架
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1.2.1" data-path="../../java/jdk/HashMap源码阅读.html">
+            
+                <a href="../../java/jdk/HashMap源码阅读.html">
+            
+                    
+                    HashMap 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2.2" data-path="../../java/jdk/HashMap.html">
+            
+                <a href="../../java/jdk/HashMap.html">
+            
+                    
+                    HashMap 原理(文字表述)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2.3" data-path="../../java/jdk/LinkedHashMap源码阅读.html">
+            
+                <a href="../../java/jdk/LinkedHashMap源码阅读.html">
+            
+                    
+                    LinkedHashMap 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2.4" data-path="../../java/jdk/ArrayList.html">
+            
+                <a href="../../java/jdk/ArrayList.html">
+            
+                    
+                    ArrayList 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2.5" data-path="../../java/jdk/LinkedList源码阅读.html">
+            
+                <a href="../../java/jdk/LinkedList源码阅读.html">
+            
+                    
+                    LinkedList 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.3" >
+            
+                <span>
+            
+                    
+                    其他
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1.3.1" data-path="../../java/jdk/ThreadLocal.html">
+            
+                <a href="../../java/jdk/ThreadLocal.html">
+            
+                    
+                    ThreadLocal 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.3.2" data-path="../../java/jdk/Stream.html">
+            
+                <a href="../../java/jdk/Stream.html">
+            
+                    
+                    Stream 分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2" >
+            
+                <span>
+            
+                    
+                    JVM（Java 虚拟机）
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.2.1" data-path="../../java/jvm/关键字.html">
+            
+                <a href="../../java/jvm/关键字.html">
+            
+                    
+                    Java 关键字整理
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.2" data-path="../../java/jvm/引用类型.html">
+            
+                <a href="../../java/jvm/引用类型.html">
+            
+                    
+                    Java 中的引用类型
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.3" data-path="../../java/jvm/元空间和永久代.html">
+            
+                <a href="../../java/jvm/元空间和永久代.html">
+            
+                    
+                    元空间和永久代
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.4" data-path="../../java/jvm/synchronized.html">
+            
+                <a href="../../java/jvm/synchronized.html">
+            
+                    
+                    synchronized 关键字
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.5" data-path="../../java/jvm/JVM的类加载子系统.html">
+            
+                <a href="../../java/jvm/JVM的类加载子系统.html">
+            
+                    
+                    JVM 的类加载子系统
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.3" >
+            
+                <span>
+            
+                    
+                    Guava 源码分析
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.3.1" data-path="../../java/guava/EventBus.html">
+            
+                <a href="../../java/guava/EventBus.html">
+            
+                    
+                    EventBus 相关源码解析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.3.2" data-path="../../java/guava/RateLimiter.html">
+            
+                <a href="../../java/guava/RateLimiter.html">
+            
+                    
+                    RateLimiter 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3" >
+            
+                <span>
+            
+                    
+                    Netty
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter active" data-level="1.3.1" data-path="EventLoop的初始化.html">
+            
+                <a href="EventLoop的初始化.html">
+            
+                    
+                    EventLoop 的初始化流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2" data-path="NIO服务端启动流程.html">
+            
+                <a href="NIO服务端启动流程.html">
+            
+                    
+                    NIO服务端启动流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.3" data-path="ChannelPipeline的结构和初始化流程.html">
+            
+                <a href="ChannelPipeline的结构和初始化流程.html">
+            
+                    
+                    ChannelPipeline的结构和初始化流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.4" data-path="NioEventLoop的事件轮询.html">
+            
+                <a href="NioEventLoop的事件轮询.html">
+            
+                    
+                    NioEventLoop的事件轮询
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.5" data-path="客户端Channel的创建流程.html">
+            
+                <a href="客户端Channel的创建流程.html">
+            
+                    
+                    客户端Channel的建立过程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.6" data-path="ChannelPipeline事件传递机制.html">
+            
+                <a href="ChannelPipeline事件传递机制.html">
+            
+                    
+                    ChannelPipeline事件传递机制
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.7" data-path="Netty中的编解码逻辑.html">
+            
+                <a href="Netty中的编解码逻辑.html">
+            
+                    
+                    Netty 中的编解码逻辑
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.8" data-path="Netty中写数据的逻辑.html">
+            
+                <a href="Netty中写数据的逻辑.html">
+            
+                    
+                    Netty 中写数据的逻辑
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.9" data-path="Netty中读数据的流程.html">
+            
+                <a href="Netty中读数据的流程.html">
+            
+                    
+                    Netty 中读数据的流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.10" data-path="../util/FastThreadLocal.html">
+            
+                <a href="../util/FastThreadLocal.html">
+            
+                    
+                    FastThreadLocal 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.11" data-path="../util/ChannelPool.html">
+            
+                <a href="../util/ChannelPool.html">
+            
+                    
+                    ChannelPool 相关分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.12" data-path="../ChannelOption整理.html">
+            
+                <a href="../ChannelOption整理.html">
+            
+                    
+                    ChannelOption 整理
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4" >
+            
+                <span>
+            
+                    
+                    Spring
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.1" >
+            
+                <span>
+            
+                    
+                    Spring Core
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.1.1" data-path="../../spring/spring-core/aop/aop 概念.md">
+            
+                <span>
+            
+                    
+                    AOP相关概念
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.1.2" data-path="../../spring/spring-core/aop/ProxyFactory.html">
+            
+                <a href="../../spring/spring-core/aop/ProxyFactory.html">
+            
+                    
+                    ProxyFactory
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.1.3" data-path="../../spring/spring-core/aop/Aop实现的不同方式.html">
+            
+                <a href="../../spring/spring-core/aop/Aop实现的不同方式.html">
+            
+                    
+                    Aop 实现的不同方式
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.1.4" data-path="../../spring/spring-core/module/async.html">
+            
+                <a href="../../spring/spring-core/module/async.html">
+            
+                    
+                    Async的实现原理
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.2" >
+            
+                <span>
+            
+                    
+                    SpringBoot
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.2.1" data-path="../../spring/spring-boot/SpringBoot的事件模型 .html">
+            
+                <a href="../../spring/spring-boot/SpringBoot的事件模型 .html">
+            
+                    
+                    SpringBoot的事件模型
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.2.2" data-path="../../spring/spring-boot/SpringBoot的启动流程.html">
+            
+                <a href="../../spring/spring-boot/SpringBoot的启动流程.html">
+            
+                    
+                    SpringBoot的启动流程简述
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.2.3" data-path="../../spring/spring-boot/SpringBoot的工厂加载模式.html">
+            
+                <a href="../../spring/spring-boot/SpringBoot的工厂加载模式.html">
+            
+                    
+                    SpringBoot的工厂加载模式
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.3" >
+            
+                <span>
+            
+                    
+                    SpringCloud
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.3.1" data-path="../../spring/spring-cloud/consul.html">
+            
+                <a href="../../spring/spring-cloud/consul.html">
+            
+                    
+                    consul 简述
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.3.2" data-path="../../spring/spring-cloud/feign.html">
+            
+                <a href="../../spring/spring-cloud/feign.html">
+            
+                    
+                    feign 简述
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.3.3" data-path="../../spring/spring-cloud/zuul.html">
+            
+                <a href="../../spring/spring-cloud/zuul.html">
+            
+                    
+                    zuul 简述
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5" >
+            
+                <span>
+            
+                    
+                    设计模式
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.5.1" data-path="../../系统设计/Gof设计模式.html">
+            
+                <a href="../../系统设计/Gof设计模式.html">
+            
+                    
+                    Gof 的设计模式
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6" >
+            
+                <span>
+            
+                    
+                    中间件
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.6.1" >
+            
+                <span>
+            
+                    
+                    RabbitMQ
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.6.1.1" data-path="../../消息队列/RabbitMQ如何保证消息不丢失.html">
+            
+                <a href="../../消息队列/RabbitMQ如何保证消息不丢失.html">
+            
+                    
+                    RabbitMQ 如何保证消息不丢失
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6.2" >
+            
+                <span>
+            
+                    
+                    Redis
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.6.2.1" data-path="../../redis/Redis的五种数据结构.html">
+            
+                <a href="../../redis/Redis的五种数据结构.html">
+            
+                    
+                    Redis 的五种数据结构
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6.2.2" data-path="../../redis/Redis的Sentinel模式.html">
+            
+                <a href="../../redis/Redis的Sentinel模式.html">
+            
+                    
+                    Redis 的哨兵模式
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6.2.3" data-path="../../redis/Redis的主从复制模式.html">
+            
+                <a href="../../redis/Redis的主从复制模式.html">
+            
+                    
+                    Redis 的主从复制模式
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.7" >
+            
+                <span>
+            
+                    
+                    网络
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.7.1" >
+            
+                <span>
+            
+                    
+                    TCP
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.7.1.1" data-path="../../网络/tcp协议整理1.html">
+            
+                <a href="../../网络/tcp协议整理1.html">
+            
+                    
+                    TCP 协议总结（一）
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.7.1.2" data-path="../../网络/tcp内核参数整理.html">
+            
+                <a href="../../网络/tcp内核参数整理.html">
+            
+                    
+                    Linux 中的相关 TCP 参数
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+    
+
+    <li class="divider"></li>
+
+    <li>
+        <a href="https://www.gitbook.com" target="blank" class="gitbook-link">
+            Published with GitBook
+        </a>
+    </li>
+</ul>
+
+
+                </nav>
+            
+        
+    </div>
+
+    <div class="book-body">
+        
+            <div class="body-inner">
+                
+                    
+
+<div class="book-header" role="navigation">
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href="../.." >EventLoop 的初始化流程</a>
+    </h1>
+</div>
+
+
+
+
+                    <div class="page-wrapper" tabindex="-1" role="main">
+                        <div class="page-inner">
+                            
+<div id="book-search-results">
+    <div class="search-noresults">
+    
+                                <section class="normal markdown-section">
+                                
+                                <div id="anchor-navigation-ex-navbar"><i class="fa fa-navicon"></i><ul><li><span class="title-icon "></span><a href="#eventloop-&#x7684;&#x521D;&#x59CB;&#x5316;&#x6D41;&#x7A0B;"><b></b>EventLoop &#x7684;&#x521D;&#x59CB;&#x5316;&#x6D41;&#x7A0B;</a></li><ul><li><span class="title-icon "></span><a href="#&#x6982;&#x8FF0;"><b></b>&#x6982;&#x8FF0;</a></li><li><span class="title-icon "></span><a href="#nioeventloopgroup&#x521D;&#x59CB;&#x5316;&#x6D41;&#x7A0B;"><b></b>NioEventLoopGroup&#x521D;&#x59CB;&#x5316;&#x6D41;&#x7A0B;</a></li><ul><li><span class="title-icon "></span><a href="#nioeventloopgroup"><b></b>NioEventLoopGroup</a></li><li><span class="title-icon "></span><a href="#multithreadeventloopgroup"><b></b>MultithreadEventLoopGroup</a></li><li><span class="title-icon "></span><a href="#multithreadeventexecutorgroup"><b></b>MultithreadEventExecutorGroup</a></li></ul><li><span class="title-icon "></span><a href="#nioeventloop-&#x7684;&#x521D;&#x59CB;&#x5316;"><b></b>NioEventLoop &#x7684;&#x521D;&#x59CB;&#x5316;</a></li><ul><li><span class="title-icon "></span><a href="#singlethreadeventloop"><b></b>SingleThreadEventLoop</a></li><li><span class="title-icon "></span><a href="#singlethreadeventexecutor"><b></b>SingleThreadEventExecutor</a></li><li><span class="title-icon "></span><a href="#abstractscheduledeventexecutor"><b></b>AbstractScheduledEventExecutor</a></li></ul><li><span class="title-icon "></span><a href="#&#x603B;&#x7ED3;"><b></b>&#x603B;&#x7ED3;</a></li></ul></ul></div><h1 id="eventloop-&#x7684;&#x521D;&#x59CB;&#x5316;&#x6D41;&#x7A0B;"><a name="eventloop-&#x7684;&#x521D;&#x59CB;&#x5316;&#x6D41;&#x7A0B;" class="anchor-navigation-ex-anchor" href="#eventloop-&#x7684;&#x521D;&#x59CB;&#x5316;&#x6D41;&#x7A0B;"><i class="fa fa-link" aria-hidden="true"></i></a>EventLoop &#x7684;&#x521D;&#x59CB;&#x5316;&#x6D41;&#x7A0B;</h1>
+<blockquote>
+<p>&#x57FA;&#x4E8E; 4.1.53.Final-SNAPSHOT &#x7248;&#x672C;&#xFF0C;&#x4EE5; NioEventLoopGroup &#x4E3A;&#x76EE;&#x6807;&#x5BF9;&#x8C61;&#x5206;&#x6790;&#x3002;</p>
+</blockquote>
+<hr>
+<p>[TOC]</p>
+<hr>
+<h2 id="&#x6982;&#x8FF0;"><a name="&#x6982;&#x8FF0;" class="anchor-navigation-ex-anchor" href="#&#x6982;&#x8FF0;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x6982;&#x8FF0;</h2>
+<blockquote>
+<p>Netty &#x4F5C;&#x4E3A;&#x4E00;&#x4E2A;&#x4E8B;&#x4EF6;&#x9A71;&#x52A8;&#x7684;&#x9AD8;&#x6027;&#x80FD;&#x7F51;&#x7EDC;&#x6846;&#x67B6;&#xFF0C;EventLoop &#x7EDD;&#x5BF9;&#x662F;&#x5176;&#x4E2D;&#x6700;&#x6700;&#x6838;&#x5FC3;&#x7684;&#x89D2;&#x8272;&#x3002;</p>
+</blockquote>
+<p><strong>EventLoop &#x5C31;&#x662F;&#x4E00;&#x4E2A;&#x4E8B;&#x4EF6;&#x7684;&#x8F6E;&#x8BE2;&#x5904;&#x7406;&#x5668;&#xFF0C;&#x4EE5; NioEventLoop &#x4E3A;&#x4F8B;&#xFF0C;&#x4E00;&#x4E2A; EventLoop &#x5305;&#x542B;&#x4E86;&#x4E00;&#x4E2A; Thread &#x5BF9;&#x8C61;&#xFF0C;&#x4EE5;&#x53CA;&#x4E00;&#x4E2A; Selector &#x5BF9;&#x8C61;&#xFF0C;&#x4EE5;&#x53CA;&#x51E0;&#x4E2A;&#x4EFB;&#x52A1;&#x961F;&#x5217;&#x3002;</strong></p>
+<blockquote>
+<p>Thread &#x5BF9;&#x8C61;&#x5C31;&#x662F;&#x4E00;&#x4E2A; Java &#x7684;&#x7EBF;&#x7A0B;&#x5BF9;&#x8C61;&#xFF0C;&#x4F46;&#x662F; Netty &#x8FDB;&#x884C;&#x4E86;&#x8FDB;&#x4E00;&#x6B65;&#x7684;&#x5C01;&#x88C5;&#xFF0C;&#x4E3A;&#x4E86; FastThreadLocal&#x3002;</p>
+<p>Selector &#x5BF9;&#x8C61;&#x5C31;&#x662F; Java Nio &#x4E2D;&#x7684;&#x6982;&#x5FF5;&#xFF0C;&#x5BF9;&#x4E8E; Socket &#x7684;&#x7F51;&#x7EDC;&#x8F6E;&#x8BE2;&#x5668;&#xFF0C;&#x8D1F;&#x8D23;&#x76D1;&#x542C;&#x7F51;&#x7EDC;&#x4E8B;&#x4EF6;&#x3002;</p>
+<p><strong>Thread &#x5BF9;&#x8C61;&#x7528;&#x6765;&#x5B9A;&#x4E49;&#x8F6E;&#x8BE2;&#x4EFB;&#x52A1;&#xFF0C;Select &#x8D1F;&#x8D23;&#x7ED1;&#x5B9A; Socket &#x5BF9;&#x8C61;&#xFF0C;&#x5E76;&#x76D1;&#x542C;&#x5BF9;&#x5E94;&#x7684; FD&#xFF0C;&#x4EFB;&#x52A1;&#x961F;&#x5217;&#x5219;&#x662F;&#x4E3A;&#x4E86;&#x6EE1;&#x8DB3;&#x7528;&#x6237;&#x81EA;&#x5B9A;&#x4E49;&#x7684;&#x4E8B;&#x4EF6;&#x3002;</strong></p>
+</blockquote>
+<p>EventLoopGroup &#x5C31;&#x662F; EventLoop &#x7684;&#x96C6;&#x5408;&#xFF0C;&#x5305;&#x542B;&#x4E86;&#x81F3;&#x5C11;&#x6709;&#x4E00;&#x4E2A; EventLoop&#x3002;</p>
+<p>&#x5C31; NioEventLoopGroup &#x6765;&#x8BF4;&#xFF0C;&#x5B83;&#x672C;&#x8EAB;&#x5E76;&#x4E0D;&#x5B9E;&#x73B0;&#x4EFB;&#x4F55;&#x7684;&#x4E1A;&#x52A1;&#x903B;&#x8F91;&#xFF0C;&#x6240;&#x4EE5;&#x7684;&#x903B;&#x8F91;&#x90FD;&#x662F;&#x901A;&#x8FC7; <code>next()</code> &#x65B9;&#x6CD5;&#x9009;&#x62E9;&#x4E00;&#x4E2A; EventLoop &#x59D4;&#x6D3E;&#x6267;&#x884C;&#x7684;&#x3002;</p>
+<blockquote>
+<p>EventLoop &#x662F;&#x4E8B;&#x4EF6;&#x9A71;&#x52A8;&#x6846;&#x67B6;&#x7684;&#x6838;&#x5FC3;&#x4E2D;&#x7684;&#x6838;&#x5FC3;&#xFF0C;&#x8D1F;&#x8D23;&#x76D1;&#x542C;&#x5E76;&#x5904;&#x7406;&#x4E8B;&#x4EF6;&#x3002;</p>
+<p>&#x5728;&#x4E0D;&#x540C;&#x7684;&#x7CFB;&#x7EDF;&#x4E2D;&#xFF0C;EventLoop &#x53EF;&#x4EE5;&#x6709;&#x4E0D;&#x540C;&#x7684;&#x9009;&#x62E9;&#xFF0C;&#x4F8B;&#x5982; NioEventLoop &#x6216;&#x8005; EpollEventLoop&#x3002;</p>
+</blockquote>
+<h2 id="nioeventloopgroup&#x521D;&#x59CB;&#x5316;&#x6D41;&#x7A0B;"><a name="nioeventloopgroup&#x521D;&#x59CB;&#x5316;&#x6D41;&#x7A0B;" class="anchor-navigation-ex-anchor" href="#nioeventloopgroup&#x521D;&#x59CB;&#x5316;&#x6D41;&#x7A0B;"><i class="fa fa-link" aria-hidden="true"></i></a>NioEventLoopGroup&#x521D;&#x59CB;&#x5316;&#x6D41;&#x7A0B;</h2>
+<p>&#x4EE5;&#x4E0B;&#x662F; NioEventLoopGroup &#x7684;&#x6784;&#x9020;&#x51FD;&#x6570;&#x7684;&#x9010;&#x5C42;&#x8C03;&#x7528;&#xFF1A;</p>
+<h3 id="nioeventloopgroup"><a name="nioeventloopgroup" class="anchor-navigation-ex-anchor" href="#nioeventloopgroup"><i class="fa fa-link" aria-hidden="true"></i></a>NioEventLoopGroup</h3>
+<p>&#x4EE5; NioEventLoopGroup &#x4E3A;&#x4F8B;&#xFF0C;&#x9010;&#x6B65;&#x5206;&#x6790;&#xFF0C;&#x4EE5;&#x4E0B;&#x662F; NioEventLoopGroup &#x4E2D;&#x53C2;&#x6570;&#x6700;&#x5168;&#x7684;&#x6784;&#x9020;&#x65B9;&#x6CD5;&#x4E86;&#x3002;</p>
+<p><img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201019222615970.png" alt="image-20201019222615970"></p>
+<p>&#x53C2;&#x6570;&#x90E8;&#x5206;&#x7684;&#x542B;&#x4E49;&#x5982;&#x4E0B;:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">&#x53C2;&#x6570;&#x540D;</th>
+<th style="text-align:center">&#x53C2;&#x6570;&#x4F5C;&#x7528;</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">nThreads</td>
+<td style="text-align:center">&#x7EBF;&#x7A0B;&#x7EC4;&#x4E2D;&#x7EBF;&#x7A0B;&#x7684;&#x6570;&#x91CF;&#xFF0C;&#x5728;NioEventLoopGroup&#x4E2D;&#x9ED8;&#x8BA4;&#x4E3A;CPU * 2</td>
+</tr>
+<tr>
+<td style="text-align:center">executor</td>
+<td style="text-align:center">&#x4E8B;&#x4EF6;&#x6267;&#x884C;&#x5668;&#xFF0C;&#x9ED8;&#x8BA4;&#x4E3A;ThreadPerTaskExecutor&#xFF0C;&#x6700;&#x7EC8;&#x4F1A;&#x4F20;&#x5230;SingleThreadEventExecutor</td>
+</tr>
+<tr>
+<td style="text-align:center">chooserFactory</td>
+<td style="text-align:center">&#x751F;&#x6210;EventExecutorChooser&#x7684;&#x5DE5;&#x5382;&#xFF0C;&#x9ED8;&#x8BA4;&#x4E3A;DefaultEventExecutorChooserFactory</td>
+</tr>
+<tr>
+<td style="text-align:center">selectorProvider</td>
+<td style="text-align:center">Selector&#x7684;&#x751F;&#x6210;&#x5668;&#xFF0C;&#x9ED8;&#x8BA4;&#x4E3A;&#x539F;&#x751F;&#x7684;SPI&#x65B9;&#x6CD5;&#x8FD4;&#x56DE;</td>
+</tr>
+<tr>
+<td style="text-align:center">selectStrategyFactory</td>
+<td style="text-align:center">Select&#x9009;&#x62E9;&#x7B56;&#x7565;&#x7684;&#x5DE5;&#x5382;&#xFF0C;&#x9ED8;&#x8BA4;&#x4E3A;DefaultSelectStrategyFactory&#xFF0C;&#x751F;&#x6210;DefaultSelectStrategy</td>
+</tr>
+<tr>
+<td style="text-align:center">rejectedExecutionHandler</td>
+<td style="text-align:center">&#x7EBF;&#x7A0B;&#x6C60;&#x62D2;&#x7EDD;&#x7B56;&#x7565;&#xFF0C;&#x9ED8;&#x8BA4;&#x4E3A;RejectedExecutionHandler</td>
+</tr>
+<tr>
+<td style="text-align:center">taskQueueFactory</td>
+<td style="text-align:center">&#x4EFB;&#x52A1;&#x961F;&#x5217;&#x5DE5;&#x5382;&#xFF0C;&#x7528;&#x4E8E;&#x751F;&#x6210;EventLoop&#x4E2D;&#x7684;&#x4E24;&#x4E2A;&#x4EFB;&#x52A1;&#x961F;&#x5217;</td>
+</tr>
+</tbody>
+</table>
+<p><strong>EventLoopGroup &#x672C;&#x8EAB;&#x5E76;&#x4E0D;&#x4F1A;&#x6709;&#x4E1A;&#x52A1;&#x903B;&#x8F91;&#x7684;&#x5904;&#x7406;&#xFF0C;&#x57FA;&#x672C;&#x4E0A;&#x90FD;&#x662F;&#x9009;&#x62E9;&#x4E00;&#x4E2A; EventLoop&#xFF0C;&#x7136;&#x540E;&#x8C03;&#x7528;&#x5B83;&#x7684;&#x65B9;&#x6CD5;&#x5904;&#x7406;&#x3002;</strong></p>
+<h3 id="multithreadeventloopgroup"><a name="multithreadeventloopgroup" class="anchor-navigation-ex-anchor" href="#multithreadeventloopgroup"><i class="fa fa-link" aria-hidden="true"></i></a>MultithreadEventLoopGroup</h3>
+<p>NioEventLoopGroup &#x5F80;&#x4E0A;&#x5C31;&#x662F; MultithreadEventLoopGroup &#x7684;&#x6784;&#x9020;&#x51FD;&#x6570;&#x3002;</p>
+<p><img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201019222746272.png" alt="image-20201019222746272"></p>
+<blockquote>
+<p>&#x5176;&#x4E2D; DEFAULT_EVENT_LOOP_TRHEADS &#x5C31;&#x662F;&#x9ED8;&#x8BA4;&#x7684;&#x7EBF;&#x7A0B;&#x6570;&#xFF0C;<strong>Netty &#x4E2D;&#x9ED8;&#x8BA4;&#x662F;&#x5F53;&#x524D;CPU&#x6570;&#x7684;&#x4E24;&#x500D;</strong>&#x3002;</p>
+<p><img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201019222919297.png" alt="image-20201019222919297"></p>
+<p>&#x4E24;&#x500D;CPU&#x6570;&#x7684;&#x7EBF;&#x7A0B;&#x975E;&#x5E38;&#x9002;&#x5408;&#x6267;&#x884C;IO&#x5BC6;&#x96C6;&#x578B;&#x7684;&#x4EFB;&#x52A1;&#xFF0C;&#x5728; workGroup &#x4E2D;&#x5C24;&#x4E3A;&#x5408;&#x9002;&#x3002;</p>
+</blockquote>
+<h3 id="multithreadeventexecutorgroup"><a name="multithreadeventexecutorgroup" class="anchor-navigation-ex-anchor" href="#multithreadeventexecutorgroup"><i class="fa fa-link" aria-hidden="true"></i></a>MultithreadEventExecutorGroup</h3>
+<p>&#x518D;&#x5F80;&#x4E0A;&#x5C31;&#x662F; MultithreadEventExecutorGroup &#x7684;&#x6784;&#x9020;&#x51FD;&#x6570;&#xFF0C;&#x8FD9;&#x4E2A;&#x6784;&#x9020;&#x51FD;&#x6570;&#x4E2D;&#x5305;&#x542B;&#x4E86;&#x521D;&#x59CB;&#x5316;&#x7684;&#x4E3B;&#x6D41;&#x7A0B;&#xFF1A;</p>
+<pre><code class="lang-java"><span class="hljs-comment">// MultithreadEventExecutorGroup&#x7684;&#x6784;&#x9020;&#x51FD;&#x6570;</span>
+<span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-title">MultithreadEventExecutorGroup</span><span class="hljs-params">(<span class="hljs-keyword">int</span> nThreads, Executor executor,
+                                            EventExecutorChooserFactory chooserFactory, Object... args)</span> </span>{
+        <span class="hljs-keyword">if</span> (nThreads &lt;= <span class="hljs-number">0</span>) {
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException(String.format(<span class="hljs-string">&quot;nThreads: %d (expected: &gt; 0)&quot;</span>, nThreads));
+        }
+         <span class="hljs-comment">// &#x6267;&#x884C;&#x5668;&#x4E3A;&#x7A7A;&#x7684;&#x8BDD;&#x9700;&#x8981;&#x65B0;&#x5EFA;&#x4E00;&#x4E2A;</span>
+        <span class="hljs-keyword">if</span> (executor == <span class="hljs-keyword">null</span>) {
+            <span class="hljs-comment">// &#x8FD9;&#x4E2A;&#x6267;&#x884C;&#x5668;&#x5F88;&#x7279;&#x522B;&#xFF0C;&#x4EFB;&#x4F55;&#x4EFB;&#x52A1;&#x90FD;&#x4F1A;&#x76F4;&#x63A5;&#x5F00;&#x4E00;&#x4E2A;&#x65B0;&#x7684;&#x7EBF;&#x7A0B;&#x6267;&#x884C;</span>
+            <span class="hljs-comment">// &#x8FD9;&#x91CC;&#x521B;&#x5EFA;&#x7684;Thread&#x5176;&#x5B9E;&#x7ECF;&#x8FC7;&#x5305;&#x88C5;&#xFF0C;&#x771F;&#x5B9E;&#x5BF9;&#x8C61;&#x662F;FastThreadLocalThread&#xFF0C;&#x80AF;&#x5B9A;&#x662F;&#x7EE7;&#x627F;&#x4E86;Thread&#x7684;</span>
+            <span class="hljs-comment">// newDefaultThraedFactory&#x5C31;&#x662F;&#x9ED8;&#x8BA4;&#x7684;&#x7EBF;&#x7A0B;&#x5DE5;&#x5382;</span>
+            executor = <span class="hljs-keyword">new</span> ThreadPerTaskExecutor(newDefaultThreadFactory());
+        }
+        <span class="hljs-comment">// &#x521D;&#x59CB;&#x5316;Group&#x4E2D;&#x7684;&#x6267;&#x884C;&#x5668;&#x6570;&#x7EC4;</span>
+        <span class="hljs-comment">// EventExecutor&#x7684;&#x6570;&#x91CF;&#x548C;&#x7EBF;&#x7A0B;&#x6570;&#x91CF;&#x4E00;&#x81F4;</span>
+        children = <span class="hljs-keyword">new</span> EventExecutor[nThreads];
+        <span class="hljs-comment">// &#x904D;&#x5386;&#x521B;&#x5EFA;&#x6267;&#x884C;&#x5668;</span>
+        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; nThreads; i++) {
+            <span class="hljs-keyword">boolean</span> success = <span class="hljs-keyword">false</span>;
+            <span class="hljs-keyword">try</span> {
+                <span class="hljs-comment">/**
+                 * &#x6700;&#x7EC8;&#x521B;&#x5EFA;&#x7684;&#x5C31;&#x662F;NioEventLoop
+                 *
+                 * <span class="hljs-doctag">@see</span> NioEventLoopGroup#newChild
+                 */</span>
+                children[i] = newChild(executor, args);
+                success = <span class="hljs-keyword">true</span>;
+            } <span class="hljs-keyword">catch</span> (Exception e) {
+                <span class="hljs-comment">// &#x5F02;&#x5E38;&#x5904;&#x7406;&#x6682;&#x65F6;&#x5FFD;&#x7565;</span>
+            }
+        }
+
+        <span class="hljs-comment">// &#x7528;&#x521B;&#x5EFA;&#x7684;NioEventLoop&#xFF0C;&#x6784;&#x9020;&#x4E00;&#x4E2A;&#x9009;&#x62E9;&#x5668;</span>
+        chooser = chooserFactory.newChooser(children);
+        <span class="hljs-comment">// &#x58F0;&#x660E;&#x4E00;&#x4E2A;&#x76D1;&#x542C;&#x5668;</span>
+        <span class="hljs-keyword">final</span> FutureListener&lt;Object&gt; terminationListener = <span class="hljs-keyword">new</span> FutureListener&lt;Object&gt;() {
+            <span class="hljs-meta">@Override</span>
+            <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">operationComplete</span><span class="hljs-params">(Future&lt;Object&gt; future)</span> <span class="hljs-keyword">throws</span> Exception </span>{
+                <span class="hljs-comment">// &#x64CD;&#x4F5C;&#x662F;&#x5426;&#x5B8C;&#x6210;</span>
+                <span class="hljs-keyword">if</span> (terminatedChildren.incrementAndGet() == children.length) {
+                    terminationFuture.setSuccess(<span class="hljs-keyword">null</span>);
+                }
+            }
+        };
+
+        <span class="hljs-comment">// &#x4E3A;&#x6BCF;&#x4E00;&#x4E2A;&#x4E8B;&#x4EF6;&#x5904;&#x7406;&#x5668;&#x6DFB;&#x52A0;&#x76D1;&#x542C;</span>
+        <span class="hljs-comment">// &#x6BCF;&#x4E2A;EventLoop&#x5728;&#x5173;&#x95ED;&#x4E4B;&#x540E;&#x90FD;&#x4F1A;&#x89E6;&#x53D1;&#x4E0A;&#x9762;&#x7684;&#x76D1;&#x542C;&#x5668;</span>
+        <span class="hljs-keyword">for</span> (EventExecutor e : children) {
+            e.terminationFuture().addListener(terminationListener);
+        }
+
+        <span class="hljs-comment">// &#x4E3A;Group&#x7684;&#x6240;&#x6709;&#x5904;&#x7406;&#x5668;&#x4FDD;&#x5B58;&#x4E00;&#x4EFD;&#x53EA;&#x8BFB;&#x7248;&#x672C;</span>
+        Set&lt;EventExecutor&gt; childrenSet = <span class="hljs-keyword">new</span> LinkedHashSet&lt;EventExecutor&gt;(children.length);
+        Collections.addAll(childrenSet, children);
+        readonlyChildren = Collections.unmodifiableSet(childrenSet);
+    }
+</code></pre>
+<p>&#x53C2;&#x6570;&#x4E2D;&#x7528;&#x53EF;&#x53D8;&#x957F;&#x53C2;&#x6570;&#x9002;&#x914D;&#x4E0D;&#x540C;&#x53C2;&#x6570;&#x6570;&#x76EE;&#x7684;&#x8C03;&#x7528;&#xFF0C;&#x9274;&#x4E8E;Netty&#x7684;&#x725B;&#x903C;&#x6211;&#x5C31;&#x4E0D;&#x4E88;&#x7F6E;&#x8BC4;&#x4E86;&#x3002;</p>
+<blockquote>
+<p>&#x6574;&#x4E2A;&#x6784;&#x9020;&#x51FD;&#x6570;&#x5C31;&#x505A;&#x4E86;&#x5982;&#x4E0B;&#x51E0;&#x4EF6;&#x4E8B;&#x60C5;:</p>
+<ol>
+<li>&#x521B;&#x5EFA;&#x9ED8;&#x8BA4;&#x7684;&#x6267;&#x884C;&#x5668;&#x3002;</li>
+<li>&#x521B;&#x5EFA; nThread &#x4E2A; EventLoop&#xFF0C;&#x901A;&#x8FC7;&#x8C03;&#x7528; newChild &#x6A21;&#x677F;&#x65B9;&#x6CD5;&#x5B9E;&#x73B0;&#x4E0D;&#x540C;&#x7684; EventLoop &#x7684;&#x521B;&#x5EFA;&#x3002;</li>
+<li>&#x521B;&#x5EFA;&#x5BF9;&#x5E94;&#x7684; EventExecutorChooser&#xFF0C;&#x901A;&#x8FC7; EventExecutorChooserFactory &#x3002;</li>
+<li>&#x4E3A;&#x6BCF;&#x4E2A; EventLoop &#x6DFB;&#x52A0;&#x5173;&#x95ED;&#x65F6;&#x7684;&#x76D1;&#x542C;&#x5668;&#x3002;</li>
+</ol>
+</blockquote>
+<p>&#x6574;&#x4E2A; NioEventLoopGroup &#x7684;&#x6784;&#x9020;&#x51FD;&#x6570;&#x8C03;&#x7528;&#x94FE;&#x4E0B;&#x6765;&#xFF0C;&#x4E3B;&#x8981;&#x7684;&#x8FD8;&#x662F;&#x6700;&#x540E; NioEventLoop &#x7684;&#x521B;&#x5EFA;&#xFF0C;&#x53E6;&#x5916;&#x8FD8;&#x6709;&#x4E00;&#x4E9B;&#x9009;&#x62E9;&#x5668;&#x7B49;&#x76F8;&#x5173;&#x5DE5;&#x5177;&#x7C7B;&#x7684;&#x521B;&#x5EFA;&#x3002;</p>
+<blockquote>
+<p><strong>&#x9009;&#x62E9;&#x5668;&#x5C31;&#x662F; NioEventLoopGroup &#x7528;&#x6765;&#x6311;&#x9009;&#x5DE5;&#x4F5C;&#x7EBF;&#x7A0B;&#x7684;&#x5DE5;&#x5177;&#x7C7B;&#xFF0C;&#x7531;&#x5176;&#x6301;&#x6709;&#x6240;&#x6709;&#x7684;NioEventLoop&#x6210;&#x5458;&#x3002;</strong></p>
+<p>&#x4E0A;&#x6587;&#x8BF4;&#x7684;&#x9009;&#x62E9;&#x4E00;&#x4E2A; NioEventLoop &#x7684;&#x5B9E;&#x73B0;&#x5C31;&#x662F;&#x901A;&#x8FC7;&#x548C;&#x8FD9;&#x4E2A;&#x5DE5;&#x5177;&#x7C7B;&#x3002;</p>
+</blockquote>
+<h4 id="&#x9ED8;&#x8BA4;&#x7684;&#x6267;&#x884C;&#x5668;---threadpertaskexecutor"><a name="&#x9ED8;&#x8BA4;&#x7684;&#x6267;&#x884C;&#x5668;---threadpertaskexecutor" class="anchor-navigation-ex-anchor" href="#&#x9ED8;&#x8BA4;&#x7684;&#x6267;&#x884C;&#x5668;---threadpertaskexecutor"><i class="fa fa-link" aria-hidden="true"></i></a>&#x9ED8;&#x8BA4;&#x7684;&#x6267;&#x884C;&#x5668; - ThreadPerTaskExecutor</h4>
+<p>&#x8BE5;&#x6267;&#x884C;&#x5668;&#x7684;&#x4F5C;&#x7528;&#x5C31;&#x662F;&#x5728;&#x521B;&#x5EFA; EventLoop &#x6240;&#x9700;&#x8981;&#x7684;&#x5DE5;&#x4F5C;&#x7EBF;&#x7A0B;&#x7684;&#x65F6;&#x5019;&#xFF0C;&#x4F5C;&#x4E3A;&#x6267;&#x884C;&#x5668;&#x63D0;&#x4F9B;&#x670D;&#x52A1;&#x3002;</p>
+<blockquote>
+<p>&#x4E00;&#x5B9A;&#x610F;&#x4E49;&#x4E0A;&#x6211;&#x89C9;&#x5F97;&#x4F5C;&#x4E3A;&#x7EBF;&#x7A0B;&#x5DE5;&#x5382;&#x66F4;&#x5408;&#x9002;&#xFF0C;&#x76F4;&#x63A5;&#x521B;&#x5EFA;&#x7EBF;&#x7A0B;&#x5E76;&#x5206;&#x53D1;&#x7ED9; EventLoop&#x3002;</p>
+<p>&#x5C06;&#x5DE5;&#x5382;&#x8FDB;&#x4E00;&#x6B65;&#x5206;&#x88C5;&#x4E3A;&#x6267;&#x884C;&#x5668;&#x7684;&#x539F;&#x56E0;&#x6682;&#x65F6;&#x672A;&#x77E5;&#xFF0C;&#x8BE5;&#x6267;&#x884C;&#x5668;&#x4F1A;&#x5728; </p>
+</blockquote>
+<p>&#x4EE5;&#x4E0B;&#x662F;ThreadPerTaskExecutor&#x7684;&#x5168;&#x90E8;&#x4EE3;&#x7801;&#x3002;</p>
+<p><img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201019223907388.png" alt="image-20201019223907388"></p>
+<blockquote>
+<p>&#x8FD9;&#x4E2A;&#x6267;&#x884C;&#x5668;&#x7684;&#x529F;&#x80FD;<strong>&#x5C31;&#x662F;&#x6BCF;&#x6765;&#x4E00;&#x4E2A;&#x4EFB;&#x52A1;&#x5C31;&#x901A;&#x8FC7; ThreadFatcory &#x5F00;&#x542F;&#x4E00;&#x4E2A;&#x65B0;&#x7684;&#x7EBF;&#x7A0B;&#x53BB;&#x6267;&#x884C;&#xFF0C;&#x7B80;&#x5355;&#x800C;&#x53C8;&#x7C97;&#x66B4;&#x3002;</strong></p>
+</blockquote>
+<p>&#x6267;&#x884C;&#x5668;&#x4E2D;&#x7684;&#x6240;&#x6709;&#x7EBF;&#x7A0B;&#x901A;&#x8FC7; threadFactory#newThread &#x65B9;&#x6CD5;&#x521B;&#x5EFA;&#x51FA;&#x6765;&#x7684;&#xFF0C;threadFactory &#x9ED8;&#x8BA4;&#x5C31;&#x662F; DefaultThreadFactory&#x3002;</p>
+<p>&#x4EE5;&#x4E0B;&#x662F; <code>DefaultThreadFactory</code> &#x521B;&#x5EFA;&#x65B0;&#x7EBF;&#x7A0B;&#x7684;&#x65B9;&#x6CD5;&#x3002;</p>
+<p><img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201019223644097.png" alt="image-20201019223644097"></p>
+<p><strong>&#x8BE5;&#x65B9;&#x6CD5;&#x5728;&#x521B;&#x5EFA;&#x7EBF;&#x7A0B;&#x7684;&#x65F6;&#x5019;&#xFF0C;&#x8FDB;&#x4E00;&#x6B65;&#x5305;&#x88C5; Thread &#x5BF9;&#x8C61;&#x4F1A; FastThreadLocalThread&#xFF0C;&#x4E5F;&#x4F7F;&#x7528; FastThreadLocalRunnable &#x8FDB;&#x4E00;&#x6B65;&#x5305;&#x88C5;&#x4E86; Runnable &#x5BF9;&#x8C61;&#x3002;</strong></p>
+<blockquote>
+<p>&#x5305;&#x88C5; FastThreadLocalThread &#x7684;&#x539F;&#x56E0;&#x662F;&#x56E0;&#x4E3A; Netty &#x5185;&#x90E8;&#x5927;&#x91CF;&#x4F7F;&#x7528;&#x4E86; FastThreadLocal&#xFF0C;&#x9700;&#x8981;&#x9664;&#x4E86;&#x539F;&#x6765; ThreadLocalMap &#x610F;&#x5916;&#x7684;&#x6570;&#x636E;&#x7ED3;&#x6784;&#x4FDD;&#x5B58;&#x7EBF;&#x7A0B;&#x5C40;&#x90E8;&#x53D8;&#x91CF;&#x3002;</p>
+<p>&#x5305;&#x88C5; FastThreadLocalRunnable &#x7684;&#x4F5C;&#x7528;&#x662F;&#x5728;&#x6267;&#x884C;&#x5B8C;&#x6210;&#x540E;&#x6E05;&#x9664; FastThreadLocal &#x4E2D;&#x9057;&#x7559;&#x7684;&#x6570;&#x636E;&#xFF0C;&#x907F;&#x514D;&#x5185;&#x5B58;&#x6CC4;&#x9732;&#x3002;</p>
+</blockquote>
+<h4 id="&#x9009;&#x62E9;&#x5668;---eventexecutorchooser"><a name="&#x9009;&#x62E9;&#x5668;---eventexecutorchooser" class="anchor-navigation-ex-anchor" href="#&#x9009;&#x62E9;&#x5668;---eventexecutorchooser"><i class="fa fa-link" aria-hidden="true"></i></a>&#x9009;&#x62E9;&#x5668; - EventExecutorChooser</h4>
+<p>&#x4EE5;&#x4E0B;&#x662F; DefaultEventExecutorChooserFactory#newChooser &#x65B9;&#x6CD5;&#x6E90;&#x7801;&#x3002;</p>
+<p><img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201019232145341.png" alt="image-20201019232145341"></p>
+<blockquote>
+<p><strong>&#x901A;&#x8FC7;&#x4E8B;&#x52A1;&#x6267;&#x884C;&#x5668;&#x7684;&#x7EBF;&#x7A0B;&#x4E2A;&#x6570;&#x662F;&#x5426;&#x4E3A;&#x4E8C;&#x6B21;&#x65B9;&#x5224;&#x65AD;&#x4F7F;&#x7528;&#x54EA;&#x79CD;Chooser&#x3002;</strong></p>
+</blockquote>
+<p>&#x4EE5;&#x4E0B;&#x5206;&#x522B;&#x662F;&#x4E24;&#x79CD; Chooser &#x7684;&#x65B9;&#x6CD5;&#xFF0C;PowerOfTwoEventExecutorChooser &#x7684;&#x5982;&#x4E0B;:</p>
+<p><img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201019232346486.png" alt="image-20201019232346486"></p>
+<p>GenericEventExecutorChooser &#x7684;&#x5982;&#x4E0B;:</p>
+<p><img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201019232445792.png" alt="image-20201019232445792"></p>
+<blockquote>
+<p>&#x4E24;&#x79CD;&#x65B9;&#x6CD5;&#x5E76;&#x6CA1;&#x6709;&#x672C;&#x8D28;&#x4E0A;&#x7684;&#x4E0D;&#x540C;&#xFF0C;&#x90FD;&#x662F;&#x8F6E;&#x8BE2;&#x7684;&#x65B9;&#x6CD5;&#xFF0C;<strong>Group&#x4E2D;&#x6BCF;&#x4E2A;EventLoop&#x90FD;&#x4F1A;&#x5747;&#x5300;&#x7684;&#x5F97;&#x5230;&#x4EFB;&#x52A1;&#x6216;&#x8005;Channel&#x3002;</strong></p>
+<p>&#x5C31;&#x662F;&#x5728;&#x9009;&#x5219;&#x65B9;&#x6CD5;&#x4E0A;&#x7684;&#x4E0D;&#x540C;&#xFF0C;PowerOfTwoEventExecutorChooser &#x91C7;&#x7528;&#x4E86;&#x7C7B;&#x4F3C; HashMap &#x4E2D;&#x7684;&#x53D6;&#x4E0B;&#x6807;&#x5B9E;&#x73B0;&#x3002;</p>
+</blockquote>
+<p>&#x53E6;&#x5916;&#x8FD8;&#x6709;&#x610F;&#x601D;&#x7684;&#x662F;&#x8FD9;&#x4E2A;&#x65B9;&#x6CD5;&#xFF0C;&#x5224;&#x65AD;&#x4E00;&#x4E2A;&#x6570;&#x662F;&#x5426;&#x662F;&#x4E8C;&#x6B21;&#x65B9;:</p>
+<p><img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201019232710692.png" alt="image-20201019232710692"></p>
+<p>&#x4EE5;&#x4E0A;&#x65B9;&#x6CD5;&#x5C31;&#x521B;&#x5EFA;&#x5B8C;&#x6210;&#x4E86;&#x4E00;&#x4E2A; EventGroup&#xFF0C;&#x4F46;&#x662F;&#x9664;&#x4E86; &#x9009;&#x62E9;&#x5668;&#x548C;&#x6267;&#x884C;&#x5668;&#x4E4B;&#x5916;&#xFF0C;&#x6700;&#x4E3B;&#x8981;&#x7684;&#x8FD8;&#x662F;  EventLoop &#x7684;&#x6570;&#x7EC4;&#x3002;</p>
+<h2 id="nioeventloop-&#x7684;&#x521D;&#x59CB;&#x5316;"><a name="nioeventloop-&#x7684;&#x521D;&#x59CB;&#x5316;" class="anchor-navigation-ex-anchor" href="#nioeventloop-&#x7684;&#x521D;&#x59CB;&#x5316;"><i class="fa fa-link" aria-hidden="true"></i></a>NioEventLoop &#x7684;&#x521D;&#x59CB;&#x5316;</h2>
+<blockquote>
+<p>NioEventLoop &#x7684;&#x521D;&#x59CB;&#x5316;&#x5C31;&#x662F;&#x4ECE; MultithreadEventExecutorGroup#newChild &#x7684;&#x6A21;&#x677F;&#x65B9;&#x6CD5;&#x5F00;&#x59CB;&#x7684;&#x3002;</p>
+</blockquote>
+<p>&#x4EE5;&#x4E0B;&#x662F; NioEventLoopGroup#newChild &#x7684;&#x65B9;&#x6CD5;&#x903B;&#x8F91;&#x3002;</p>
+<p><img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201019224315626.png" alt="image-20201019224315626"></p>
+<blockquote>
+<p>newChild &#x662F;&#x6A21;&#x677F;&#x65B9;&#x6CD5;&#xFF0C;&#x6240;&#x4EE5; NioEventLoopGroup &#x7684;&#x5B9E;&#x73B0;&#x5C31;&#x662F;&#x521B;&#x5EFA; NioEventLoop&#x3002;</p>
+</blockquote>
+<p>&#x5FFD;&#x7565;&#x4E71;&#x4E03;&#x516B;&#x7CDF;&#x7684;&#x53EF;&#x53D8;&#x957F;&#x51FD;&#x6570;&#xFF0C;&#x76F4;&#x63A5;&#x770B; NioEventLoop &#x7684;&#x6784;&#x9020;&#x51FD;&#x6570;&#xFF0C;&#x5982;&#x4E0B;&#xFF1A;</p>
+<p><img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201019230708750.png" alt="image-20201019230708750"></p>
+<p>&#x6574;&#x4E2A; NioEventLoop &#x7684;&#x6784;&#x9020;&#x51FD;&#x6570;&#x90FD;&#x662F;&#x56F4;&#x7ED5;&#x7740; Selector &#x6765;&#x7684;&#xFF0C;&#x4E3B;&#x8981;&#x5C31;&#x662F;&#x521B;&#x5EFA;&#x4E00;&#x4E2A; Selector &#x5BF9;&#x8C61;&#x3002;</p>
+<blockquote>
+<p>&#x4F7F;&#x7528;&#x539F;&#x751F;&#x7684; NIO &#x7684;&#x65F6;&#x5019;&#x53EF;&#x80FD;&#x66F4;&#x52A0;&#x4E60;&#x60EF;&#x5148;&#x521B;&#x5EFA; ServerSocket&#xFF0C;&#x5728;&#x521B;&#x5EFA; Selector &#x7ED1;&#x5B9A;&#x4E0A;&#x4E4B;&#x540E;&#x518D;&#x76D1;&#x542C;&#x4E8B;&#x4EF6;&#x3002;</p>
+<p>&#x4F46;&#x662F;&#x5728; Netty &#x4E2D;&#xFF0C;Selector &#x5176;&#x5B9E;&#x65E9;&#x65E9;&#x5C31;&#x88AB;&#x521B;&#x5EFA;&#x51FA;&#x6765;&#x4E86;&#x3002;</p>
+</blockquote>
+<h3 id="singlethreadeventloop"><a name="singlethreadeventloop" class="anchor-navigation-ex-anchor" href="#singlethreadeventloop"><i class="fa fa-link" aria-hidden="true"></i></a>SingleThreadEventLoop</h3>
+<blockquote>
+<p>&#x8BE5;&#x7C7B;&#x662F; NioEventLoop &#x7684;&#x7236;&#x7C7B;&#xFF0C;&#x4E3B;&#x8981;&#x7684;&#x4F5C;&#x7528;&#x5C31;&#x662F;&#x63D0;&#x4F9B;&#x4E86;&#x4E00;&#x4E2A;&#x4F4E;&#x4F18;&#x5148;&#x7EA7;&#x7684;&#x4EFB;&#x52A1;&#x961F;&#x5217;&#x3002;</p>
+</blockquote>
+<p>&#x4EE5;&#x4E0B;&#x662F;SingleThreadEventLoop&#x7684;&#x6784;&#x9020;&#x51FD;&#x6570;&#xFF0C;&#x901A;&#x8FC7;&#x4F20;&#x9012;&#x8FC7;&#x6765;&#x7684;&#x53C2;&#x6570;&#x521D;&#x59CB;&#x5316;tailTasks&#x3002;</p>
+<p><img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201126235626665.png" alt="image-20201126235626665"></p>
+<p><strong>tailTasks&#x5C31;&#x662F;&#x6240;&#x8C13;&#x7684;&#x4F4E;&#x4F18;&#x5148;&#x7EA7;&#x961F;&#x5217;&#xFF0C;&#x56E0;&#x4E3A;&#x5B83;&#x5B9E;&#x5728;&#x8F6E;&#x8BE2;&#x5468;&#x671F;&#x6700;&#x540E;&#x624D;&#x6267;&#x884C;&#x7684;&#xFF0C;&#x4F46;&#x662F;&#x91CC;&#x9762;&#x7684;&#x4EFB;&#x52A1;&#x90FD;&#x4F1A;&#x88AB;&#x6267;&#x884C;&#x5B8C;&#x6BD5;&#x3002;</strong></p>
+<h3 id="singlethreadeventexecutor"><a name="singlethreadeventexecutor" class="anchor-navigation-ex-anchor" href="#singlethreadeventexecutor"><i class="fa fa-link" aria-hidden="true"></i></a>SingleThreadEventExecutor</h3>
+<blockquote>
+<p>SingleThreadEventExecutor &#x662F; SingleThreadEventLoop &#x7684;&#x7236;&#x7C7B;&#xFF0C;&#x8BE5;&#x7C7B;&#x4E2D;&#x5B9E;&#x73B0;&#x4E86;&#x5177;&#x4F53;&#x7684;&#x6267;&#x884C;&#x5668;&#x903B;&#x8F91;&#xFF0C;&#x4E5F;&#x5305;&#x542B;&#x4E86;&#x6B63;&#x5E38;&#x7684;&#x4EFB;&#x52A1;&#x961F;&#x5217;&#x3002;</p>
+</blockquote>
+<p>&#x4EE5;&#x4E0B;&#x662F;SingleThreadEventExecutor&#x7684;&#x6784;&#x9020;&#x51FD;&#x6570;:</p>
+<p><img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201126235713997.png" alt="image-20201126235713997"></p>
+<p><strong>&#x6B64;&#x5904;&#x5B8C;&#x6210;&#x4E86; taskQueue &#x7684;&#x521D;&#x59CB;&#x5316;&#xFF0C;&#x5B83;&#x5C31;&#x662F;&#x5E38;&#x89C4;&#x7684;&#x4EFB;&#x52A1;&#x961F;&#x5217;&#xFF0C;&#x5728;&#x8F6E;&#x8BE2;&#x5468;&#x671F;&#x4E2D;&#x4F1A;&#x6709;&#x4E00;&#x5B9A;&#x7684;&#x65F6;&#x95F4;&#x6765;&#x6267;&#x884C;&#x5176;&#x5185;&#x7684;&#x4EFB;&#x52A1;&#x3002;</strong></p>
+<blockquote>
+<p>addTaskWakesUp&#x9ED8;&#x8BA4;&#x4E3A;false&#xFF0C;&#x6682;&#x65F6;&#x4E0D;&#x77E5;&#x9053;&#x5177;&#x4F53;&#x4F5C;&#x7528;&#xFF0C;&#x6B64;&#x65F6;&#x7EBF;&#x7A0B;&#x5E76;&#x6CA1;&#x6709;&#x542F;&#x52A8;&#x3002;</p>
+</blockquote>
+<p>&#x53E6;&#x5916;&#x503C;&#x5F97;&#x5173;&#x6CE8;&#x7684;&#x5C31;&#x662F;ThreadExecutorMap&#x7C7B;&#x7684;&#x8C03;&#x7528;&#x3002;</p>
+<p><img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201127000235931.png" alt="image-20201127000235931"></p>
+<p>&#x5BF9;executor&#x7684;&#x8C03;&#x7528;&#x8FDB;&#x884C;&#x4E86;&#x4E00;&#x6B21;&#x5305;&#x88C5;&#xFF0C;&#x5305;&#x88C5;&#x4E2D;&#x66FF;&#x6362;Runnable&#x65B9;&#x6CD5;.</p>
+<p>&#x5728;Runnable&#x65B9;&#x6CD5;&#x6267;&#x884C;&#x524D;&#x540E;&#x4F1A;&#x5206;&#x522B;&#x8C03;&#x7528; <code>setCurrentEventExecutor</code> &#x65B9;&#x6CD5;&#xFF0C;&#x4EE5;&#x4E0B;&#x662F;&#x8C03;&#x7528;&#x7684;&#x65B9;&#x6CD5;&#x6E90;&#x7801;&#xFF1A;</p>
+<p><img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201127000602305.png" alt="image-20201127000602305"></p>
+<p>&#x8BE5;&#x65B9;&#x6CD5;&#x4F1A;&#x5C06; EventExecutor &#x548C; &#x7EBF;&#x7A0B;&#x7684;&#x6620;&#x5C04;&#x5173;&#x7CFB;&#x4FDD;&#x5B58;&#x5230; ThreadExecutorMap#mapping &#x5BF9;&#x8C61;&#x4E2D;&#xFF0C;&#x4EE5;&#x540E;&#x5C31;&#x53EF;&#x4EE5;&#x901A;&#x8FC7;</p>
+<pre><code class="lang-java"> ThreadExecutorMap.currentExecutor()
+</code></pre>
+<p>&#x6765;&#x83B7;&#x53D6;&#x5F53;&#x524D;&#x7EBF;&#x7A0B;&#x6B63;&#x5728;&#x4F7F;&#x7528;&#x7ED9;&#x7684;&#x6267;&#x884C;&#x5668;&#x3002;</p>
+<blockquote>
+<p>&#x6682;&#x65F6;&#x4E0D;&#x662F;&#x5F88;&#x6E05;&#x695A;&#x8FD9;&#x4E48;&#x505A;&#x7684;&#x610F;&#x4E49;&#xFF0C;&#x53EF;&#x80FD;&#x662F;&#x4E3A;&#x4E86;&#x6267;&#x884C;&#x5668;&#x516C;&#x7528;&#xFF0C;&#x4F46;&#x662F;&#x5982;&#x679C;&#x6211;&#x5728;&#x4E1A;&#x52A1;&#x91CC;&#x9762;&#x8C03;&#x7528;&#x4E86;&#x8FD9;&#x4E2A;&#x6267;&#x884C;&#x5668;&#xFF0C;&#x4E0D;&#x662F;&#x4F1A;&#x76F4;&#x63A5;&#x521B;&#x5EFA;&#x51FA;&#x4E00;&#x4E2A;&#x65B0;&#x7EBF;&#x7A0B;&#x6267;&#x884C;&#x5417;&#xFF0C;&#x8FD9;&#x6837;&#x5C31;&#x6709;&#x70B9;&#x5947;&#x602A;&#x4E86;&#x3002;</p>
+</blockquote>
+<h3 id="abstractscheduledeventexecutor"><a name="abstractscheduledeventexecutor" class="anchor-navigation-ex-anchor" href="#abstractscheduledeventexecutor"><i class="fa fa-link" aria-hidden="true"></i></a>AbstractScheduledEventExecutor</h3>
+<p>&#x4ECE; SingleThreadEventExecutor &#x6784;&#x9020;&#x51FD;&#x6570;&#x518D;&#x5F80;&#x4E0A;&#x8C03;&#x7528;&#x7684;&#x5C31;&#x662F; AbstractScheduledEventExecutor &#x7684;&#x6784;&#x9020;&#x51FD;&#x6570;&#x4E86;&#xFF0C;&#x8BE5;&#x7C7B;&#x7684;&#x6784;&#x9020;&#x51FD;&#x6570;&#x6BD4;&#x8F83;&#x7B80;&#x5355;&#x3002;</p>
+<p>&#x91CD;&#x8981;&#x7684;&#x662F;&#x8BE5;&#x7C7B;&#x5305;&#x542B;&#x4E86;&#x53E6;&#x5916;&#x4E00;&#x4E2A;&#x5173;&#x952E;&#x961F;&#x5217; - &#x5EF6;&#x65F6;/&#x5B9A;&#x65F6;&#x4EFB;&#x52A1;&#x961F;&#x5217;&#x3002;</p>
+<p><img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201127002758835.png" alt="image-20201127002758835"></p>
+<blockquote>
+<p><strong>&#x5982;&#x4E0A;&#x56FE;&#x6240;&#x793A;&#x5C31;&#x662F;&#x4F18;&#x5148;&#x7EA7;&#x961F;&#x5217;&#xFF0C;&#x91CC;&#x9762;&#x4FDD;&#x5B58;&#x7684;&#x662F;&#x5B9A;&#x65F6;&#x4EFB;&#x52A1;&#xFF0C;</strong>&#x8F6E;&#x8BE2;&#x5468;&#x671F;&#x4E2D;&#x4F1A;&#x5C06;&#x5230;&#x671F;&#x7684;&#x4EFB;&#x52A1;&#x6DFB;&#x52A0;&#x5230;taskQueue&#x7684;&#x672B;&#x5C3E;&#x3002;</p>
+<p>&#x901A;&#x8FC7;&#x4EE5;&#x4E0A;&#x7684;&#x6784;&#x9020;&#x51FD;&#x6570;&#x8C03;&#x7528;&#x6D41;&#x7A0B;&#x53EF;&#x4EE5;&#x52C9;&#x5F3A;&#x5206;&#x6790;&#x51FA; NioEventLoop &#x7684;&#x6574;&#x4F53;&#x7ED3;&#x6784;:</p>
+<p>&#x9996;&#x5148;&#x662F;&#x4E09;&#x4E2A;&#x4EFB;&#x52A1;&#x961F;&#x5217;:</p>
+<ol>
+<li>scheduledTaskQueue - DefaultPriorityQueue&#x7C7B;&#x578B;&#xFF0C;&#x7528;&#x4E8E;&#x5B9A;&#x65F6;&#x6216;&#x8005;&#x5EF6;&#x65F6;&#x4EFB;&#x52A1;</li>
+<li>taskQueue -  mpsc&#x578B;&#x961F;&#x5217;&#xFF0C;&#x7528;&#x4E8E;&#x5E38;&#x89C4;&#x4EFB;&#x52A1;</li>
+<li>tailTasks - mpsc&#x578B;&#x961F;&#x5217;&#xFF0C;&#x7528;&#x4E8E;&#x4F4E;&#x4F18;&#x5148;&#x4EFB;&#x52A1;&#x4FDD;&#x5B58;</li>
+</ol>
+</blockquote>
+<h2 id="&#x603B;&#x7ED3;"><a name="&#x603B;&#x7ED3;" class="anchor-navigation-ex-anchor" href="#&#x603B;&#x7ED3;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x603B;&#x7ED3;</h2>
+<p>&#x4ECE;&#x521D;&#x59CB;&#x5316;&#x6D41;&#x7A0B;&#x4E2D;&#x53EF;&#x4EE5;&#x660E;&#x786E;&#x7684;&#x4E4B;&#x540E;&#x4EE5;&#x4E0B;&#x51E0;&#x70B9;&#x5185;&#x5BB9;&#xFF1A;</p>
+<blockquote>
+<p>Q: EventLoopGroup &#x548C; EventLoop &#x7684;&#x5173;&#x7CFB;&#x3002; </p>
+</blockquote>
+<p>&#x9996;&#x5148;&#x660E;&#x786E;&#xFF0C;EventLoopGroup &#x57FA;&#x672C;&#x4E0D;&#x76F4;&#x63A5;&#x5904;&#x7406;&#x4EFB;&#x4F55;&#x4E1A;&#x52A1;&#x903B;&#x8F91;&#x3002;</p>
+<p>&#x51C6;&#x786E;&#x6765;&#x8BF4;&#xFF0C;EventLoopGroup &#x66F4;&#x50CF;&#x662F;&#x4E00;&#x4E2A;&#x8C03;&#x5EA6;&#x4E2D;&#x5FC3;&#xFF0C;&#x6240;&#x6709;&#x7684;&#x903B;&#x8F91;&#x901A;&#x8FC7; Chooser &#x9009;&#x62E9;&#x4E00;&#x4E2A; EventLoop &#x7136;&#x540E;&#x59D4;&#x6258;&#x6267;&#x884C;&#x3002;</p>
+<blockquote>
+<p>Q: EventLoop &#x7684;&#x7ED3;&#x6784;</p>
+</blockquote>
+<p><strong>EventLoop &#x6301;&#x6709;&#x4E00;&#x4E2A; Selector &#x5BF9;&#x8C61;&#xFF0C;&#x4E00;&#x4E2A; Thread &#x5BF9;&#x8C61;&#xFF0C;&#x4EE5;&#x53CA;&#x4E09;&#x4E2A;&#x4EFB;&#x52A1;&#x961F;&#x5217;&#xFF0C;&#x5206;&#x522B;&#x5BF9;&#x5E94;&#x7684;&#x7F51;&#x7EDC;&#x4E8B;&#x4EF6;&#xFF0C;&#x5B9A;&#x65F6;&#x4E8B;&#x4EF6;&#x4EE5;&#x53CA;&#x7528;&#x6237;&#x81EA;&#x5B9A;&#x4E49;&#x4E8B;&#x4EF6;&#x3002;</strong></p>
+<blockquote>
+<p>Q: &#x5728;NioEventLoopGroup&#x4E2D;&#x4EFB;&#x52A1;&#x7684;&#x5206;&#x6D3E;&#x89C4;&#x5219;</p>
+</blockquote>
+<p>&#x56E0;&#x4E3A;&#x662F;&#x901A;&#x8FC7;Chooser&#x7684;&#x5206;&#x6D3E;&#xFF0C;&#x6240;&#x4EE5;&#x770B;&#x4E24;&#x79CD;Chooser&#x7684;&#x6E90;&#x7801;&#x5F88;&#x5BB9;&#x6613;&#x80FD;&#x770B;&#x51FA;&#x6765;&#x603B;&#x4F53;&#x6765;&#x8BF4;&#x8FD8;&#x662F;&#x901A;&#x8FC7;&#x8F6E;&#x8BE2;&#x7684;&#x5F62;&#x5F0F;&#x6765;&#x7684;&#x3002;</p>
+<p>&#x6BCF;&#x4E00;&#x4E2A;EventLoop&#x90FD;&#x4F1A;&#x83B7;&#x5F97;&#x5747;&#x5300;&#x7684;&#x4EFB;&#x52A1;&#x3002;</p>
+<blockquote>
+<p>Q: Runnable&#xFF0C;Thread &#x5728; EventLoop &#x4E2D;&#x7684;&#x8FDB;&#x4E00;&#x6B65;&#x5305;&#x88C5;</p>
+</blockquote>
+<p>Thread &#x5728; EventLoop &#x4E2D;&#x5305;&#x88C5;&#x4E3A; FastThreadLocalThread &#x63D0;&#x4F9B; FastThreadLocal &#x7684;&#x6570;&#x636E;&#x5B58;&#x50A8;&#x7ED3;&#x6784;&#x3002;</p>
+<p>Runnable &#x5728; EventLoop &#x4E2D;&#x5305;&#x88C5;&#x4E3A; FastThreadLocalThreadRunnable&#xFF0C;&#x989D;&#x5916;&#x63D0;&#x4F9B;&#x5728; FastThreadLocal &#x4E2D;&#x6E05;&#x9664;&#x6B8B;&#x7559;&#x6570;&#x636E;&#x7684;&#x529F;&#x80FD;</p>
+<p>&#x4EE5;&#x4E0A;&#x4E24;&#x8005;&#x548C; FastThreadLocal &#x7C7B;&#x7ED3;&#x5408;&#xFF0C;&#x6210;&#x4F53;&#x7CFB;&#x6210;&#x5957;&#x7684;&#x51FA;&#x73B0;&#x4F1A;&#x6BD4; ThreadLocal &#x6709;&#x660E;&#x663E;&#x7684;&#x6027;&#x80FD;&#x589E;&#x957F;&#x3002;</p>
+
+<script>console.log("plugin-popup....");document.onclick = function(e){ e.target.tagName === "IMG" && window.open(e.target.src,e.target.src)}</script><style>img{cursor:pointer}</style>
+                                
+                                </section>
+                            
+    </div>
+    <div class="search-results">
+        <div class="has-results">
+            
+            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+            <ul class="search-results-list"></ul>
+            
+        </div>
+        <div class="no-results">
+            
+            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+            
+        </div>
+    </div>
+</div>
+
+                        </div>
+                    </div>
+                
+            </div>
+
+            
+                
+                
+                <a href="NIO服务端启动流程.html" class="navigation navigation-next navigation-unique" aria-label="Next page: NIO服务端启动流程">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+                
+            
+        
+    </div>
+
+    <script>
+        var gitbook = gitbook || [];
+        gitbook.push(function() {
+            gitbook.page.hasChanged({"page":{"title":"EventLoop 的初始化流程","level":"1.3.1","depth":2,"next":{"title":"NIO服务端启动流程","level":"1.3.2","depth":2,"path":"netty/netty逻辑流程/NIO服务端启动流程.md","ref":"netty/netty逻辑流程/NIO服务端启动流程.md","articles":[]},"previous":{"title":"Netty","level":"1.3","depth":1,"ref":"","articles":[{"title":"EventLoop 的初始化流程","level":"1.3.1","depth":2,"path":"netty/netty逻辑流程/EventLoop的初始化.md","ref":"netty/netty逻辑流程/EventLoop的初始化.md","articles":[]},{"title":"NIO服务端启动流程","level":"1.3.2","depth":2,"path":"netty/netty逻辑流程/NIO服务端启动流程.md","ref":"netty/netty逻辑流程/NIO服务端启动流程.md","articles":[]},{"title":"ChannelPipeline的结构和初始化流程","level":"1.3.3","depth":2,"path":"netty/netty逻辑流程/ChannelPipeline的结构和初始化流程.md","ref":"netty/netty逻辑流程/ChannelPipeline的结构和初始化流程.md","articles":[]},{"title":"NioEventLoop的事件轮询","level":"1.3.4","depth":2,"path":"netty/netty逻辑流程/NioEventLoop的事件轮询.md","ref":"netty/netty逻辑流程/NioEventLoop的事件轮询.md","articles":[]},{"title":"客户端Channel的建立过程","level":"1.3.5","depth":2,"path":"netty/netty逻辑流程/客户端Channel的创建流程.md","ref":"netty/netty逻辑流程/客户端Channel的创建流程.md","articles":[]},{"title":"ChannelPipeline事件传递机制","level":"1.3.6","depth":2,"path":"netty/netty逻辑流程/ChannelPipeline事件传递机制.md","ref":"netty/netty逻辑流程/ChannelPipeline事件传递机制.md","articles":[]},{"title":"Netty 中的编解码逻辑","level":"1.3.7","depth":2,"path":"netty/netty逻辑流程/Netty中的编解码逻辑.md","ref":"netty/netty逻辑流程/Netty中的编解码逻辑.md","articles":[]},{"title":"Netty 中写数据的逻辑","level":"1.3.8","depth":2,"path":"netty/netty逻辑流程/Netty中写数据的逻辑.md","ref":"netty/netty逻辑流程/Netty中写数据的逻辑.md","articles":[]},{"title":"Netty 中读数据的流程","level":"1.3.9","depth":2,"path":"netty/netty逻辑流程/Netty中读数据的流程.md","ref":"netty/netty逻辑流程/Netty中读数据的流程.md","articles":[]},{"title":"FastThreadLocal 源码分析","level":"1.3.10","depth":2,"path":"netty/util/FastThreadLocal.md","ref":"netty/util/FastThreadLocal.md","articles":[]},{"title":"ChannelPool 相关分析","level":"1.3.11","depth":2,"path":"netty/util/ChannelPool.md","ref":"netty/util/ChannelPool.md","articles":[]},{"title":"ChannelOption 整理","level":"1.3.12","depth":2,"path":"netty/ChannelOption整理.md","ref":"netty/ChannelOption整理.md","articles":[]}]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":["intopic-toc","chapter-fold","splitter","expandable-chapters","back-to-top-button","popup","anchor-navigation-ex","livereload"],"pluginsConfig":{"chapter-fold":{},"intopic-toc":{"isCollapsed":true,"isScrollspyActive":true,"label":"Catalogue","maxDepth":6,"mode":"nested","selector":".markdown-section h1, .markdown-section h2, .markdown-section h3, .markdown-section h4, .markdown-section h5, .markdown-section h6","visible":true},"livereload":{},"splitter":{},"search":{},"popup":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"highlight":{},"anchor-navigation-ex":{"associatedWithSummary":true,"float":{"floatIcon":"fa fa-navicon","level1Icon":"","level2Icon":"","level3Icon":"","showLevelIcon":false},"mode":"float","multipleH1":true,"pageTop":{"level1Icon":"","level2Icon":"","level3Icon":"","showLevelIcon":false},"printLog":false,"showGoTop":false,"showLevel":false},"back-to-top-button":{},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false},"expandable-chapters":{}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"netty/netty逻辑流程/EventLoop的初始化.md","mtime":"2021-07-24T13:05:27.231Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-10-07T13:39:58.281Z"},"basePath":"../..","book":{"language":""}});
+        });
+    </script>
+</div>
+
+        
+    <script src="../../gitbook/gitbook.js"></script>
+    <script src="../../gitbook/theme.js"></script>
+    
+        
+        <script src="../../gitbook/gitbook-plugin-intopic-toc/anchor.min.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-intopic-toc/gumshoe.polyfills.min.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-intopic-toc/plugin.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-chapter-fold/chapter-fold.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-splitter/splitter.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-expandable-chapters/expandable-chapters.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-back-to-top-button/plugin.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-livereload/plugin.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-search/search-engine.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-search/search.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-lunr/lunr.min.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-lunr/search-lunr.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-sharing/buttons.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-fontsettings/fontsettings.js"></script>
+        
+    
+
+    </body>
+</html>
+

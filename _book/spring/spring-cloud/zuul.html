@@ -1,0 +1,1504 @@
+
+<!DOCTYPE HTML>
+<html lang="" >
+    <head>
+        <meta charset="UTF-8">
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <title>zuul 简述 · GitBook</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 3.2.3">
+        
+        
+        
+    
+    <link rel="stylesheet" href="../../gitbook/style.css">
+
+    
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-intopic-toc/style.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-chapter-fold/chapter-fold.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-splitter/splitter.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-expandable-chapters/expandable-chapters.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-back-to-top-button/plugin.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-anchor-navigation-ex/style/plugin.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-highlight/website.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-search/search.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-fontsettings/website.css">
+                
+            
+        
+
+    
+
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+
+        
+    
+    
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../../gitbook/images/apple-touch-icon-precomposed-152.png">
+    <link rel="shortcut icon" href="../../gitbook/images/favicon.ico" type="image/x-icon">
+
+    
+    
+    <link rel="prev" href="feign.html" />
+    
+
+    </head>
+    <body>
+        
+<div class="book">
+    <div class="book-summary">
+        
+            
+<div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search" />
+</div>
+
+            
+                <nav role="navigation">
+                
+
+
+<ul class="summary">
+    
+    
+
+    
+
+    
+        
+        
+    
+        <li class="chapter " data-level="1.1" data-path="../../">
+            
+                <a href="../../">
+            
+                    
+                    Introduction
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2" data-path="../../java/">
+            
+                <a href="../../java/">
+            
+                    
+                    Java
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1" >
+            
+                <span>
+            
+                    
+                    JDK 源码分析
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1.1" >
+            
+                <span>
+            
+                    
+                    JUC
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1.1.1" data-path="../../java/jdk/AbstractQueuedSynchronizer.html">
+            
+                <a href="../../java/jdk/AbstractQueuedSynchronizer.html">
+            
+                    
+                    AbstractQueueSynchronized 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.2" data-path="../../java/jdk/ConcurrentHashMap.html">
+            
+                <a href="../../java/jdk/ConcurrentHashMap.html">
+            
+                    
+                    ConcurrentHashMap 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.3" data-path="../../java/jdk/FutureTask.html">
+            
+                <a href="../../java/jdk/FutureTask.html">
+            
+                    
+                    FutureTask 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.4" data-path="../../java/jdk/ReetrantLock.html">
+            
+                <a href="../../java/jdk/ReetrantLock.html">
+            
+                    
+                    ReetrantLocak 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.5" data-path="../../java/jdk/ThreadPoolExecutor.html">
+            
+                <a href="../../java/jdk/ThreadPoolExecutor.html">
+            
+                    
+                    ThreadPoolExecutor 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.6" data-path="../../java/jdk/BlockingQueue.html">
+            
+                <a href="../../java/jdk/BlockingQueue.html">
+            
+                    
+                    BlockingQueue 类族
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.7" data-path="../../java/jdk/SynchronousQueue.html">
+            
+                <a href="../../java/jdk/SynchronousQueue.html">
+            
+                    
+                    SynchronousQueue
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.8" data-path="../../java/jdk/CountDownLatch.html">
+            
+                <a href="../../java/jdk/CountDownLatch.html">
+            
+                    
+                    CountDownLatch 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.9" data-path="../../java/jdk/CyclicBarrier.html">
+            
+                <a href="../../java/jdk/CyclicBarrier.html">
+            
+                    
+                    CyclicBarrier 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.10" data-path="../../java/jdk/CopyOnWriteArrayList.html">
+            
+                <a href="../../java/jdk/CopyOnWriteArrayList.html">
+            
+                    
+                    CopyOnWriteArrayList 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.11" data-path="../../java/jdk/CopyOnWriteArraySet.html">
+            
+                <a href="../../java/jdk/CopyOnWriteArraySet.html">
+            
+                    
+                    CopyOnWriteArraySet 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.12" data-path="../../java/jdk/ConcurrentSkipListMap.html">
+            
+                <a href="../../java/jdk/ConcurrentSkipListMap.html">
+            
+                    
+                    ConcurrentSkipListMap 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.13" data-path="../../java/jdk/ScheduledThreadPoolExecutor.html">
+            
+                <a href="../../java/jdk/ScheduledThreadPoolExecutor.html">
+            
+                    
+                    cheduledThreadPoolExecutor 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.14" data-path="../../java/jdk/Semaphore.html">
+            
+                <a href="../../java/jdk/Semaphore.html">
+            
+                    
+                    Semaphore 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2" >
+            
+                <span>
+            
+                    
+                    Java 集合框架
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1.2.1" data-path="../../java/jdk/HashMap源码阅读.html">
+            
+                <a href="../../java/jdk/HashMap源码阅读.html">
+            
+                    
+                    HashMap 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2.2" data-path="../../java/jdk/HashMap.html">
+            
+                <a href="../../java/jdk/HashMap.html">
+            
+                    
+                    HashMap 原理(文字表述)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2.3" data-path="../../java/jdk/LinkedHashMap源码阅读.html">
+            
+                <a href="../../java/jdk/LinkedHashMap源码阅读.html">
+            
+                    
+                    LinkedHashMap 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2.4" data-path="../../java/jdk/ArrayList.html">
+            
+                <a href="../../java/jdk/ArrayList.html">
+            
+                    
+                    ArrayList 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2.5" data-path="../../java/jdk/LinkedList源码阅读.html">
+            
+                <a href="../../java/jdk/LinkedList源码阅读.html">
+            
+                    
+                    LinkedList 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.3" >
+            
+                <span>
+            
+                    
+                    其他
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1.3.1" data-path="../../java/jdk/ThreadLocal.html">
+            
+                <a href="../../java/jdk/ThreadLocal.html">
+            
+                    
+                    ThreadLocal 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.3.2" data-path="../../java/jdk/Stream.html">
+            
+                <a href="../../java/jdk/Stream.html">
+            
+                    
+                    Stream 分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2" >
+            
+                <span>
+            
+                    
+                    JVM（Java 虚拟机）
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.2.1" data-path="../../java/jvm/关键字.html">
+            
+                <a href="../../java/jvm/关键字.html">
+            
+                    
+                    Java 关键字整理
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.2" data-path="../../java/jvm/引用类型.html">
+            
+                <a href="../../java/jvm/引用类型.html">
+            
+                    
+                    Java 中的引用类型
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.3" data-path="../../java/jvm/元空间和永久代.html">
+            
+                <a href="../../java/jvm/元空间和永久代.html">
+            
+                    
+                    元空间和永久代
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.4" data-path="../../java/jvm/synchronized.html">
+            
+                <a href="../../java/jvm/synchronized.html">
+            
+                    
+                    synchronized 关键字
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.5" data-path="../../java/jvm/JVM的类加载子系统.html">
+            
+                <a href="../../java/jvm/JVM的类加载子系统.html">
+            
+                    
+                    JVM 的类加载子系统
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.3" >
+            
+                <span>
+            
+                    
+                    Guava 源码分析
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.3.1" data-path="../../java/guava/EventBus.html">
+            
+                <a href="../../java/guava/EventBus.html">
+            
+                    
+                    EventBus 相关源码解析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.3.2" data-path="../../java/guava/RateLimiter.html">
+            
+                <a href="../../java/guava/RateLimiter.html">
+            
+                    
+                    RateLimiter 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3" >
+            
+                <span>
+            
+                    
+                    Netty
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.3.1" data-path="../../netty/netty逻辑流程/EventLoop的初始化.html">
+            
+                <a href="../../netty/netty逻辑流程/EventLoop的初始化.html">
+            
+                    
+                    EventLoop 的初始化流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2" data-path="../../netty/netty逻辑流程/NIO服务端启动流程.html">
+            
+                <a href="../../netty/netty逻辑流程/NIO服务端启动流程.html">
+            
+                    
+                    NIO服务端启动流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.3" data-path="../../netty/netty逻辑流程/ChannelPipeline的结构和初始化流程.html">
+            
+                <a href="../../netty/netty逻辑流程/ChannelPipeline的结构和初始化流程.html">
+            
+                    
+                    ChannelPipeline的结构和初始化流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.4" data-path="../../netty/netty逻辑流程/NioEventLoop的事件轮询.html">
+            
+                <a href="../../netty/netty逻辑流程/NioEventLoop的事件轮询.html">
+            
+                    
+                    NioEventLoop的事件轮询
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.5" data-path="../../netty/netty逻辑流程/客户端Channel的创建流程.html">
+            
+                <a href="../../netty/netty逻辑流程/客户端Channel的创建流程.html">
+            
+                    
+                    客户端Channel的建立过程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.6" data-path="../../netty/netty逻辑流程/ChannelPipeline事件传递机制.html">
+            
+                <a href="../../netty/netty逻辑流程/ChannelPipeline事件传递机制.html">
+            
+                    
+                    ChannelPipeline事件传递机制
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.7" data-path="../../netty/netty逻辑流程/Netty中的编解码逻辑.html">
+            
+                <a href="../../netty/netty逻辑流程/Netty中的编解码逻辑.html">
+            
+                    
+                    Netty 中的编解码逻辑
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.8" data-path="../../netty/netty逻辑流程/Netty中写数据的逻辑.html">
+            
+                <a href="../../netty/netty逻辑流程/Netty中写数据的逻辑.html">
+            
+                    
+                    Netty 中写数据的逻辑
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.9" data-path="../../netty/netty逻辑流程/Netty中读数据的流程.html">
+            
+                <a href="../../netty/netty逻辑流程/Netty中读数据的流程.html">
+            
+                    
+                    Netty 中读数据的流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.10" data-path="../../netty/util/FastThreadLocal.html">
+            
+                <a href="../../netty/util/FastThreadLocal.html">
+            
+                    
+                    FastThreadLocal 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.11" data-path="../../netty/util/ChannelPool.html">
+            
+                <a href="../../netty/util/ChannelPool.html">
+            
+                    
+                    ChannelPool 相关分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.12" data-path="../../netty/ChannelOption整理.html">
+            
+                <a href="../../netty/ChannelOption整理.html">
+            
+                    
+                    ChannelOption 整理
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4" >
+            
+                <span>
+            
+                    
+                    Spring
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.1" >
+            
+                <span>
+            
+                    
+                    Spring Core
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.1.1" data-path="../spring-core/aop/aop 概念.md">
+            
+                <span>
+            
+                    
+                    AOP相关概念
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.1.2" data-path="../spring-core/aop/ProxyFactory.html">
+            
+                <a href="../spring-core/aop/ProxyFactory.html">
+            
+                    
+                    ProxyFactory
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.1.3" data-path="../spring-core/aop/Aop实现的不同方式.html">
+            
+                <a href="../spring-core/aop/Aop实现的不同方式.html">
+            
+                    
+                    Aop 实现的不同方式
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.1.4" data-path="../spring-core/module/async.html">
+            
+                <a href="../spring-core/module/async.html">
+            
+                    
+                    Async的实现原理
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.2" >
+            
+                <span>
+            
+                    
+                    SpringBoot
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.2.1" data-path="../spring-boot/SpringBoot的事件模型 .html">
+            
+                <a href="../spring-boot/SpringBoot的事件模型 .html">
+            
+                    
+                    SpringBoot的事件模型
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.2.2" data-path="../spring-boot/SpringBoot的启动流程.html">
+            
+                <a href="../spring-boot/SpringBoot的启动流程.html">
+            
+                    
+                    SpringBoot的启动流程简述
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.2.3" data-path="../spring-boot/SpringBoot的工厂加载模式.html">
+            
+                <a href="../spring-boot/SpringBoot的工厂加载模式.html">
+            
+                    
+                    SpringBoot的工厂加载模式
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.3" >
+            
+                <span>
+            
+                    
+                    SpringCloud
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.3.1" data-path="consul.html">
+            
+                <a href="consul.html">
+            
+                    
+                    consul 简述
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.3.2" data-path="feign.html">
+            
+                <a href="feign.html">
+            
+                    
+                    feign 简述
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter active" data-level="1.4.3.3" data-path="zuul.html">
+            
+                <a href="zuul.html">
+            
+                    
+                    zuul 简述
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5" >
+            
+                <span>
+            
+                    
+                    设计模式
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.5.1" data-path="../../系统设计/Gof设计模式.html">
+            
+                <a href="../../系统设计/Gof设计模式.html">
+            
+                    
+                    Gof 的设计模式
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6" >
+            
+                <span>
+            
+                    
+                    中间件
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.6.1" >
+            
+                <span>
+            
+                    
+                    RabbitMQ
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.6.1.1" data-path="../../消息队列/RabbitMQ如何保证消息不丢失.html">
+            
+                <a href="../../消息队列/RabbitMQ如何保证消息不丢失.html">
+            
+                    
+                    RabbitMQ 如何保证消息不丢失
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6.2" >
+            
+                <span>
+            
+                    
+                    Redis
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.6.2.1" data-path="../../redis/Redis的五种数据结构.html">
+            
+                <a href="../../redis/Redis的五种数据结构.html">
+            
+                    
+                    Redis 的五种数据结构
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6.2.2" data-path="../../redis/Redis的Sentinel模式.html">
+            
+                <a href="../../redis/Redis的Sentinel模式.html">
+            
+                    
+                    Redis 的哨兵模式
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6.2.3" data-path="../../redis/Redis的主从复制模式.html">
+            
+                <a href="../../redis/Redis的主从复制模式.html">
+            
+                    
+                    Redis 的主从复制模式
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.7" >
+            
+                <span>
+            
+                    
+                    网络
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.7.1" >
+            
+                <span>
+            
+                    
+                    TCP
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.7.1.1" data-path="../../网络/tcp协议整理1.html">
+            
+                <a href="../../网络/tcp协议整理1.html">
+            
+                    
+                    TCP 协议总结（一）
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.7.1.2" data-path="../../网络/tcp内核参数整理.html">
+            
+                <a href="../../网络/tcp内核参数整理.html">
+            
+                    
+                    Linux 中的相关 TCP 参数
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+    
+
+    <li class="divider"></li>
+
+    <li>
+        <a href="https://www.gitbook.com" target="blank" class="gitbook-link">
+            Published with GitBook
+        </a>
+    </li>
+</ul>
+
+
+                </nav>
+            
+        
+    </div>
+
+    <div class="book-body">
+        
+            <div class="body-inner">
+                
+                    
+
+<div class="book-header" role="navigation">
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href="../.." >zuul 简述</a>
+    </h1>
+</div>
+
+
+
+
+                    <div class="page-wrapper" tabindex="-1" role="main">
+                        <div class="page-inner">
+                            
+<div id="book-search-results">
+    <div class="search-noresults">
+    
+                                <section class="normal markdown-section">
+                                
+                                <div id="anchor-navigation-ex-navbar"><i class="fa fa-navicon"></i><ul><li><span class="title-icon "></span><a href="#zuul"><b></b>Zuul</a></li><ul><li><span class="title-icon "></span><a href="#&#x6574;&#x4F53;&#x67B6;&#x6784;"><b></b>&#x6574;&#x4F53;&#x67B6;&#x6784;</a></li><ul><li><span class="title-icon "></span><a href="#&#x90E8;&#x5206;&#x7EC4;&#x4EF6;"><b></b>&#x90E8;&#x5206;&#x7EC4;&#x4EF6;</a></li></ul><li><span class="title-icon "></span><a href="#&#x5185;&#x7F6E;&#x8FC7;&#x6EE4;&#x5668;"><b></b>&#x5185;&#x7F6E;&#x8FC7;&#x6EE4;&#x5668;</a></li><ul><li><span class="title-icon "></span><a href="#&#x8F6C;&#x53D1;&#x76F8;&#x5173;-filter"><b></b>&#x8F6C;&#x53D1;&#x76F8;&#x5173; Filter</a></li><li><span class="title-icon "></span><a href="#&#x53C2;&#x8003;"><b></b>&#x53C2;&#x8003;</a></li></ul><li><span class="title-icon "></span><a href="#&#x8FC7;&#x6EE4;&#x5668;&#x7684;&#x6267;&#x884C;&#x6D41;&#x7A0B;"><b></b>&#x8FC7;&#x6EE4;&#x5668;&#x7684;&#x6267;&#x884C;&#x6D41;&#x7A0B;</a></li><li><span class="title-icon "></span><a href="#&#x8FC7;&#x6EE4;&#x5668;&#x7C7B;&#x7684;&#x6CE8;&#x518C;&#x548C;&#x76D1;&#x63A7;"><b></b>&#x8FC7;&#x6EE4;&#x5668;&#x7C7B;&#x7684;&#x6CE8;&#x518C;&#x548C;&#x76D1;&#x63A7;</a></li><li><span class="title-icon "></span><a href="#&#x53C2;&#x8003;_1"><b></b>&#x53C2;&#x8003;</a></li></ul></ul></div><h1 id="zuul"><a name="zuul" class="anchor-navigation-ex-anchor" href="#zuul"><i class="fa fa-link" aria-hidden="true"></i></a>Zuul</h1>
+<h2 id="&#x6574;&#x4F53;&#x67B6;&#x6784;"><a name="&#x6574;&#x4F53;&#x67B6;&#x6784;" class="anchor-navigation-ex-anchor" href="#&#x6574;&#x4F53;&#x67B6;&#x6784;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x6574;&#x4F53;&#x67B6;&#x6784;</h2>
+<p><img src="assets/zuul_01.png" alt=""></p>
+<p>Zuul &#x7684;&#x5165;&#x53E3;&#x5C31;&#x662F;&#x4E00;&#x4E2A; ZuulServlet&#x3002;</p>
+<blockquote>
+<p>&#x9664;&#x4E86; ZuulServlet &#x4E4B;&#x5916;&#xFF0C;Zuul &#x8FD8;&#x53EF;&#x4EE5;&#x5207;&#x6362;&#x4E3A; ZuulServletFilter &#x62E6;&#x622A;&#xFF0C;&#x672C;&#x8D28;&#x4E0A;&#x5C31;&#x662F; Servlet &#x548C; Filter &#x7684;&#x533A;&#x522B;&#xFF0C;&#x4ECE;&#x5BB9;&#x5668;&#x89D2;&#x5EA6;&#x6765;&#x770B;&#xFF0C;Filter &#x662F;&#x4F18;&#x5148;&#x4E8E; Servlet &#x7684;&#x3002;</p>
+<p>&#x76F8;&#x5173;&#x914D;&#x7F6E;&#xFF1A;<strong>zuul.use-filter = true</strong></p>
+</blockquote>
+<p>&#x6574;&#x4E2A;&#x7684;&#x6267;&#x884C;&#x6D41;&#x7A0B;&#x5982;&#x4E0A;&#x56FE;&#x6240;&#x793A;&#xFF0C;&#x4ECE;&#x5916;&#x5230;&#x91CC;&#x5206;&#x522B;&#x662F;&#xFF1A;</p>
+<pre><code class="lang-mermaid">graph TD
+
+ZuulServelt --&gt; ZuulRunner --&gt; FilterProcessor --&gt; ZuulFilter
+</code></pre>
+<h3 id="&#x90E8;&#x5206;&#x7EC4;&#x4EF6;"><a name="&#x90E8;&#x5206;&#x7EC4;&#x4EF6;" class="anchor-navigation-ex-anchor" href="#&#x90E8;&#x5206;&#x7EC4;&#x4EF6;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x90E8;&#x5206;&#x7EC4;&#x4EF6;</h3>
+<p><strong>RequestContext</strong> &#x662F;&#x548C;&#x8BF7;&#x6C42;&#x4E0A;&#x4E0B;&#x6587;&#x7ED1;&#x5B9A;&#x7684;&#xFF0C;&#x4F7F;&#x7528;&#x7684; ThreadLocal &#x5B9E;&#x73B0;&#x3002;</p>
+<p><strong>ZuulRunner</strong> &#x662F; Zuul &#x7684;&#x6267;&#x884C;&#x5668;&#xFF0C;&#x4F46;&#x662F;&#x4E3B;&#x8981;&#x903B;&#x8F91;&#x8FD8;&#x662F;&#x8C03;&#x7528; FilterProcessor &#x5B9E;&#x73B0;&#x7684;&#x3002;</p>
+<p><strong>FilterProcessor</strong> &#x662F; ZuulFilter &#x7684;&#x6267;&#x884C;&#x5668;&#x3002;</p>
+<p><strong>FilterFileManager</strong> &#x4F1A;&#x542F;&#x52A8;&#x4E00;&#x4E2A;&#x540E;&#x53F0;&#x7EBF;&#x7A0B;&#xFF0C;&#x5B9A;&#x65F6;&#x8F6E;&#x8BE2;&#x6307;&#x5B9A;&#x7684;&#x6587;&#x4EF6;&#xFF0C;&#x5E76;&#x5728;&#x53D1;&#x751F;&#x66F4;&#x65B0;&#x7684;&#x65F6;&#x5019;&#x5C1D;&#x8BD5;&#x66F4;&#x65B0; Filter &#x7C7B;&#x7684;&#x7F13;&#x5B58;&#x3002;</p>
+<p><strong>FilterRegistry</strong> &#x5C31;&#x662F;&#x4E00;&#x4E2A;&#x5168;&#x5C40;&#x7684; Filter &#x7F13;&#x5B58;&#xFF0C;&#x5185;&#x90E8;&#x4F7F;&#x7528; ConcurrentHashMap &#x6765;&#x4FDD;&#x5B58;&#x5DF2;&#x7ECF;&#x52A0;&#x8F7D;&#x7684; Filter&#x3002; </p>
+<p><strong>FilterLoader</strong> &#x662F; Filter &#x603B;&#x7684;&#x7BA1;&#x7406;&#x7C7B;&#xFF0C;&#x8D1F;&#x8D23;&#x4ECE;&#x7F13;&#x5B58;&#x4E2D;&#x83B7;&#x53D6;&#x6570;&#x636E;&#xFF0C;&#x5E76;&#x4E14;&#x8FD8;&#x8D1F;&#x8D23;&#x7F16;&#x8BD1;&#x6E90;&#x4EE3;&#x7801;&#x6587;&#x4EF6;&#x3002;</p>
+<p><strong>ZuulFilter</strong> &#x7EE7;&#x627F; <strong>IZuulFilter</strong> &#x63A5;&#x53E3;&#xFF0C;&#x662F; Zuul &#x4E2D;&#x6700;&#x6838;&#x5FC3;&#x7684;&#x7EC4;&#x4EF6;&#xFF0C;&#x8D1F;&#x8D23;&#x5BF9;&#x8BF7;&#x6C42;&#x7684;&#x5404;&#x5468;&#x671F;&#x5904;&#x7406;&#xFF08;&#x548C; Servlet &#x4F53;&#x7CFB;&#x4E2D;&#x7684; Filter &#x4E0D;&#x540C;&#xFF09;</p>
+<p>&#x4E00;&#x4E2A;&#x6B63;&#x5E38;&#x7684; ZuulFilter &#x9700;&#x8981;&#x5B8C;&#x6574;&#x7684;&#x5B9E;&#x73B0;&#x4EE5;&#x4E0B;&#x56DB;&#x4E2A;&#x65B9;&#x6CD5;&#xFF1A;</p>
+<table>
+<thead>
+<tr>
+<th>&#x65B9;&#x6CD5;&#x540D;</th>
+<th>&#x4F5C;&#x7528;</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>filterType()</td>
+<td>ZuulFilter &#x7684;&#x6267;&#x884C;&#x70B9;&#x5206;&#x4E3A;&#x5982;&#x4E0B;&#x51E0;&#x79CD; : <strong>pre&#xFF0C;route&#xFF0C;post&#xFF0C;error</strong></td>
+</tr>
+<tr>
+<td>filterOrder()</td>
+<td>&#x8FC7;&#x6EE4;&#x5668;&#x7684;&#x4F18;&#x5148;&#x7EA7;</td>
+</tr>
+<tr>
+<td>shouldFilter()</td>
+<td>&#x524D;&#x7F6E;&#x5224;&#x65AD;&#x662F;&#x5426;&#x9700;&#x8981;&#x8FC7;&#x6EE4;</td>
+</tr>
+<tr>
+<td>run()</td>
+<td>&#x771F;&#x5B9E;&#x7684;&#x8FC7;&#x6EE4;&#x5668;&#x6267;&#x884C;&#x903B;&#x8F91;</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>&#x65E0;&#x4EFB;&#x4F55;&#x5F02;&#x5E38;&#x7684;&#x60C5;&#x51B5;&#x4E0B;&#xFF1A;pre -&gt; route -&gt; post </p>
+<p>&#x51FA;&#x73B0;&#x5F02;&#x5E38;&#x7684;&#x60C5;&#x51B5;&#x4E0B;&#xFF1A; pre -&gt; error -&gt; post&#xFF0C;pre -&gt; route -&gt; error -&gt; post&#xFF0C;pre -&gt; route -&gt; post -&gt; error</p>
+</blockquote>
+<h2 id="&#x5185;&#x7F6E;&#x8FC7;&#x6EE4;&#x5668;"><a name="&#x5185;&#x7F6E;&#x8FC7;&#x6EE4;&#x5668;" class="anchor-navigation-ex-anchor" href="#&#x5185;&#x7F6E;&#x8FC7;&#x6EE4;&#x5668;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x5185;&#x7F6E;&#x8FC7;&#x6EE4;&#x5668;</h2>
+<table>
+<thead>
+<tr>
+<th>&#x8FC7;&#x6EE4;&#x5668;&#x540D;&#x79F0;</th>
+<th>&#x8FC7;&#x6EE4;&#x5668;&#x6267;&#x884C;&#x70B9;</th>
+<th>&#x4F5C;&#x7528;</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ServletDetectionFilter</td>
+<td>pre</td>
+<td>&#x5224;&#x65AD;&#x8BF7;&#x6C42;&#x662F;&#x7531; DispatcherServlet &#x8F6C;&#x53D1;&#x8FD8;&#x662F; ZuulServlet &#x8F6C;&#x53D1;&#xFF0C;&#x5E76;&#x5C06;&#x7ED3;&#x679C;&#x4FDD;&#x5B58;&#x5728; RequestContext &#x4E2D;</td>
+</tr>
+<tr>
+<td>Servlet30WrapperFilter</td>
+<td>pre</td>
+<td>&#x5305;&#x88C5;&#x539F;&#x6709;&#x7684; HttpServletRequest</td>
+</tr>
+<tr>
+<td>FormBodyWrapperFilter</td>
+<td>pre</td>
+<td>&#x5904;&#x7406; form &#x8868;&#x5355;&#x6570;&#x636E;&#xFF0C;&#x5E76;&#x5305;&#x88C5;&#x4E3A; FormBodyRequestWrapper &#x5BF9;&#x8C61;</td>
+</tr>
+<tr>
+<td>DebugFilter</td>
+<td>pre</td>
+<td></td>
+</tr>
+<tr>
+<td>PreDecorationFilter</td>
+<td>pre</td>
+<td>&#x6839;&#x636E; ServiceId &#x548C; forward.to &#xFF0C;&#x4F7F;&#x7528; RouteLocator &#x5224;&#x65AD;&#x8BF7;&#x6C42;&#x7684;&#x8F6C;&#x53D1;&#x8DEF;&#x5F84;&#xFF0C;&#x4E3A;&#x540E;&#x7EED;&#x7684;&#x8F6C;&#x53D1;&#x6253;&#x6807;&#x8BB0;</td>
+</tr>
+<tr>
+<td>TracePreZuulFilter</td>
+<td>pre</td>
+<td></td>
+</tr>
+<tr>
+<td>SendForwardFilter</td>
+<td>route</td>
+<td>forward &#x8BF7;&#x6C42;&#x8F6C;&#x53D1;&#xFF0C;&#x5229;&#x7528; ApplicationDispatcher &#x8FDB;&#x884C;&#x8F6C;&#x53D1;</td>
+</tr>
+<tr>
+<td>RibbonRoutingFilter</td>
+<td>route</td>
+<td>ServiceId &#x7684;&#x8F6C;&#x53D1;</td>
+</tr>
+<tr>
+<td>SimpleHostRoutingFilter</td>
+<td>route</td>
+<td>URL &#x8F6C;&#x53D1;</td>
+</tr>
+<tr>
+<td>SendResponseFilter</td>
+<td>post</td>
+<td></td>
+</tr>
+<tr>
+<td>SendErrorFilter</td>
+<td>error</td>
+<td>&#x5904;&#x7406;&#x9519;&#x8BEF;&#x7684;&#x8BF7;&#x6C42;</td>
+</tr>
+</tbody>
+</table>
+<p><br></p>
+<h3 id="&#x8F6C;&#x53D1;&#x76F8;&#x5173;-filter"><a name="&#x8F6C;&#x53D1;&#x76F8;&#x5173;-filter" class="anchor-navigation-ex-anchor" href="#&#x8F6C;&#x53D1;&#x76F8;&#x5173;-filter"><i class="fa fa-link" aria-hidden="true"></i></a>&#x8F6C;&#x53D1;&#x76F8;&#x5173; Filter</h3>
+<blockquote>
+<p>RibbonRoutingFilter </p>
+</blockquote>
+<p>&#x8BE5;&#x8FC7;&#x6EE4;&#x5668;&#x4EC5;&#x54CD;&#x5E94;&#x5E26;&#x6709; ServiceId &#x7684;&#x8BF7;&#x6C42;&#xFF0C;&#x5E76;&#x5C06;&#x8BE5;&#x7C7B;&#x8BF7;&#x6C42;&#x8F6C;&#x53D1;&#x5230; ServiceId &#x4EE3;&#x8868;&#x7684;&#x670D;&#x52A1;&#x5730;&#x5740;&#xFF0C;&#x670D;&#x52A1;&#x5730;&#x5740;&#x57FA;&#x4E8E; Ribbon &#x83B7;&#x53D6;&#xFF0C;&#x8BF7;&#x6C42;&#x57FA;&#x4E8E; Hystrix &#x53D1;&#x9001;&#xFF0C;&#x6240;&#x4EE5;&#x53EF;&#x4EE5;&#x914D;&#x7F6E;&#x57FA;&#x4E8E; Ribbon &#x7684;&#x91CD;&#x8BD5;&#x4EE5;&#x53CA;&#x8D1F;&#x8F7D;&#x5747;&#x8861;&#xFF0C;&#x4E5F;&#x53EF;&#x914D;&#x7F6E;&#x57FA;&#x4E8E; Hystrix &#x7684;&#x9694;&#x79BB;&#x548C;&#x7194;&#x65AD;&#x7B56;&#x7565;&#x3002;</p>
+<blockquote>
+<p>SimpleHostRoutingFilter</p>
+</blockquote>
+<p>&#x8BE5;&#x8FC7;&#x6EE4;&#x5668;&#x4EC5;&#x54CD;&#x5E94;&#x5E26;&#x6709; routeHost &#x53C2;&#x6570;&#xFF08;url &#x914D;&#x7F6E;&#xFF09;&#x7684;&#x8BF7;&#x6C42;&#xFF0C;&#x5E76;&#x4F7F;&#x7528; HttpClient &#x5BF9;&#x8BF7;&#x6C42;&#x8FDB;&#x884C;&#x8F6C;&#x53D1;&#xFF0C;<strong>&#x56E0;&#x6B64;&#x6CA1;&#x6709; Hystrix &#x7684;&#x4FDD;&#x62A4;</strong>&#x3002;</p>
+<blockquote>
+<p>SendForwardFilter</p>
+</blockquote>
+<p>&#x57FA;&#x4E8E; RequestContext &#x4E2D;&#x7684; forward.to &#x8FDB;&#x884C;&#x670D;&#x52A1;&#x7684;&#x8F6C;&#x53D1;&#xFF0C;&#x57FA;&#x672C;&#x4E0A;&#x662F;&#x672C;&#x5730;&#x7684;&#x8F6C;&#x53D1;&#xFF0C;&#x4F8B;&#x5982;&#x76F4;&#x63A5;&#x8F6C;&#x53D1;&#x5230; DispatcherServlet&#x3002;</p>
+<p><br></p>
+<h3 id="&#x53C2;&#x8003;"><a name="&#x53C2;&#x8003;" class="anchor-navigation-ex-anchor" href="#&#x53C2;&#x8003;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x53C2;&#x8003;</h3>
+<p><a href="https://blog.csdn.net/xiweiller/article/details/100772775" target="_blank">springcloud zuul&#x6E90;&#x7801;&#x5206;&#x6790;&#xFF1A;&#x5185;&#x7F6E;&#x8FC7;&#x6EE4;&#x5668;</a></p>
+<h2 id="&#x8FC7;&#x6EE4;&#x5668;&#x7684;&#x6267;&#x884C;&#x6D41;&#x7A0B;"><a name="&#x8FC7;&#x6EE4;&#x5668;&#x7684;&#x6267;&#x884C;&#x6D41;&#x7A0B;" class="anchor-navigation-ex-anchor" href="#&#x8FC7;&#x6EE4;&#x5668;&#x7684;&#x6267;&#x884C;&#x6D41;&#x7A0B;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x8FC7;&#x6EE4;&#x5668;&#x7684;&#x6267;&#x884C;&#x6D41;&#x7A0B;</h2>
+<h2 id="&#x8FC7;&#x6EE4;&#x5668;&#x7C7B;&#x7684;&#x6CE8;&#x518C;&#x548C;&#x76D1;&#x63A7;"><a name="&#x8FC7;&#x6EE4;&#x5668;&#x7C7B;&#x7684;&#x6CE8;&#x518C;&#x548C;&#x76D1;&#x63A7;" class="anchor-navigation-ex-anchor" href="#&#x8FC7;&#x6EE4;&#x5668;&#x7C7B;&#x7684;&#x6CE8;&#x518C;&#x548C;&#x76D1;&#x63A7;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x8FC7;&#x6EE4;&#x5668;&#x7C7B;&#x7684;&#x6CE8;&#x518C;&#x548C;&#x76D1;&#x63A7;</h2>
+<h2 id="&#x53C2;&#x8003;_1"><a name="&#x53C2;&#x8003;_1" class="anchor-navigation-ex-anchor" href="#&#x53C2;&#x8003;_1"><i class="fa fa-link" aria-hidden="true"></i></a>&#x53C2;&#x8003;</h2>
+<p><a href="https://github.com/Netflix/zuul/wiki" target="_blank">Zuul &#x5B98;&#x65B9;&#x6587;&#x6863;</a></p>
+<p><a href="https://juejin.cn/post/6856753605249564679#heading-8" target="_blank">SpringCloud&#x6574;&#x5408;Zuul&#x6E90;&#x7801;&#x5206;&#x6790;</a></p>
+
+<script>console.log("plugin-popup....");document.onclick = function(e){ e.target.tagName === "IMG" && window.open(e.target.src,e.target.src)}</script><style>img{cursor:pointer}</style>
+                                
+                                </section>
+                            
+    </div>
+    <div class="search-results">
+        <div class="has-results">
+            
+            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+            <ul class="search-results-list"></ul>
+            
+        </div>
+        <div class="no-results">
+            
+            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+            
+        </div>
+    </div>
+</div>
+
+                        </div>
+                    </div>
+                
+            </div>
+
+            
+                
+                <a href="feign.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page: feign 简述">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+                
+                
+            
+        
+    </div>
+
+    <script>
+        var gitbook = gitbook || [];
+        gitbook.push(function() {
+            gitbook.page.hasChanged({"page":{"title":"zuul 简述","level":"1.4.3.3","depth":3,"next":{"title":"设计模式","level":"1.5","depth":1,"ref":"","articles":[{"title":"Gof 的设计模式","level":"1.5.1","depth":2,"path":"系统设计/Gof设计模式.md","ref":"系统设计/Gof设计模式.md","articles":[]}]},"previous":{"title":"feign 简述","level":"1.4.3.2","depth":3,"path":"spring/spring-cloud/feign.md","ref":"spring/spring-cloud/feign.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":["intopic-toc","chapter-fold","splitter","expandable-chapters","back-to-top-button","popup","anchor-navigation-ex","livereload"],"pluginsConfig":{"chapter-fold":{},"intopic-toc":{"isCollapsed":true,"isScrollspyActive":true,"label":"Catalogue","maxDepth":6,"mode":"nested","selector":".markdown-section h1, .markdown-section h2, .markdown-section h3, .markdown-section h4, .markdown-section h5, .markdown-section h6","visible":true},"livereload":{},"splitter":{},"search":{},"popup":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"highlight":{},"anchor-navigation-ex":{"associatedWithSummary":true,"float":{"floatIcon":"fa fa-navicon","level1Icon":"","level2Icon":"","level3Icon":"","showLevelIcon":false},"mode":"float","multipleH1":true,"pageTop":{"level1Icon":"","level2Icon":"","level3Icon":"","showLevelIcon":false},"printLog":false,"showGoTop":false,"showLevel":false},"back-to-top-button":{},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false},"expandable-chapters":{}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"spring/spring-cloud/zuul.md","mtime":"2021-08-12T14:19:53.054Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-10-07T13:39:58.281Z"},"basePath":"../..","book":{"language":""}});
+        });
+    </script>
+</div>
+
+        
+    <script src="../../gitbook/gitbook.js"></script>
+    <script src="../../gitbook/theme.js"></script>
+    
+        
+        <script src="../../gitbook/gitbook-plugin-intopic-toc/anchor.min.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-intopic-toc/gumshoe.polyfills.min.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-intopic-toc/plugin.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-chapter-fold/chapter-fold.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-splitter/splitter.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-expandable-chapters/expandable-chapters.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-back-to-top-button/plugin.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-livereload/plugin.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-search/search-engine.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-search/search.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-lunr/lunr.min.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-lunr/search-lunr.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-sharing/buttons.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-fontsettings/fontsettings.js"></script>
+        
+    
+
+    </body>
+</html>
+

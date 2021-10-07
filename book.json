@@ -1,0 +1,20 @@
+{
+  "plugins": [
+    "intopic-toc",
+    "chapter-fold",
+    "splitter",
+    "expandable-chapters",
+    "back-to-top-button",
+    "popup",
+    "anchor-navigation-ex"
+  ],
+  "pluginsConfig": {
+    "intopic-toc": {
+      "label": "Catalogue"
+    },
+   "anchor-navigation-ex": {
+      "showLevel": false, 
+      "showGoTop": false 
+    }
+  }
+}

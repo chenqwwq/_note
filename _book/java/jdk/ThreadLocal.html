@@ -1,0 +1,1884 @@
+
+<!DOCTYPE HTML>
+<html lang="" >
+    <head>
+        <meta charset="UTF-8">
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <title>ThreadLocal 源码分析 · GitBook</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 3.2.3">
+        
+        
+        
+    
+    <link rel="stylesheet" href="../../gitbook/style.css">
+
+    
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-intopic-toc/style.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-chapter-fold/chapter-fold.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-splitter/splitter.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-expandable-chapters/expandable-chapters.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-back-to-top-button/plugin.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-anchor-navigation-ex/style/plugin.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-highlight/website.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-search/search.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-fontsettings/website.css">
+                
+            
+        
+
+    
+
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+
+        
+    
+    
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../../gitbook/images/apple-touch-icon-precomposed-152.png">
+    <link rel="shortcut icon" href="../../gitbook/images/favicon.ico" type="image/x-icon">
+
+    
+    <link rel="next" href="Stream.html" />
+    
+    
+
+    </head>
+    <body>
+        
+<div class="book">
+    <div class="book-summary">
+        
+            
+<div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search" />
+</div>
+
+            
+                <nav role="navigation">
+                
+
+
+<ul class="summary">
+    
+    
+
+    
+
+    
+        
+        
+    
+        <li class="chapter " data-level="1.1" data-path="../../">
+            
+                <a href="../../">
+            
+                    
+                    Introduction
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2" data-path="../">
+            
+                <a href="../">
+            
+                    
+                    Java
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1" >
+            
+                <span>
+            
+                    
+                    JDK 源码分析
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1.1" >
+            
+                <span>
+            
+                    
+                    JUC
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1.1.1" data-path="AbstractQueuedSynchronizer.html">
+            
+                <a href="AbstractQueuedSynchronizer.html">
+            
+                    
+                    AbstractQueueSynchronized 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.2" data-path="ConcurrentHashMap.html">
+            
+                <a href="ConcurrentHashMap.html">
+            
+                    
+                    ConcurrentHashMap 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.3" data-path="FutureTask.html">
+            
+                <a href="FutureTask.html">
+            
+                    
+                    FutureTask 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.4" data-path="ReetrantLock.html">
+            
+                <a href="ReetrantLock.html">
+            
+                    
+                    ReetrantLocak 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.5" data-path="ThreadPoolExecutor.html">
+            
+                <a href="ThreadPoolExecutor.html">
+            
+                    
+                    ThreadPoolExecutor 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.6" data-path="BlockingQueue.html">
+            
+                <a href="BlockingQueue.html">
+            
+                    
+                    BlockingQueue 类族
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.7" data-path="SynchronousQueue.html">
+            
+                <a href="SynchronousQueue.html">
+            
+                    
+                    SynchronousQueue
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.8" data-path="CountDownLatch.html">
+            
+                <a href="CountDownLatch.html">
+            
+                    
+                    CountDownLatch 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.9" data-path="CyclicBarrier.html">
+            
+                <a href="CyclicBarrier.html">
+            
+                    
+                    CyclicBarrier 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.10" data-path="CopyOnWriteArrayList.html">
+            
+                <a href="CopyOnWriteArrayList.html">
+            
+                    
+                    CopyOnWriteArrayList 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.11" data-path="CopyOnWriteArraySet.html">
+            
+                <a href="CopyOnWriteArraySet.html">
+            
+                    
+                    CopyOnWriteArraySet 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.12" data-path="ConcurrentSkipListMap.html">
+            
+                <a href="ConcurrentSkipListMap.html">
+            
+                    
+                    ConcurrentSkipListMap 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.13" data-path="ScheduledThreadPoolExecutor.html">
+            
+                <a href="ScheduledThreadPoolExecutor.html">
+            
+                    
+                    cheduledThreadPoolExecutor 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.14" data-path="Semaphore.html">
+            
+                <a href="Semaphore.html">
+            
+                    
+                    Semaphore 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2" >
+            
+                <span>
+            
+                    
+                    Java 集合框架
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1.2.1" data-path="HashMap源码阅读.html">
+            
+                <a href="HashMap源码阅读.html">
+            
+                    
+                    HashMap 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2.2" data-path="HashMap.html">
+            
+                <a href="HashMap.html">
+            
+                    
+                    HashMap 原理(文字表述)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2.3" data-path="LinkedHashMap源码阅读.html">
+            
+                <a href="LinkedHashMap源码阅读.html">
+            
+                    
+                    LinkedHashMap 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2.4" data-path="ArrayList.html">
+            
+                <a href="ArrayList.html">
+            
+                    
+                    ArrayList 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2.5" data-path="LinkedList源码阅读.html">
+            
+                <a href="LinkedList源码阅读.html">
+            
+                    
+                    LinkedList 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.3" >
+            
+                <span>
+            
+                    
+                    其他
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter active" data-level="1.2.1.3.1" data-path="ThreadLocal.html">
+            
+                <a href="ThreadLocal.html">
+            
+                    
+                    ThreadLocal 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.3.2" data-path="Stream.html">
+            
+                <a href="Stream.html">
+            
+                    
+                    Stream 分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2" >
+            
+                <span>
+            
+                    
+                    JVM（Java 虚拟机）
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.2.1" data-path="../jvm/关键字.html">
+            
+                <a href="../jvm/关键字.html">
+            
+                    
+                    Java 关键字整理
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.2" data-path="../jvm/引用类型.html">
+            
+                <a href="../jvm/引用类型.html">
+            
+                    
+                    Java 中的引用类型
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.3" data-path="../jvm/元空间和永久代.html">
+            
+                <a href="../jvm/元空间和永久代.html">
+            
+                    
+                    元空间和永久代
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.4" data-path="../jvm/synchronized.html">
+            
+                <a href="../jvm/synchronized.html">
+            
+                    
+                    synchronized 关键字
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.5" data-path="../jvm/JVM的类加载子系统.html">
+            
+                <a href="../jvm/JVM的类加载子系统.html">
+            
+                    
+                    JVM 的类加载子系统
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.3" >
+            
+                <span>
+            
+                    
+                    Guava 源码分析
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.3.1" data-path="../guava/EventBus.html">
+            
+                <a href="../guava/EventBus.html">
+            
+                    
+                    EventBus 相关源码解析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.3.2" data-path="../guava/RateLimiter.html">
+            
+                <a href="../guava/RateLimiter.html">
+            
+                    
+                    RateLimiter 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3" >
+            
+                <span>
+            
+                    
+                    Netty
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.3.1" data-path="../../netty/netty逻辑流程/EventLoop的初始化.html">
+            
+                <a href="../../netty/netty逻辑流程/EventLoop的初始化.html">
+            
+                    
+                    EventLoop 的初始化流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2" data-path="../../netty/netty逻辑流程/NIO服务端启动流程.html">
+            
+                <a href="../../netty/netty逻辑流程/NIO服务端启动流程.html">
+            
+                    
+                    NIO服务端启动流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.3" data-path="../../netty/netty逻辑流程/ChannelPipeline的结构和初始化流程.html">
+            
+                <a href="../../netty/netty逻辑流程/ChannelPipeline的结构和初始化流程.html">
+            
+                    
+                    ChannelPipeline的结构和初始化流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.4" data-path="../../netty/netty逻辑流程/NioEventLoop的事件轮询.html">
+            
+                <a href="../../netty/netty逻辑流程/NioEventLoop的事件轮询.html">
+            
+                    
+                    NioEventLoop的事件轮询
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.5" data-path="../../netty/netty逻辑流程/客户端Channel的创建流程.html">
+            
+                <a href="../../netty/netty逻辑流程/客户端Channel的创建流程.html">
+            
+                    
+                    客户端Channel的建立过程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.6" data-path="../../netty/netty逻辑流程/ChannelPipeline事件传递机制.html">
+            
+                <a href="../../netty/netty逻辑流程/ChannelPipeline事件传递机制.html">
+            
+                    
+                    ChannelPipeline事件传递机制
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.7" data-path="../../netty/netty逻辑流程/Netty中的编解码逻辑.html">
+            
+                <a href="../../netty/netty逻辑流程/Netty中的编解码逻辑.html">
+            
+                    
+                    Netty 中的编解码逻辑
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.8" data-path="../../netty/netty逻辑流程/Netty中写数据的逻辑.html">
+            
+                <a href="../../netty/netty逻辑流程/Netty中写数据的逻辑.html">
+            
+                    
+                    Netty 中写数据的逻辑
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.9" data-path="../../netty/netty逻辑流程/Netty中读数据的流程.html">
+            
+                <a href="../../netty/netty逻辑流程/Netty中读数据的流程.html">
+            
+                    
+                    Netty 中读数据的流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.10" data-path="../../netty/util/FastThreadLocal.html">
+            
+                <a href="../../netty/util/FastThreadLocal.html">
+            
+                    
+                    FastThreadLocal 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.11" data-path="../../netty/util/ChannelPool.html">
+            
+                <a href="../../netty/util/ChannelPool.html">
+            
+                    
+                    ChannelPool 相关分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.12" data-path="../../netty/ChannelOption整理.html">
+            
+                <a href="../../netty/ChannelOption整理.html">
+            
+                    
+                    ChannelOption 整理
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4" >
+            
+                <span>
+            
+                    
+                    Spring
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.1" >
+            
+                <span>
+            
+                    
+                    Spring Core
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.1.1" data-path="../../spring/spring-core/aop/aop 概念.md">
+            
+                <span>
+            
+                    
+                    AOP相关概念
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.1.2" data-path="../../spring/spring-core/aop/ProxyFactory.html">
+            
+                <a href="../../spring/spring-core/aop/ProxyFactory.html">
+            
+                    
+                    ProxyFactory
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.1.3" data-path="../../spring/spring-core/aop/Aop实现的不同方式.html">
+            
+                <a href="../../spring/spring-core/aop/Aop实现的不同方式.html">
+            
+                    
+                    Aop 实现的不同方式
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.1.4" data-path="../../spring/spring-core/module/async.html">
+            
+                <a href="../../spring/spring-core/module/async.html">
+            
+                    
+                    Async的实现原理
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.2" >
+            
+                <span>
+            
+                    
+                    SpringBoot
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.2.1" data-path="../../spring/spring-boot/SpringBoot的事件模型 .html">
+            
+                <a href="../../spring/spring-boot/SpringBoot的事件模型 .html">
+            
+                    
+                    SpringBoot的事件模型
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.2.2" data-path="../../spring/spring-boot/SpringBoot的启动流程.html">
+            
+                <a href="../../spring/spring-boot/SpringBoot的启动流程.html">
+            
+                    
+                    SpringBoot的启动流程简述
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.2.3" data-path="../../spring/spring-boot/SpringBoot的工厂加载模式.html">
+            
+                <a href="../../spring/spring-boot/SpringBoot的工厂加载模式.html">
+            
+                    
+                    SpringBoot的工厂加载模式
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.3" >
+            
+                <span>
+            
+                    
+                    SpringCloud
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.3.1" data-path="../../spring/spring-cloud/consul.html">
+            
+                <a href="../../spring/spring-cloud/consul.html">
+            
+                    
+                    consul 简述
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.3.2" data-path="../../spring/spring-cloud/feign.html">
+            
+                <a href="../../spring/spring-cloud/feign.html">
+            
+                    
+                    feign 简述
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.3.3" data-path="../../spring/spring-cloud/zuul.html">
+            
+                <a href="../../spring/spring-cloud/zuul.html">
+            
+                    
+                    zuul 简述
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5" >
+            
+                <span>
+            
+                    
+                    设计模式
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.5.1" data-path="../../系统设计/Gof设计模式.html">
+            
+                <a href="../../系统设计/Gof设计模式.html">
+            
+                    
+                    Gof 的设计模式
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6" >
+            
+                <span>
+            
+                    
+                    中间件
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.6.1" >
+            
+                <span>
+            
+                    
+                    RabbitMQ
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.6.1.1" data-path="../../消息队列/RabbitMQ如何保证消息不丢失.html">
+            
+                <a href="../../消息队列/RabbitMQ如何保证消息不丢失.html">
+            
+                    
+                    RabbitMQ 如何保证消息不丢失
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6.2" >
+            
+                <span>
+            
+                    
+                    Redis
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.6.2.1" data-path="../../redis/Redis的五种数据结构.html">
+            
+                <a href="../../redis/Redis的五种数据结构.html">
+            
+                    
+                    Redis 的五种数据结构
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6.2.2" data-path="../../redis/Redis的Sentinel模式.html">
+            
+                <a href="../../redis/Redis的Sentinel模式.html">
+            
+                    
+                    Redis 的哨兵模式
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6.2.3" data-path="../../redis/Redis的主从复制模式.html">
+            
+                <a href="../../redis/Redis的主从复制模式.html">
+            
+                    
+                    Redis 的主从复制模式
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.7" >
+            
+                <span>
+            
+                    
+                    网络
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.7.1" >
+            
+                <span>
+            
+                    
+                    TCP
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.7.1.1" data-path="../../网络/tcp协议整理1.html">
+            
+                <a href="../../网络/tcp协议整理1.html">
+            
+                    
+                    TCP 协议总结（一）
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.7.1.2" data-path="../../网络/tcp内核参数整理.html">
+            
+                <a href="../../网络/tcp内核参数整理.html">
+            
+                    
+                    Linux 中的相关 TCP 参数
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+    
+
+    <li class="divider"></li>
+
+    <li>
+        <a href="https://www.gitbook.com" target="blank" class="gitbook-link">
+            Published with GitBook
+        </a>
+    </li>
+</ul>
+
+
+                </nav>
+            
+        
+    </div>
+
+    <div class="book-body">
+        
+            <div class="body-inner">
+                
+                    
+
+<div class="book-header" role="navigation">
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href="../.." >ThreadLocal 源码分析</a>
+    </h1>
+</div>
+
+
+
+
+                    <div class="page-wrapper" tabindex="-1" role="main">
+                        <div class="page-inner">
+                            
+<div id="book-search-results">
+    <div class="search-noresults">
+    
+                                <section class="normal markdown-section">
+                                
+                                <div id="anchor-navigation-ex-navbar"><i class="fa fa-navicon"></i><ul><li><span class="title-icon "></span><a href="#threadlocal"><b></b>ThreadLocal</a></li><ul><li><span class="title-icon "></span><a href="#&#x601D;&#x7EF4;&#x5BFC;&#x56FE;"><b></b>&#x601D;&#x7EF4;&#x5BFC;&#x56FE;</a></li><li><span class="title-icon "></span><a href="#&#x6982;&#x8FF0;"><b></b>&#x6982;&#x8FF0;</a></li><li><span class="title-icon "></span><a href="#threadlocal_1"><b></b>ThreadLocal</a></li><ul><li><span class="title-icon "></span><a href="#&#x6570;&#x636E;&#x83B7;&#x53D6;"><b></b>&#x6570;&#x636E;&#x83B7;&#x53D6;</a></li><li><span class="title-icon "></span><a href="#&#x6570;&#x636E;&#x5B58;&#x50A8;"><b></b>&#x6570;&#x636E;&#x5B58;&#x50A8;</a></li></ul><li><span class="title-icon "></span><a href="#threadlocalmap"><b></b>ThreadLocalMap</a></li><ul><li><span class="title-icon "></span><a href="#&#x6210;&#x5458;&#x53D8;&#x91CF;"><b></b>&#x6210;&#x5458;&#x53D8;&#x91CF;</a></li><li><span class="title-icon "></span><a href="#&#x5143;&#x7D20;&#x83B7;&#x53D6;"><b></b>&#x5143;&#x7D20;&#x83B7;&#x53D6;</a></li><li><span class="title-icon "></span><a href="#&#x5143;&#x7D20;&#x6DFB;&#x52A0;"><b></b>&#x5143;&#x7D20;&#x6DFB;&#x52A0;</a></li><li><span class="title-icon "></span><a href="#&#x6269;&#x5BB9;&#x8C03;&#x6574;&#x65B9;&#x6CD5;"><b></b>&#x6269;&#x5BB9;&#x8C03;&#x6574;&#x65B9;&#x6CD5;</a></li></ul><li><span class="title-icon "></span><a href="#inheritablethreadlocal"><b></b>InheritableThreadLocal</a></li><li><span class="title-icon "></span><a href="#q--a"><b></b>Q &amp; A</a></li></ul></ul></div><h1 id="threadlocal"><a name="threadlocal" class="anchor-navigation-ex-anchor" href="#threadlocal"><i class="fa fa-link" aria-hidden="true"></i></a>ThreadLocal</h1>
+<hr>
+<p>[TOC]</p>
+<hr>
+<h2 id="&#x601D;&#x7EF4;&#x5BFC;&#x56FE;"><a name="&#x601D;&#x7EF4;&#x5BFC;&#x56FE;" class="anchor-navigation-ex-anchor" href="#&#x601D;&#x7EF4;&#x5BFC;&#x56FE;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x601D;&#x7EF4;&#x5BFC;&#x56FE;</h2>
+<p><img src="assets/ThreadLocal.png" alt="ThreadLocal&#x601D;&#x7EF4;&#x5BFC;&#x56FE;"></p>
+<p><br></p>
+<h2 id="&#x6982;&#x8FF0;"><a name="&#x6982;&#x8FF0;" class="anchor-navigation-ex-anchor" href="#&#x6982;&#x8FF0;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x6982;&#x8FF0;</h2>
+<p>ThreadLocal&#xFF08;&#x7EBF;&#x7A0B;&#x5C40;&#x90E8;&#x53D8;&#x91CF;&#xFF09;&#xFF0C;&#x4F5C;&#x7528;&#x662F;<strong>&#x4FDD;&#x5B58;&#x6BCF;&#x4E2A;&#x7EBF;&#x7A0B;&#x7684;&#x79C1;&#x6709;&#x53D8;&#x91CF;</strong>&#xFF0C;&#x4EE5;&#x7A7A;&#x95F4;&#x6362;&#x65F6;&#x95F4;&#x7684;&#x65B9;&#x5F0F;&#xFF0C;&#x4E3A;&#x6BCF;&#x4E00;&#x4E2A;&#x7EBF;&#x7A0B;&#x4FDD;&#x5B58;&#x4E00;&#x4EFD;<strong>&#x79C1;&#x6709;</strong>&#x53D8;&#x91CF;&#xFF0C;&#x4E5F;&#x5C31;&#x4E0D;&#x5B58;&#x5728;&#x6240;&#x8C13;&#x7684;&#x5E76;&#x53D1;&#x95EE;&#x9898;&#x3002;</p>
+<blockquote>
+<p>&#x771F;&#x5B9E;&#x7684;&#x6570;&#x636E;&#x5E76;&#x4E0D;&#x4F1A;&#x5B58;&#x5728; ThreadLocal &#x4E2D;&#x3002;</p>
+<p>&#x5B9E;&#x9645;&#x4E0A;&#xFF0C;&#x6570;&#x636E;&#x90FD;&#x4FDD;&#x5B58;&#x5728; Thread &#x5BF9;&#x8C61;&#x4E2D; Thread#threadLocals &#x8FD9;&#x4E2A;&#x6210;&#x5458;&#x53D8;&#x91CF;&#x91CC;&#xFF0C;&#x6240;&#x4EE5;&#x4E00;&#x5B9A;&#x7A0B;&#x5EA6;&#x4E0A; ThreadLocal &#x53EA;&#x662F;&#x4E00;&#x4E2A;&#x64CD;&#x4F5C;&#x8BE5;&#x96C6;&#x5408;&#x7684;&#x5DE5;&#x5177;&#x7C7B;&#x3002;</p>
+</blockquote>
+<p><br></p>
+<p>&#x4EE5;&#x4E0B;&#x5C31;&#x662F; ThreadLocalMap &#x5728; Thread &#x4E2D;&#x7684;&#x53D8;&#x91CF;&#x58F0;&#x660E;:</p>
+<p> <img src="assets/ThreadLocalMap&#x7684;&#x53D8;&#x91CF;&#x58F0;&#x660E;.png" alt="ThreadLocalMap&#x7684;&#x53D8;&#x91CF;&#x58F0;&#x660E;"></p>
+<blockquote>
+<p>threadLocals &#x662F;&#x7ED9; ThreadLocal &#x7528;&#x7684;&#xFF0C;&#x8BE5;&#x7C7B;&#x53EA;&#x80FD;&#x8BBF;&#x95EE;&#x5F53;&#x524D;&#x7EBF;&#x7A0B;&#x4E2D;&#x7684;&#x6570;&#x636E;&#x3002;</p>
+<p>inheritableThreadLocal &#x662F;&#x7ED9; InheritableThreadLocal &#x7528;&#x7684;&#xFF0C;&#x4F7F;&#x7528;&#x8BE5;&#x7C7B;&#x5B50;&#x7EBF;&#x7A0B;&#x53EF;&#x4EE5;&#x8BBF;&#x95EE;&#x5230;&#x7236;&#x7EBF;&#x7A0B;&#x7684;&#x6570;&#x636E;&#x3002;</p>
+</blockquote>
+<p><br></p>
+<h2 id="threadlocal_1"><a name="threadlocal_1" class="anchor-navigation-ex-anchor" href="#threadlocal_1"><i class="fa fa-link" aria-hidden="true"></i></a>ThreadLocal</h2>
+<p>ThreadLocal &#x7684;&#x5185;&#x90E8;&#x65B9;&#x6CD5;&#x56E0;&#x4E3A;&#x903B;&#x8F91;&#x90FD;&#x4E0D;&#x590D;&#x6742;&#xFF0C;&#x4E0D;&#x9700;&#x8981;&#x5355;&#x72EC;&#x51FA;&#x6765;&#x770B;,&#x5C31;&#x76F4;&#x63A5;&#x5168;&#x653E;&#x4E00;&#x5757;&#x4E86;&#x3002;</p>
+<h3 id="&#x6570;&#x636E;&#x83B7;&#x53D6;"><a name="&#x6570;&#x636E;&#x83B7;&#x53D6;" class="anchor-navigation-ex-anchor" href="#&#x6570;&#x636E;&#x83B7;&#x53D6;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x6570;&#x636E;&#x83B7;&#x53D6;</h3>
+<pre><code class="lang-java">   <span class="hljs-comment">// &#x76F4;&#x63A5;&#x83B7;&#x53D6;&#x7EBF;&#x7A0B;&#x79C1;&#x6709;&#x7684;&#x6570;&#x636E;</span>
+   <span class="hljs-function"><span class="hljs-keyword">public</span> T <span class="hljs-title">get</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-comment">// &#x83B7;&#x53D6;&#x5F53;&#x524D;&#x7EBF;&#x7A0B;</span>
+        Thread t = Thread.currentThread();
+        <span class="hljs-comment">// getMap&#x5176;&#x5B9E;&#x5F88;&#x7B80;&#x5355;&#x5C31;&#x662F;&#x83B7;&#x53D6;`t`&#x4E2D;&#x7684;`threadLocals`,&#x4EE3;&#x7801;&#x5728;`&#x5DE5;&#x5177;&#x65B9;&#x6CD5;`&#x4E2D;</span>
+        ThreadLocalMap map = getMap(t); 
+        <span class="hljs-keyword">if</span> (map != <span class="hljs-keyword">null</span>) {                                        <span class="hljs-comment">// 3.</span>
+            ThreadLocalMap.Entry e = map.getEntry(<span class="hljs-keyword">this</span>);
+            <span class="hljs-keyword">if</span> (e != <span class="hljs-keyword">null</span>) {                            <span class="hljs-comment">// 2.</span>
+                <span class="hljs-meta">@SuppressWarnings</span>(<span class="hljs-string">&quot;unchecked&quot;</span>)
+                T result = (T)e.value;
+                <span class="hljs-keyword">return</span> result;
+            }
+        }
+        <span class="hljs-keyword">return</span> setInitialValue();                  <span class="hljs-comment">// 1.</span>
+    }
+    <span class="hljs-comment">// &#x8FD9;&#x4E2A;&#x65B9;&#x6CD5;&#x53EA;&#x6709;&#x5728;&#x4E0A;&#x9762;`1.`&#x5904;&#x8C03;&#x7528;...&#x4E0D;&#x77E5;&#x9053;&#x4E3A;&#x4EC0;&#x4E48;map,thread&#x4E0D;&#x76F4;&#x63A5;&#x4F20;&#x53C2;</span>
+    <span class="hljs-comment">// &#x8BE5;&#x65B9;&#x6CD5;&#x7684;&#x529F;&#x80FD;&#x5C31;&#x662F;&#x4E3A;`Thread`&#x8BBE;&#x7F6E;`threadLocals`&#x7684;&#x521D;&#x59CB;&#x503C;</span>
+    <span class="hljs-function"><span class="hljs-keyword">private</span> T <span class="hljs-title">setInitialValue</span><span class="hljs-params">()</span> </span>{
+        T value = initialValue();
+        Thread t = Thread.currentThread();
+        ThreadLocalMap map = getMap(t);
+        <span class="hljs-comment">// map&#x4E0D;&#x4E3A;null&#x8868;&#x660E;&#x662F;&#x4ECE;&#x4E0A;&#x9762;&#x7684;`2.`&#x5904;&#x8FDB;&#x5165;&#x8BE5;&#x65B9;&#x6CD5;</span>
+        <span class="hljs-comment">// &#x5DF2;&#x7ECF;&#x521D;&#x59CB;&#x5316;`threadLocals`,&#x4F46;&#x5E76;&#x672A;&#x627E;&#x5230;&#x5F53;&#x524D;&#x5BF9;&#x5E94;&#x7684;`Entry`</span>
+        <span class="hljs-comment">// &#x6240;&#x4EE5;&#x6B64;&#x65F6;&#x76F4;&#x63A5;&#x6DFB;&#x52A0;`Entry`&#x5C31;&#x884C;</span>
+        <span class="hljs-keyword">if</span> (map != <span class="hljs-keyword">null</span>)
+            map.set(<span class="hljs-keyword">this</span>, value);
+        <span class="hljs-keyword">else</span>
+            createMap(t, value);
+        <span class="hljs-keyword">return</span> value;
+    }
+      <span class="hljs-comment">// &#x521D;&#x59CB;&#x503C;,`protected`&#x65B9;&#x4FBF;&#x5B50;&#x7C7B;&#x7EE7;&#x627F;,&#x5E76;&#x5B9A;&#x4E49;&#x81EA;&#x5DF1;&#x7684;&#x521D;&#x59CB;&#x503C;.</span>
+      <span class="hljs-function"><span class="hljs-keyword">protected</span> T <span class="hljs-title">initialValue</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+      }
+
+    <span class="hljs-comment">// &#x521B;&#x5EFA;&#x5E76;&#x8D4B;&#x503C;`threadLocals`&#x7684;&#x65B9;&#x6CD5;</span>
+     <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">createMap</span><span class="hljs-params">(Thread t, T firstValue)</span> </span>{
+        t.threadLocals = <span class="hljs-keyword">new</span> ThreadLocalMap(<span class="hljs-keyword">this</span>, firstValue);
+    }
+</code></pre>
+<p>&#x6574;&#x4E2A;&#x83B7;&#x53D6;&#x7684;&#x8FC7;&#x7A0B;&#xFF1A;</p>
+<ol>
+<li>&#x901A;&#x8FC7; Thread#currentThread &#x65B9;&#x6CD5;&#x83B7;&#x53D6;&#x5F53;&#x524D;&#x7EBF;&#x7A0B;&#x5BF9;&#x8C61;&#x3002;</li>
+<li>&#x9996;&#x5148;&#x901A;&#x8FC7; getMap &#x65B9;&#x6CD5;&#x83B7;&#x53D6;&#x5F53;&#x524D;&#x7EBF;&#x7A0B;&#x7ED1;&#x5B9A;&#x7684; threadLocals&#x3002;</li>
+<li>&#x4E0D;&#x8981;&#x4E3A;&#x7A7A;&#x65F6;&#xFF0C;&#x4EE5;&#x5F53;&#x524D; ThreadLocal &#x5BF9;&#x8C61;&#x4E3A;&#x53C2;&#x6570;&#x83B7;&#x53D6;&#x5BF9;&#x5E94;&#x7684;Entry &#x5BF9;&#x8C61;&#xFF0C;&#x4E3A;&#x7A7A;&#x8DF3;&#x5230;&#x7B2C;&#x56DB;&#x6B65;</li>
+<li>&#x83B7;&#x53D6; Entry &#x5BF9;&#x8C61;&#x4E2D;&#x7684; value &#x5E76;&#x8FD4;&#x56DE;&#x3002;</li>
+<li>&#x8C03;&#x7528; setInitialValue&#x65B9;&#x6CD5;&#x521D;&#x59CB;&#x5316;&#x503C;&#x5E76;&#x8FD4;&#x56DE;&#x3002;</li>
+</ol>
+<p><br></p>
+<p><strong>&#x8FD9;&#x91CC;&#x53EF;&#x4EE5;&#x5F88;&#x660E;&#x663E;&#x7684;&#x770B;&#x51FA;&#x6765;&#xFF0C;&#x6570;&#x636E;&#x5176;&#x5B9E;&#x8FD8;&#x662F;&#x4FDD;&#x5B58;&#x5728; Thread &#x5BF9;&#x8C61;&#x91CC;&#x7684;&#xFF0C;&#x5E76;&#x4E14;&#x901A;&#x8FC7; getMap &#x65B9;&#x6CD5;&#x786E;&#x5B9A;&#x76EE;&#x6807; ThreadLocalMap&#x3002;</strong></p>
+<p>&#x901A;&#x8FC7; setInitialValue &#x65B9;&#x6CD5;&#x53EF;&#x4EE5;&#x8BBE;&#x5B9A;&#x521D;&#x59CB;&#x503C;&#x3002;</p>
+<blockquote>
+<p>&#x4F8B;&#x5982;&#xFF0C;&#x5E0C;&#x671B;&#x7EDF;&#x8BA1;&#x6BCF;&#x4E2A;&#x7EBF;&#x7A0B;&#x7684;&#x67D0;&#x4E2A;&#x64CD;&#x4F5C;&#x8BA1;&#x6570;&#xFF0C;&#x90A3;&#x4E48;&#x5C31;&#x53EF;&#x4EE5;&#x7528;&#x5982;&#x4E0B;&#x7684;&#x65B9;&#x6CD5;&#xFF1A;</p>
+<pre><code class="lang-java">ThreadLocal&lt;Integer&gt; counter = <span class="hljs-keyword">new</span> ThreadLocal&lt;Integer&gt;() {
+        <span class="hljs-meta">@Override</span>
+        <span class="hljs-function"><span class="hljs-keyword">protected</span> Integer <span class="hljs-title">initialValue</span><span class="hljs-params">()</span> </span>{
+            <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+        }
+};
+</code></pre>
+<p>&#x4EE5; 0 &#x4E3A;&#x521D;&#x59CB;&#x503C;&#x505A;&#x7EDF;&#x8BA1;&#x3002;</p>
+</blockquote>
+<p><br></p>
+<p><br></p>
+<h3 id="&#x6570;&#x636E;&#x5B58;&#x50A8;"><a name="&#x6570;&#x636E;&#x5B58;&#x50A8;" class="anchor-navigation-ex-anchor" href="#&#x6570;&#x636E;&#x5B58;&#x50A8;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x6570;&#x636E;&#x5B58;&#x50A8;</h3>
+<pre><code class="lang-java"> <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">set</span><span class="hljs-params">(T value)</span> </span>{
+        <span class="hljs-comment">// &#x83B7;&#x53D6;&#x5F53;&#x524D;&#x7EBF;&#x7A0B;</span>
+        Thread t = Thread.currentThread();
+        ThreadLocalMap map = getMap(t);     <span class="hljs-comment">// .1</span>
+        <span class="hljs-keyword">if</span> (map != <span class="hljs-keyword">null</span>)
+            map.set(<span class="hljs-keyword">this</span>, value);
+        <span class="hljs-keyword">else</span>
+            createMap(t, value);
+ }
+</code></pre>
+<p>&#x6D41;&#x7A0B;&#x7B80;&#x8FF0;&#x5982;&#x4E0B;&#xFF1A;</p>
+<ol>
+<li>&#x83B7;&#x53D6;&#x5F53;&#x524D;&#x7EBF;&#x7A0B;,&#x5E76;&#x4EE5;&#x6B64;&#x83B7;&#x53D6;&#x7EBF;&#x7A0B;&#x7ED1;&#x5B9A;&#x7684; ThreadLocalMap &#x5BF9;&#x8C61;&#x3002;</li>
+<li>map &#x4E0D;&#x4E3A;&#x7A7A;&#x65F6;,&#x76F4;&#x63A5;set&#x3002;</li>
+<li>map &#x4E3A;&#x7A7A;&#x65F6;&#x9700;&#x8981;&#x5148;&#x521B;&#x5EFA; Map &#x5E76;&#x8D4B;&#x503C;&#x3002;</li>
+</ol>
+<p><br><br></p>
+<blockquote>
+<p><strong>Thread &#x4E2D;&#x5B58;&#x5728;&#x4E24;&#x4E2A; ThradLocalMap&#xFF0C;&#x5728;&#x5B58;&#x53D6;&#x65B9;&#x6CD5;&#x4E2D;&#x90FD;&#x662F;&#x901A;&#x8FC7; getMap &#x65B9;&#x6CD5;&#x786E;&#x5B9A;&#x9700;&#x8981;&#x64CD;&#x4F5C;&#x7684;&#x96C6;&#x5408;&#x3002;</strong></p>
+</blockquote>
+<h2 id="threadlocalmap"><a name="threadlocalmap" class="anchor-navigation-ex-anchor" href="#threadlocalmap"><i class="fa fa-link" aria-hidden="true"></i></a>ThreadLocalMap</h2>
+<p>ThreadLocalMap &#x7C7B;&#x4F3C;&#x4E8E; HashMap &#xFF0C;&#x4E5F;&#x662F;&#x4F7F;&#x7528; Hash &#x7B97;&#x6CD5;&#x5B9A;&#x4F4D;&#x5B58;&#x53D6;&#x7684;&#x6570;&#x636E;&#x7ED3;&#x6784;&#xFF0C;<strong>&#x4EE5; ThreadLocal &#x5BF9;&#x8C61;&#x4E3A; Key&#xFF0C;&#x5C40;&#x90E8;&#x53D8;&#x91CF;&#x4E3A; Value</strong></p>
+<p>Hash &#x7B97;&#x6CD5;&#x5408;&#x7406;&#x65F6; ThreadLocalMap &#x7684;&#x5B58;&#x53D6;&#x64CD;&#x4F5C;&#x8FD1;&#x4E4E;&#x662F; O(1) &#x7684;&#x590D;&#x6742;&#x5EA6;&#x3002;</p>
+<p>ThreadLocalMap &#x51FA;&#x4EBA;&#x610F;&#x6599;&#x7684;&#x5E76;&#x6CA1;&#x6709;&#x7EE7;&#x627F;&#x4EFB;&#x4F55;&#x4E00;&#x4E2A;&#x7C7B;&#x6216;&#x63A5;&#x53E3;&#xFF0C;&#x662F;&#x5B8C;&#x5168;&#x72EC;&#x7ACB;&#x7684;&#x7C7B;&#xFF08;&#x4EE5;&#x4E3A;&#x4F1A;&#x50CF; HashMap &#x4E00;&#x6837;&#x7EE7;&#x627F; AbstractMap&#x3002;</p>
+<p><br></p>
+<h3 id="&#x6210;&#x5458;&#x53D8;&#x91CF;"><a name="&#x6210;&#x5458;&#x53D8;&#x91CF;" class="anchor-navigation-ex-anchor" href="#&#x6210;&#x5458;&#x53D8;&#x91CF;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x6210;&#x5458;&#x53D8;&#x91CF;</h3>
+<pre><code class="lang-java"><span class="hljs-comment">// &#x9ED8;&#x8BA4;&#x7684;&#x521D;&#x59CB;&#x5BB9;&#x91CF; &#x4E00;&#x5B9A;&#x8981;&#x662F;&#x4E8C;&#x7684;&#x6B21;&#x5E42;</span>
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> INITIAL_CAPACITY = <span class="hljs-number">16</span>;
+<span class="hljs-comment">// &#x5143;&#x7D20;&#x6570;&#x7EC4;/&#x6761;&#x76EE;&#x6570;&#x7EC4;</span>
+<span class="hljs-keyword">private</span> Entry[] table;
+<span class="hljs-comment">// &#x5927;&#x5C0F;,&#x7528;&#x4E8E;&#x8BB0;&#x5F55;&#x6570;&#x7EC4;&#x4E2D;&#x5B9E;&#x9645;&#x5B58;&#x5728;&#x7684;Entry&#x6570;&#x76EE;</span>
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">int</span> size = <span class="hljs-number">0</span>;
+<span class="hljs-comment">// &#x9608;&#x503C;</span>
+<span class="hljs-keyword">private</span> <span class="hljs-keyword">int</span> threshold; <span class="hljs-comment">// Default to 0 &#x6784;&#x9020;&#x65B9;&#x6CD5;</span>
+</code></pre>
+<blockquote>
+<p><strong>ThreadLocalMap &#x7684;&#x5E95;&#x5C42;&#x6570;&#x636E;&#x7ED3;&#x6784;&#x662F; Entry &#x7684;&#x6570;&#x7EC4;&#xFF0C;</strong>&#x5E76;&#x4E14;&#x9ED8;&#x8BA4;&#x5BB9;&#x91CF;&#x4E3A;16&#x3002;</p>
+</blockquote>
+<p><br></p>
+<p>&#x4EE5;&#x4E0B;&#x4E3A; Entry &#x5BF9;&#x8C61;&#x7684;&#x58F0;&#x660E;&#x5F62;&#x5F0F;&#xFF1A;</p>
+<p> <img src="../../../pic/image-20210221154222208.png" alt="ThreadLocalMap$Entry"></p>
+<blockquote>
+<p><strong>WeakReference &#x58F0;&#x660E;&#x4E86; Entry &#x5BF9;&#x8C61;&#x4E2D;&#x5BF9;&#x4E8E;&#x5BF9;&#x4E8E; ThreadLocal &#x5BF9;&#x8C61;&#x7684;&#x5F15;&#x7528;&#x662F;&#x5F31;&#x5F15;&#x7528;&#x3002;</strong></p>
+<p><strong>&#x5F31;&#x5F15;&#x7528;&#x6D88;&#x9664;&#x4E86; ThreadLocalMap &#x7684;&#x5F15;&#x7528;&#x5BF9; ThreadLocal &#x7684; GC &#x7684;&#x5F71;&#x54CD;&#xFF0C;</strong>&#x8FD9;&#x662F; ThreadLocal &#x907F;&#x514D;&#x5185;&#x5B58;&#x6CC4;&#x6F0F;&#x7684;&#x6838;&#x5FC3;&#x903B;&#x8F91;&#x3002;</p>
+</blockquote>
+<p><br></p>
+<h3 id="&#x5143;&#x7D20;&#x83B7;&#x53D6;"><a name="&#x5143;&#x7D20;&#x83B7;&#x53D6;" class="anchor-navigation-ex-anchor" href="#&#x5143;&#x7D20;&#x83B7;&#x53D6;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x5143;&#x7D20;&#x83B7;&#x53D6;</h3>
+<h4 id="getentrythreadlocal-key"><a name="getentrythreadlocal-key" class="anchor-navigation-ex-anchor" href="#getentrythreadlocal-key"><i class="fa fa-link" aria-hidden="true"></i></a>getEntry(ThreadLocal&lt;?&gt; key)</h4>
+<p>&#x8BE5;&#x65B9;&#x6CD5;&#x5C31;&#x662F;&#x901A;&#x8FC7; ThreadLocal &#x5BF9;&#x8C61;&#x83B7;&#x53D6;&#x5BF9;&#x5E94;&#x7684;&#x6570;&#x636E;&#x3002;</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">private</span> Entry <span class="hljs-title">getEntry</span><span class="hljs-params">(ThreadLocal&lt;?&gt; key)</span> </span>{
+        <span class="hljs-comment">// &#x548C;HashMap&#x4E2D;&#x4E00;&#x6837;&#x7684;&#x4E0B;&#x6807;&#x8BA1;&#x7B97;&#x65B9;&#x5F0F;</span>
+        <span class="hljs-keyword">int</span> i = key.threadLocalHashCode &amp; (table.length - <span class="hljs-number">1</span>);
+        Entry e = table[i];
+        <span class="hljs-comment">// &#x83B7;&#x53D6;&#x5230;&#x5BF9;&#x5E94;&#x7684;Entry&#x4E4B;&#x540E;&#x5C31;&#x5206;&#x4E24;&#x6B65;</span>
+        <span class="hljs-keyword">if</span> (e != <span class="hljs-keyword">null</span> &amp;&amp; e.get() == key)
+            <span class="hljs-comment">// 1. e&#x4E0D;&#x4E3A;&#x7A7A;&#x4E14;threadLocal&#x76F8;&#x7B49;</span>
+            <span class="hljs-keyword">return</span> e;        
+        <span class="hljs-keyword">else</span>                                                        
+            <span class="hljs-comment">// 2. e&#x4E3A;&#x7A7A;&#x6216;&#x8005;threadLocal&#x4E0D;&#x76F8;&#x7B49;                </span>
+            <span class="hljs-keyword">return</span> getEntryAfterMiss(key, i, e);
+}
+</code></pre>
+<p>&#x8D77;&#x624B;&#x5C31;&#x662F;&#x4E00;&#x4E2A; HashCode &amp; (len - 1)&#xFF0C;&#x548C; HashMap &#x7C7B;&#x4F3C;&#xFF0C;&#x4F46;ThreadLocal &#x7684; HashCode &#x548C; HashMap &#x4E2D;&#x7684;&#x76F4;&#x63A5;&#x8C03;&#x7528; hashCode() &#x65B9;&#x6CD5;&#x4E0D;&#x540C;&#x3002;</p>
+<p>ThreadLocal &#x662F;&#x91C7;&#x7528;&#x9012;&#x589E;&#x7684;&#x5F62;&#x5F0F;&#xFF0C;&#x800C;&#x975E;&#x76F4;&#x63A5;&#x8BA1;&#x7B97;&#x5BF9;&#x8C61;&#x7684; HashCode&#x3002;</p>
+<p><br></p>
+<pre><code class="lang-java"> <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> threadLocalHashCode = nextHashCode();
+ <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> AtomicInteger nextHashCode = <span class="hljs-keyword">new</span> AtomicInteger();  
+ <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">int</span> <span class="hljs-title">nextHashCode</span><span class="hljs-params">()</span> </span>{
+     <span class="hljs-keyword">return</span> nextHashCode.getAndAdd(HASH_INCREMENT);
+ }
+</code></pre>
+<p> &#x4EE5;&#x4E0A;&#x5C31;&#x662F; HashCode &#x7684;&#x83B7;&#x53D6;&#x65B9;&#x5F0F;&#xFF0C;<strong>&#x662F;&#x4EE5;&#x7C7B;&#x53D8;&#x91CF;&#x7684;&#x65B9;&#x5F0F;&#x9012;&#x589E;&#x83B7;&#x53D6;</strong>&#xFF0C;&#x76F8;&#x5BF9;&#x4E8E;&#x76F4;&#x63A5;&#x8C03;&#x7528; hashCode() &#x53EF;&#x4EE5;&#x66F4;&#x597D;&#x7684;&#x51CF;&#x5C11; hash &#x51B2;&#x7A81;&#x3002;</p>
+<blockquote>
+<p>&#x6BCF;&#x6B21;&#x521B;&#x5EFA;&#x4E00;&#x4E2A; ThreadLocal&#xFF0C;hashCode &#x90FD;&#x4F1A;+1&#xFF0C;&#x6240;&#x4EE5;&#x80FD;&#x4F7F;&#x6570;&#x636E;&#x66F4;&#x52A0;&#x5747;&#x5300;&#x7684;&#x6563;&#x5E03;&#x5728;&#x6570;&#x7EC4;&#x4E2D;&#xFF0C;&#x66F4;&#x597D;&#x7684;&#x51CF;&#x5C11; hash &#x51B2;&#x7A81;&#x3002;</p>
+</blockquote>
+<p><br></p>
+<p>&#x5982;&#x679C;hash&#x8BA1;&#x7B97;&#x51FA;&#x6765;&#x7684;&#x4E0B;&#x6807;&#x5B58;&#x5728;&#x60F3;&#x8981;&#x7684;&#x5143;&#x7D20;&#x5C31;&#x76F4;&#x63A5;&#x8FD4;&#x56DE;&#xFF0C;&#x5982;&#x679C;&#x83B7;&#x53D6;&#x5143;&#x7D20;&#x4E3A;&#x7A7A;&#x8FD8;&#x4F1A;&#x518D;&#x8C03;&#x7528; <code>getEntryAfterMiss</code> &#x505A;&#x51B2;&#x7A81;&#x67E5;&#x8BE2;&#x7684;&#x540E;&#x7EED;&#x5904;&#x7406;.</p>
+<p><br>        <br></p>
+<h4 id="getentryaftermissthreadlocal-key-int-i-entry-e"><a name="getentryaftermissthreadlocal-key-int-i-entry-e" class="anchor-navigation-ex-anchor" href="#getentryaftermissthreadlocal-key-int-i-entry-e"><i class="fa fa-link" aria-hidden="true"></i></a>getEntryAfterMiss(ThreadLocal&lt;?&gt; key, int i, Entry e)</h4>
+<p>&#x8BE5;&#x65B9;&#x6CD5;&#x662F;&#x5728;&#x76F4;&#x63A5;&#x6309;&#x7167; <code>Hash</code> &#x8BA1;&#x7B97;&#x4E0B;&#x6807;&#x540E;&#xFF0C;&#x6CA1;&#x83B7;&#x53D6;&#x5230;&#x5BF9;&#x5E94;&#x7684; <code>Entry</code> &#x5BF9;&#x8C61;&#x7684;&#x65F6;&#x5019;&#x8C03;&#x7528;&#xFF0C;<strong>&#x4E0B;&#x6807;&#x5904;&#x4E0D;&#x662F;&#x60F3;&#x8981;&#x7684;&#x5143;&#x7D20;&#x5C31;&#x8BF4;&#x660E;&#x51FA;&#x73B0;&#x4E86; Hash &#x51B2;&#x7A81;&#x3002;</strong></p>
+<p>&#x4EE5;&#x4E0B;&#x4E3A;&#x65B9;&#x6CD5;&#x6E90;&#x7801;&#xFF1A;</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">private</span> Entry <span class="hljs-title">getEntryAfterMiss</span><span class="hljs-params">(ThreadLocal&lt;?&gt; key, <span class="hljs-keyword">int</span> i, Entry e)</span> </span>{
+        Entry[] tab = table;
+        <span class="hljs-keyword">int</span> len = tab.length;
+        <span class="hljs-comment">// &#x6B64;&#x65F6;&#x6CE8;&#x610F;&#x5982;&#x679C;&#x4ECE;&#x4E0A;&#x9762;&#x60C5;&#x51B5;`2.`&#x8FDB;&#x6765;&#x65F6;,</span>
+        <span class="hljs-comment">// e&#x4E3A;&#x7A7A;&#x5219;&#x76F4;&#x63A5;&#x8FD4;&#x56DE;null,&#x4E0D;&#x4F1A;&#x8FDB;&#x5165;while&#x5FAA;&#x73AF;</span>
+        <span class="hljs-comment">// &#x53EA;&#x6709;e&#x4E0D;&#x4E3A;&#x7A7A;&#x4E14;e.get() != key&#x65F6;&#x624D;&#x4F1A;&#x8FDB;while&#x5FAA;&#x73AF;</span>
+        <span class="hljs-keyword">while</span> (e != <span class="hljs-keyword">null</span>) {
+            ThreadLocal&lt;?&gt; k = e.get();
+            <span class="hljs-comment">// &#x627E;&#x5230;&#x76F8;&#x540C;&#x7684;k,&#x8FD4;&#x56DE;&#x5F97;&#x5230;&#x7684;Entry,get&#x64CD;&#x4F5C;&#x7ED3;&#x675F;</span>
+            <span class="hljs-keyword">if</span> (k == key)
+                <span class="hljs-keyword">return</span> e;
+            <span class="hljs-comment">// &#x82E5;&#x6B64;&#x65F6;&#x7684;k&#x4E3A;&#x7A7A;,&#x90A3;&#x4E48;e&#x5219;&#x88AB;&#x6807;&#x8BB0;&#x4E3A;`Stale`&#x9700;&#x8981;&#x88AB;`expunge`</span>
+            <span class="hljs-keyword">if</span> (k == <span class="hljs-keyword">null</span>)
+                expungeStaleEntry(i);
+            <span class="hljs-keyword">else</span>    <span class="hljs-comment">// &#x4E0B;&#x9762;&#x4E24;&#x4E2A;&#x90FD;&#x662F;&#x904D;&#x5386;&#x7684;&#x76F8;&#x5173;&#x64CD;&#x4F5C;</span>
+                <span class="hljs-comment">// nextIndex&#x5C31;&#x662F;+1&#x5224;&#x65AD;&#x662F;&#x5426;&#x8D8A;&#x754C;</span>
+                i = nextIndex(i, len);
+            e = tab[i];
+        }
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+}
+</code></pre>
+<blockquote>
+<p><strong>&#x5728;&#x5224;&#x65AD;&#x51FA;&#x73B0; hash &#x51B2;&#x7A81;&#x4E4B;&#x540E;&#xFF0C;&#x76F4;&#x63A5;&#x5F80;&#x540E;&#x7EBF;&#x6027;&#x67E5;&#x627E;&#x4E4B;&#x540E;&#x7684;&#x6570;&#x7EC4;&#x5143;&#x7D20;&#x3002;</strong></p>
+</blockquote>
+<p><br></p>
+<p><br></p>
+<h4 id="expungestaleentryint-staleslot"><a name="expungestaleentryint-staleslot" class="anchor-navigation-ex-anchor" href="#expungestaleentryint-staleslot"><i class="fa fa-link" aria-hidden="true"></i></a>expungeStaleEntry(int staleSlot)</h4>
+<p>&#x8BE5;&#x65B9;&#x6CD5;&#x7528;&#x6765;&#x6E05;&#x9664; <code>staleSlot</code> &#x4F4D;&#x7F6E;&#x7684; Entry &#x5BF9;&#x8C61;,&#x5E76;&#x4E14;&#x4F1A;<strong>&#x6E05;&#x7406;&#x5F53;&#x524D;&#x8282;&#x70B9;&#x5230;&#x4E0B;&#x4E00;&#x4E2A; <code>null</code> &#x8282;&#x70B9;&#x4E2D;&#x95F4;&#x7684;&#x8FC7;&#x671F; <code>Entry</code>.</strong></p>
+<pre><code class="lang-java">   <span class="hljs-comment">/** 
+     * &#x6E05;&#x7A7A;&#x65E7;&#x7684;Entry&#x5BF9;&#x8C61;
+     * <span class="hljs-doctag">@param</span> staleSlot: &#x6E05;&#x7406;&#x7684;&#x8D77;&#x59CB;&#x4F4D;&#x7F6E;
+     * <span class="hljs-doctag">@param</span> return: &#x8FD4;&#x56DE;&#x7684;&#x662F;&#x7B2C;&#x4E00;&#x4E2A;&#x4E3A;&#x7A7A;&#x7684;Entry&#x4E0B;&#x6807;
+     */</span>
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">int</span> <span class="hljs-title">expungeStaleEntry</span><span class="hljs-params">(<span class="hljs-keyword">int</span> staleSlot)</span> </span>{
+            Entry[] tab = table;
+            <span class="hljs-keyword">int</span> len = tab.length;
+            <span class="hljs-comment">// &#x6E05;&#x7A7A;`staleSlot`&#x4F4D;&#x7F6E;&#x7684;Entry</span>
+            <span class="hljs-comment">// value&#x5F15;&#x7528;&#x7F6E;&#x4E3A;&#x7A7A;&#x4E4B;&#x540E;,&#x5BF9;&#x8C61;&#x88AB;&#x6807;&#x8BB0;&#x4E3A;&#x4E0D;&#x53EF;&#x8FBE;,&#x4E0B;&#x6B21;GC&#x5C31;&#x4F1A;&#x88AB;&#x56DE;&#x6536;.</span>
+            tab[staleSlot].value = <span class="hljs-keyword">null</span>;
+            tab[staleSlot] = <span class="hljs-keyword">null</span>;
+            size--;
+            Entry e;
+            <span class="hljs-keyword">int</span> i;
+            <span class="hljs-comment">// &#x901A;&#x8FC7;nextIndex&#x4ECE;`staleSlot`&#x7684;&#x4E0B;&#x4E00;&#x4E2A;&#x5F00;&#x59CB;&#x5411;&#x540E;&#x904D;&#x5386;Entry&#x6570;&#x7EC4;,&#x76F4;&#x5230;e&#x4E0D;&#x4E3A;&#x7A7A;</span>
+             <span class="hljs-comment">// e&#x8D4B;&#x503C;&#x4E3A;&#x5F53;&#x524D;&#x7684;Entry&#x5BF9;&#x8C61;</span>
+            <span class="hljs-keyword">for</span> (i = nextIndex(staleSlot, len);
+                 (e = tab[i]) != <span class="hljs-keyword">null</span>;        
+                 i = nextIndex(i, len)) {
+                ThreadLocal&lt;?&gt; k = e.get();
+                <span class="hljs-comment">// &#x5F53;k&#x4E3A;&#x7A7A;&#x7684;&#x65F6;&#x5019;&#x6E05;&#x7A7A;&#x8282;&#x70B9;&#x4FE1;&#x606F;</span>
+                <span class="hljs-keyword">if</span> (k == <span class="hljs-keyword">null</span>) {                            
+                    e.value = <span class="hljs-keyword">null</span>;
+                    tab[i] = <span class="hljs-keyword">null</span>;
+                    size--;
+                } <span class="hljs-keyword">else</span> {    <span class="hljs-comment">// &#x4EE5;&#x4E0B;&#x4E3A;k&#x5B58;&#x5728;&#x7684;&#x60C5;&#x51B5;</span>
+                    <span class="hljs-keyword">int</span> h = k.threadLocalHashCode &amp; (len - <span class="hljs-number">1</span>);
+                    <span class="hljs-comment">// &#x5143;&#x7D20;&#x4E0B;&#x6807;&#x548C;key&#x8BA1;&#x7B97;&#x7684;&#x4E0D;&#x4E00;&#x6837;&#xFF0C;&#x8868;&#x660E;&#x662F;&#x51FA;&#x73B0;`Hash&#x78B0;&#x649E;`&#x4E4B;&#x540E;&#x8C03;&#x6574;&#x7684;&#x4F4D;&#x7F6E;</span>
+                    <span class="hljs-comment">// &#x5C06;&#x5F53;&#x524D;&#x7684;&#x5143;&#x7D20;&#x79FB;&#x52A8;&#x5230;&#x4E0B;&#x4E00;&#x4E2A;null&#x4F4D;&#x7F6E;</span>
+                    <span class="hljs-keyword">if</span> (h != i) {                    
+                        tab[i] = <span class="hljs-keyword">null</span>;
+                        <span class="hljs-keyword">while</span> (tab[h] != <span class="hljs-keyword">null</span>)
+                            h = nextIndex(h, len);
+                        tab[h] = e;
+                    }
+                }
+            }
+            <span class="hljs-keyword">return</span> i;
+        }
+</code></pre>
+<p>&#x8BE5;&#x65B9;&#x6CD5;&#x662F;&#x5BF9;&#x5185;&#x5B58;&#x6CC4;&#x9732;&#x7684;&#x8FDB;&#x4E00;&#x6B65;&#x5904;&#x7406;&#x3002;</p>
+<p><strong>&#x5982;&#x679C;&#x5C06; ThreadLocal &#x7684;&#x5185;&#x5B58;&#x6CC4;&#x9732;&#x95EE;&#x9898;&#x5206;&#x6210;&#x4E24;&#x4E2A;&#x90E8;&#x5206;&#x6765;&#x770B;&#xFF0C;&#x4E00;&#x4E2A;&#x662F; Key&#xFF0C;&#x53E6;&#x5916;&#x4E00;&#x4E2A;&#x5C31;&#x662F; Value&#x3002;</strong></p>
+<p><strong>Key &#x7684;&#x90E8;&#x5206;&#x4F9D;&#x9760;&#x5F31;&#x5F15;&#x7528;&#x6E05;&#x9664;&#xFF0C;&#x5982;&#x679C;&#x5916;&#x90E8;&#x7684;&#x5F3A;&#x5F15;&#x7528;&#x65AD;&#x5F00;&#x4E4B;&#x540E;&#xFF0C;&#x4E5F;&#x5C31;&#x662F;&#x6CA1;&#x6709;&#x5730;&#x65B9;&#x5728;&#x4F7F;&#x7528;&#x5230;&#x8BE5; Key &#x4E4B;&#x540E;&#xFF0C;Key &#x4F1A;&#x88AB; GC &#x56DE;&#x6536;&#xFF0C;&#x6240;&#x4EE5;&#x5F15;&#x7528;&#x5C31;&#x4E3A; null&#x3002;</strong></p>
+<p>&#x4ECE;&#x800C;&#x5224;&#x65AD; Key &#x4E3A; null &#x7684; Value &#x5C31;&#x662F; Stale &#x7684;&#x5BF9;&#x8C61;&#xFF0C;&#x5219;&#x9760;&#x8BE5;&#x65B9;&#x6CD5;&#x6E05;&#x9664;&#x3002;</p>
+<blockquote>
+<p><strong>ThreadLocal &#x9760;&#x5F31;&#x5F15;&#x7528;&#x6E05;&#x9664;&#x7684;&#x53EA;&#x6709; Key &#x5BF9;&#x8C61;&#xFF0C;&#x8FD8;&#x6709; Value &#x5BF9;&#x8C61;&#x5219;&#x9700;&#x8981;&#x9760;&#x626B;&#x63CF;&#xFF0C;&#x6240;&#x4EE5;&#x5185;&#x5B58;&#x6CC4;&#x9732;&#x7684;&#x60C5;&#x51B5;&#x5E76;&#x4E0D;&#x662F;&#x80FD;&#x591F;&#x5B8C;&#x5168;&#x907F;&#x514D;&#x7684;&#x3002;</strong></p>
+</blockquote>
+<p><br></p>
+<p><br></p>
+<h3 id="&#x5143;&#x7D20;&#x6DFB;&#x52A0;"><a name="&#x5143;&#x7D20;&#x6DFB;&#x52A0;" class="anchor-navigation-ex-anchor" href="#&#x5143;&#x7D20;&#x6DFB;&#x52A0;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x5143;&#x7D20;&#x6DFB;&#x52A0;</h3>
+<h4 id="setthreadlocal-key-object-value"><a name="setthreadlocal-key-object-value" class="anchor-navigation-ex-anchor" href="#setthreadlocal-key-object-value"><i class="fa fa-link" aria-hidden="true"></i></a>set(ThreadLocal&lt;?&gt; key, Object value)</h4>
+<p>&#x8BE5;&#x65B9;&#x6CD5;&#x5C31;&#x662F;&#x6DFB;&#x52A0;&#x5143;&#x7D20;&#x7684;&#x65B9;&#x6CD5;&#x3002;</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">set</span><span class="hljs-params">(ThreadLocal&lt;?&gt; key, Object value)</span> </span>{
+    Entry[] tab = table;
+    <span class="hljs-keyword">int</span> len = tab.length;
+    <span class="hljs-keyword">int</span> i = key.threadLocalHashCode &amp; (len-<span class="hljs-number">1</span>);
+    <span class="hljs-comment">// &#x6574;&#x4E2A;&#x5FAA;&#x73AF;&#x7684;&#x529F;&#x80FD;&#x5C31;&#x662F;&#x627E;&#x5230;&#x76F8;&#x540C;&#x7684;key&#x8986;&#x76D6;value</span>
+    <span class="hljs-comment">// &#x6216;&#x8005;&#x627E;&#x5230;key&#x4E3A;null&#x7684;&#x8282;&#x70B9;&#x8986;&#x76D6;&#x8282;&#x70B9;&#x4FE1;&#x606F;</span>
+    <span class="hljs-comment">// &#x53EA;&#x6709;&#x5728;e==null&#x7684;&#x65F6;&#x5019;&#x8DF3;&#x51FA;&#x5FAA;&#x73AF;&#x6267;&#x884C;&#x4E0B;&#x9762;&#x7684;&#x4EE3;&#x7801;</span>
+    <span class="hljs-keyword">for</span> (Entry e = tab[i];
+         e != <span class="hljs-keyword">null</span>;    
+         e = tab[i = nextIndex(i, len)]) {
+        ThreadLocal&lt;?&gt; k = e.get();
+        <span class="hljs-comment">// &#x627E;&#x5230;&#x76F8;&#x7B49;&#x7684;k,&#x5219;&#x76F4;&#x63A5;&#x66FF;&#x6362;value,set&#x64CD;&#x4F5C;&#x7ED3;&#x675F;</span>
+        <span class="hljs-keyword">if</span> (k == key) {
+            e.value = value;
+            <span class="hljs-keyword">return</span>;
+        }
+        <span class="hljs-comment">// k&#x4E3A;&#x7A7A;&#x8868;&#x793A;&#x8BE5;&#x8282;&#x70B9;&#x8FC7;&#x671F;,&#x76F4;&#x63A5;&#x66FF;&#x6362;&#x8BE5;&#x8282;&#x70B9;</span>
+        <span class="hljs-keyword">if</span> (k == <span class="hljs-keyword">null</span>) {                           <span class="hljs-comment">// 1.</span>
+            replaceStaleEntry(key, value, i);
+            <span class="hljs-keyword">return</span>;
+        }
+    }
+    <span class="hljs-comment">// &#x8D70;&#x5230;&#x8FD9;&#x4E00;&#x6B65;&#x5C31;&#x662F;&#x627E;&#x5230;&#x4E86;e&#x4E3A;&#x7A7A;&#x7684;&#x4F4D;&#x7F6E;&#xFF0C;&#x4E0D;&#x7136;&#x5728;&#x4E0A;&#x9762;&#x4E24;&#x4E2A;&#x5224;&#x65AD;&#x91CC;&#x90FD;return&#x4E86;</span>
+    tab[i] = <span class="hljs-keyword">new</span> Entry(key, value);
+    <span class="hljs-keyword">int</span> sz = ++size;
+    <span class="hljs-keyword">if</span> (!cleanSomeSlots(i, sz) &amp;&amp; sz &gt;= threshold)
+        rehash();
+}
+</code></pre>
+<p>&#x901A;&#x8FC7; hashCode &#x786E;&#x5B9A;&#x4E0B;&#x6807;&#x540E;&#xFF0C;&#x5982;&#x679C; Key &#x76F8;&#x7B49;&#x5219;&#x76F4;&#x63A5;&#x8986;&#x76D6;&#x539F;&#x6570;&#x636E;&#xFF0C;&#x5982;&#x679C; Key &#x4E0D;&#x76F8;&#x7B49;&#x5219;&#x5F80;&#x540E;&#x7EBF;&#x6027;&#x67E5;&#x627E;&#x5143;&#x7D20;&#xFF0C;&#x627E;&#x5230;&#x4E3A; null &#x7684;&#x5143;&#x7D20;&#x76F4;&#x63A5;&#x8986;&#x76D6;&#xFF0C;&#x6216;&#x8005;&#x627E;&#x5230;&#x7A7A;&#x4F59;&#x7684;&#x4F4D;&#x7F6E;&#x8D4B;&#x503C;&#x3002;</p>
+<p><br></p>
+<p>&#x6700;&#x540E;&#x4F1A;&#x6E05;&#x7406;&#x65E7;&#x7684;&#x5143;&#x7D20;&#xFF0C;&#x5E76;&#x4E14;&#x5224;&#x65AD; threshold&#xFF0C;&#x51B3;&#x5B9A;&#x662F;&#x5426;&#x9700;&#x8981;&#x6269;&#x5BB9;&#x3002;</p>
+<blockquote>
+<p><strong>ThreadLocalMap &#x5904;&#x7406; Hash &#x51B2;&#x7A81;&#x7684;&#x65B9;&#x6CD5;&#x53EB;&#x505A; &#x7EBF;&#x6027;&#x5BFB;&#x5740;&#x6CD5;&#xFF0C;&#x5728;&#x51B2;&#x7A81;&#x4E4B;&#x540E;&#x5F80;&#x540E;&#x641C;&#x7D22;&#xFF0C;&#x627E;&#x5230;&#x7B2C;&#x4E00;&#x4E2A;&#x4E3A;&#x7A7A;&#x7684;&#x4E0B;&#x6807;&#x5E76;&#x4FDD;&#x5B58;&#x5143;&#x7D20;&#x3002;</strong></p>
+<p>&#x7EBF;&#x6027;&#x5BFB;&#x5740;&#x6CD5;&#x5728;&#x51FA;&#x73B0; Hash &#x51B2;&#x7A81;&#x7684;&#x65F6;&#x5019;&#x5904;&#x7406;&#x7684;&#x590D;&#x6742;&#x5EA6;&#x57FA;&#x672C;&#x4F1A;&#x53D8;&#x6210; O(n)&#xFF0C;&#x5E76;&#x4E0D;&#x80FD;&#x76F4;&#x63A5;&#x627E;&#x4E00;&#x4E2A; null &#x70B9;&#x5C31;&#x5B58;&#x50A8;&#xFF0C;&#x56E0;&#x4E3A;&#x6570;&#x7EC4;&#x4E2D;&#x53EF;&#x80FD;&#x8FD8;&#x6709;&#x76F8;&#x540C;&#x7684; Key &#x5728;&#x540E;&#x9762;&#x3002;</p>
+</blockquote>
+<p><br></p>
+<p><br></p>
+<h4 id="replacestaleentry"><a name="replacestaleentry" class="anchor-navigation-ex-anchor" href="#replacestaleentry"><i class="fa fa-link" aria-hidden="true"></i></a>replaceStaleEntry</h4>
+<p>&#x6E90;&#x7801;&#x4E2D;&#x53EA;&#x6709;&#x4ECE;&#x4E0A;&#x9762; <code>1.</code> &#x5904;&#x8FDB;&#x5165;&#x8BE5;&#x65B9;&#x6CD5;,&#x7528;&#x4E8E;<strong>&#x66FF;&#x6362;  <code>key</code>  &#x4E3A;&#x7A7A;&#x7684; <code>Entry</code> &#x8282;&#x70B9;,&#x987A;&#x5E26;&#x6E05;&#x9664;&#x6570;&#x7EC4;&#x4E2D;&#x7684;&#x8FC7;&#x671F;&#x8282;&#x70B9;.</strong></p>
+<p>&#x5F80;&#x540E;&#x641C;&#x7D22;&#x7684;&#x662F;&#x7B2C;&#x4E00;&#x4E2A;&#x4E3A;&#x7A7A;&#x6216;&#x8005; Key &#x76F8;&#x7B49;&#xFF0C;&#x5982;&#x679C;&#x5148;&#x627E;&#x5230; Key &#x4E3A;&#x7A7A;&#x7684;&#x5E76;&#x4E0D;&#x80FD;&#x4FDD;&#x8BC1;&#x540E;&#x7EED;&#x7684;&#x8282;&#x70B9;&#x6CA1;&#x6709; Key &#x76F8;&#x7B49;&#x7684;&#xFF0C;&#x6240;&#x4EE5;&#x5728; replaceStaleEntry &#x65B9;&#x6CD5;&#x4E2D;&#x53EF;&#x80FD;&#x8FD8;&#x9700;&#x8981;&#x5904;&#x7406;&#x53E6;&#x5916;&#x4E00;&#x4E2A; Key &#x76F8;&#x540C;&#x7684;&#x8282;&#x70B9;&#x3002;</p>
+<pre><code class="lang-java"><span class="hljs-comment">/**
+ *    &#x4ECE;`set.1.`&#x5904;&#x8FDB;&#x5165;,key&#x662F;&#x63D2;&#x5165;&#x5143;&#x7D20;ThreadLocal&#x7684;hash,staleSlot&#x4E3A;key&#x4E3A;&#x7A7A;&#x7684;&#x6570;&#x7EC4;&#x8282;&#x70B9;&#x4E0B;&#x6807;
+ */</span>
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">replaceStaleEntry</span><span class="hljs-params">(ThreadLocal&lt;?&gt; key, Object value,
+                               <span class="hljs-keyword">int</span> staleSlot)</span> </span>{
+        Entry[] tab = table;
+        <span class="hljs-keyword">int</span> len = tab.length;
+        Entry e;
+        <span class="hljs-keyword">int</span> slotToExpunge = staleSlot;
+        <span class="hljs-comment">// &#x4ECE;&#x4F20;&#x5165;&#x4F4D;&#x7F6E;,&#x5373;&#x63D2;&#x5165;&#x65F6;&#x53D1;&#x73B0;k&#x4E3A;null&#x7684;&#x4F4D;&#x7F6E;&#x5F00;&#x59CB;,&#x5411;&#x524D;&#x904D;&#x5386;,&#x76F4;&#x5230;&#x6570;&#x7EC4;&#x5143;&#x7D20;&#x4E3A;&#x7A7A;</span>
+        <span class="hljs-comment">// &#x627E;&#x5230;&#x6700;&#x524D;&#x9762;&#x4E00;&#x4E2A;key&#x4E3A;null&#x7684;&#x503C;.    </span>
+        <span class="hljs-comment">// &#x8FD9;&#x91CC;&#x8981;&#x5410;&#x69FD;&#x4E00;&#x4E0B;&#x6E90;&#x4EE3;&#x7801;...&#x5927;&#x62EC;&#x53F7;&#x90FD;&#x4E0D;&#x52A0; &#x4E60;&#x60EF;&#x771F;&#x5DEE;</span>
+        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = prevIndex(staleSlot, len);
+             (e = tab[i]) != <span class="hljs-keyword">null</span>;        
+             i = prevIndex(i, len)){
+            <span class="hljs-comment">// &#x5411;&#x524D;&#x83B7;&#x53D6;&#x5230;&#x7B2C;&#x4E00;&#x4E2A; Key &#x4E3A;&#x7A7A;&#x7684;&#x5BF9;&#x8C61;</span>
+            <span class="hljs-keyword">if</span> (e.get() == <span class="hljs-keyword">null</span>)
+                <span class="hljs-comment">// &#x56E0;&#x4E3A;&#x662F;&#x73AF;&#x72B6;&#x904D;&#x5386;&#x6240;&#x4EE5;&#x6B64;&#x65F6;slotToExpunge&#x662F;&#x53EF;&#x80FD;&#x7B49;&#x4E8E;staleSlot&#x7684;</span>
+                slotToExpunge = i;
+        }
+        <span class="hljs-comment">// &#x8BE5;&#x6BB5;&#x5FAA;&#x73AF;&#x7684;&#x529F;&#x80FD;&#x5C31;&#x662F;&#x5411;&#x540E;&#x904D;&#x5386;&#x627E;&#x5230;`key`&#x76F8;&#x7B49;&#x7684;&#x8282;&#x70B9;&#x5E76;&#x66FF;&#x6362;</span>
+        <span class="hljs-comment">// &#x5E76;&#x5BF9;&#x4E4B;&#x540E;&#x7684;&#x5143;&#x7D20;&#x8FDB;&#x884C;&#x6E05;&#x7406;</span>
+        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = nextIndex(staleSlot, len);
+             (e = tab[i]) != <span class="hljs-keyword">null</span>;
+             i = nextIndex(i, len)) {
+            ThreadLocal&lt;?&gt; k = e.get();
+            <span class="hljs-keyword">if</span> (k == key) {    
+                <span class="hljs-comment">// &#x66FF;&#x6362; e &#x7684; value</span>
+                e.value = value;
+                <span class="hljs-comment">// staleSlot &#x662F;&#x56E0;&#x4E3A; key &#x4E3A; null &#x624D;&#x8FDB;&#x6765;&#x7684;</span>
+                <span class="hljs-comment">// &#x6240;&#x4EE5; tab[i] &#x4E5F;&#x662F;&#x9700;&#x8981;&#x6E05;&#x7406;&#x7684;&#x8282;&#x70B9;</span>
+                tab[i] = tab[staleSlot];
+                tab[staleSlot] = e;
+                <span class="hljs-keyword">if</span> (slotToExpunge == staleSlot)
+                    slotToExpunge = i;
+                cleanSomeSlots(expungeStaleEntry(slotToExpunge), len);
+                <span class="hljs-keyword">return</span>;
+            }
+            <span class="hljs-comment">// &#x5176;&#x5B9E;&#x6211;&#x5BF9;&#x8FD9;&#x4E2A;`slotToExpunge == staleSlot`&#x7684;&#x5224;&#x65AD;&#x4E00;&#x76F4;&#x633A;&#x7591;&#x60D1;&#x7684;,&#x4E3A;&#x4EC0;&#x4E48;&#x9700;&#x8981;&#x8FD9;&#x4E2A;&#x5224;&#x65AD;?</span>
+            <span class="hljs-keyword">if</span> (k == <span class="hljs-keyword">null</span> &amp;&amp; slotToExpunge == staleSlot)
+                slotToExpunge = i;
+        }
+        <span class="hljs-comment">// e==null&#x65F6;&#x8DF3;&#x5230;&#x4E0B;&#x9762;&#x4EE3;&#x7801;&#x8FD0;&#x884C;</span>
+        <span class="hljs-comment">// &#x6E05;&#x7A7A;&#x5E76;&#x91CD;&#x65B0;&#x8D4B;&#x503C;</span>
+        <span class="hljs-comment">// &#x65AD;&#x5F00; Entry &#x5BF9;&#x5E94;&#x7684;&#x6570;&#x636E;&#x7684;&#x5F3A;&#x5F15;&#x7528;</span>
+        tab[staleSlot].value = <span class="hljs-keyword">null</span>;
+        tab[staleSlot] = <span class="hljs-keyword">new</span> Entry(key, value);
+        <span class="hljs-comment">// set&#x540E;&#x7684;&#x6E05;&#x7406;</span>
+        <span class="hljs-keyword">if</span> (slotToExpunge != staleSlot)
+            cleanSomeSlots(expungeStaleEntry(slotToExpunge), len);
+}
+</code></pre>
+<p><strong>&#x5982;&#x4E0A;&#x6240;&#x8BF4;&#xFF0C;&#x518D;&#x51FA;&#x73B0; Hash &#x51B2;&#x7A81;&#x7684;&#x65F6;&#x5019;&#xFF0C;&#x5F80;&#x540E;&#x641C;&#x7D22;&#x7684;&#x662F;&#x7B2C;&#x4E00;&#x4E2A;&#x4E3A;&#x7A7A;&#x7684;&#x8282;&#x70B9;&#xFF0C;&#x5E76;&#x4E0D;&#x80FD;&#x76F4;&#x63A5;&#x8D4B;&#x503C;&#xFF0C;&#x56E0;&#x4E3A;&#x5728;&#x540E;&#x7EED;&#x7684;&#x6570;&#x7EC4;&#x4E2D;&#x53EF;&#x80FD;&#x8FD8;&#x5B58;&#x5728;&#x76F8;&#x540C;&#x7684; Key &#x7684;&#x8282;&#x70B9;&#x3002;</strong></p>
+<p>&#x66FF;&#x6362;&#x5143;&#x7D20;&#x4E4B;&#x524D;&#x4F1A;&#x5148;&#x5411;&#x524D;&#x641C;&#x7D22;&#x627E;&#x5230;&#x4E00;&#x4E2A; Key &#x4E3A; null &#x7684;&#x8282;&#x70B9;&#x3002;</p>
+<p><br></p>
+<p><br></p>
+<h4 id="cleansomeslots"><a name="cleansomeslots" class="anchor-navigation-ex-anchor" href="#cleansomeslots"><i class="fa fa-link" aria-hidden="true"></i></a>cleanSomeSlots</h4>
+<p>&#x8BE5;&#x65B9;&#x6CD5;&#x7684;&#x529F;&#x80FD;&#x662F;&#x5C31;&#x662F;&#x6E05;&#x9664;&#x6570;&#x7EC4;&#x4E2D;&#x7684;&#x8FC7;&#x671F; Entry</p>
+<pre><code class="lang-java"><span class="hljs-comment">/**
+  * <span class="hljs-doctag">@param</span> i &#x6E05;&#x9664;&#x7684;&#x8D77;&#x59CB;&#x8282;&#x70B9;&#x4F4D;&#x7F6E;
+  * <span class="hljs-doctag">@param</span> n &#x904D;&#x5386;&#x63A7;&#x5236;,&#x6BCF;&#x6B21;&#x626B;&#x63CF;&#x90FD;&#x662F;log2(n)&#x6B21;,&#x4E00;&#x822C;&#x53D6;&#x5F53;&#x524D;&#x6570;&#x7EC4;&#x7684;`size`&#x6216;`len`
+  */</span>
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">cleanSomeSlots</span><span class="hljs-params">(<span class="hljs-keyword">int</span> i, <span class="hljs-keyword">int</span> n)</span> </span>{
+            <span class="hljs-comment">// &#x662F;&#x5426;&#x6709;&#x6E05;&#x9664;&#x7684;&#x6807;&#x8BB0;</span>
+            <span class="hljs-keyword">boolean</span> removed = <span class="hljs-keyword">false</span>;
+            <span class="hljs-comment">// &#x83B7;&#x53D6;&#x5E95;&#x5C42;&#x6570;&#x7EC4;&#x7684;&#x6570;&#x636E;&#x4FE1;&#x606F;</span>
+            Entry[] tab = table;
+            <span class="hljs-keyword">int</span> len = tab.length;
+            do {
+                i = nextIndex(i, len);
+                Entry e = tab[i];
+                <span class="hljs-keyword">if</span> (e != <span class="hljs-keyword">null</span> &amp;&amp; e.get() == <span class="hljs-keyword">null</span>) {
+                    <span class="hljs-comment">// &#x5F53;&#x53D1;&#x73B0;&#x6709;&#x8FC7;&#x671F;`Entry`&#x65F6;,n&#x53D8;&#x4E3A;len</span>
+                    <span class="hljs-comment">// &#x5373;&#x6269;&#x5927;&#x8303;&#x56F4;,&#x5168;&#x6570;&#x7EC4;&#x8303;&#x56F4;&#x5728;&#x904D;&#x5386;&#x4E00;&#x6B21;</span>
+                    n = len;
+                    removed = <span class="hljs-keyword">true</span>;
+                    i = expungeStaleEntry(i);
+                }    
+                <span class="hljs-comment">// &#x65E0;&#x7B26;&#x53F7;&#x53F3;&#x79FB;&#x4E00;&#x4F4D;&#x76F8;&#x5F53;&#x4E8E;n = n /2</span>
+                <span class="hljs-comment">// &#x6240;&#x4EE5;&#x5728;&#x7B2C;&#x4E00;&#x6B21;&#x4F1A;&#x904D;&#x5386;`log2(n)`&#x6B21;</span>
+            } <span class="hljs-keyword">while</span> ( (n &gt;&gt;&gt;= <span class="hljs-number">1</span>) != <span class="hljs-number">0</span>);
+            <span class="hljs-comment">// &#x904D;&#x5386;&#x8FC7;&#x7A0B;&#x4E2D;&#x6CA1;&#x51FA;&#x73B0;&#x8FC7;&#x671F;`Entry`&#x7684;&#x60C5;&#x51B5;&#x4E0B;&#x4F1A;&#x8FD4;&#x56DE;&#x662F;&#x5426;&#x6709;&#x6E05;&#x7406;&#x7684;&#x6807;&#x8BB0;.</span>
+            <span class="hljs-keyword">return</span> removed;
+        }
+</code></pre>
+<p>&#x9996;&#x6B21;&#x6E05;&#x9664;&#x4ECE; i &#x5411;&#x540E;&#x5F00;&#x59CB;&#x904D;&#x5386; log2(n) &#x6B21;,&#x5982;&#x679C;&#x4E4B;&#x95F4;&#x53D1;&#x73B0;&#x8FC7;&#x671F; Entry &#x4F1A;&#x76F4;&#x63A5;&#x5C06; n &#x6269;&#x5145;&#x5230; len &#x53EF;&#x4EE5;&#x8BF4;&#x5168;&#x6570;&#x7EC4;&#x8303;&#x56F4;&#x7684;&#x904D;&#x5386;&#xFF0C;&#x53D1;&#x73B0;&#x8FC7;&#x671F; Entry &#x5C31;&#x8C03;&#x7528;expungeStaleEntry &#x6E05;&#x9664;&#x76F4;&#x5230;&#x672A;&#x53D1;&#x73B0; Entry &#x4E3A;&#x6B62;&#x3002;</p>
+<p><br></p>
+<p><br></p>
+<h3 id="&#x6269;&#x5BB9;&#x8C03;&#x6574;&#x65B9;&#x6CD5;"><a name="&#x6269;&#x5BB9;&#x8C03;&#x6574;&#x65B9;&#x6CD5;" class="anchor-navigation-ex-anchor" href="#&#x6269;&#x5BB9;&#x8C03;&#x6574;&#x65B9;&#x6CD5;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x6269;&#x5BB9;&#x8C03;&#x6574;&#x65B9;&#x6CD5;</h3>
+<h4 id="rehash"><a name="rehash" class="anchor-navigation-ex-anchor" href="#rehash"><i class="fa fa-link" aria-hidden="true"></i></a>rehash</h4>
+<p>&#x5BB9;&#x91CF;&#x8C03;&#x6574;&#x7684;&#x5148;&#x9A71;&#x65B9;&#x6CD5;,&#x5148;&#x6E05;&#x7406;&#x8FC7;&#x671F; Entry &#xFF0C;&#x5E76;&#x505A;&#x662F;&#x5426;&#x9700;&#x8981; resize &#x7684;&#x5224;&#x65AD;&#x3002;</p>
+<p>&#x8C03;&#x6574;&#x7684;&#x6761;&#x4EF6;&#x662F;<strong>&#x5F53;&#x524D;size&#x5927;&#x4E8E;&#x9608;&#x503C;&#x7684;3/4</strong>&#x5C31;&#x8FDB;&#x884C;&#x6269;&#x5BB9;</p>
+<pre><code class="lang-java"> <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">rehash</span><span class="hljs-params">()</span> </span>{
+     <span class="hljs-comment">// &#x6E05;&#x7406;&#x8FC7;&#x671F;Entry</span>
+     expungeStaleEntries();
+     <span class="hljs-comment">// &#x521D;&#x59CB;&#x9608;&#x503C;threshold&#x4E3A;10</span>
+     <span class="hljs-keyword">if</span> (size &gt;= threshold - threshold / <span class="hljs-number">4</span>)
+         resize();
+ }
+</code></pre>
+<p><br></p>
+<p><br></p>
+<h4 id="resize"><a name="resize" class="anchor-navigation-ex-anchor" href="#resize"><i class="fa fa-link" aria-hidden="true"></i></a>resize</h4>
+<p>&#x6269;&#x5BB9;&#x7684;&#x5B9E;&#x9645;&#x65B9;&#x6CD5;.</p>
+<pre><code class="lang-java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">resize</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-comment">// &#x83B7;&#x53D6;&#x65E7;&#x6570;&#x7EC4;&#x5E76;&#x8BB0;&#x5F55;&#x5C31;&#x6570;&#x7EC4;&#x5927;&#x5C0F;</span>
+        Entry[] oldTab = table;
+        <span class="hljs-keyword">int</span> oldLen = oldTab.length;
+        <span class="hljs-comment">// &#x65B0;&#x6570;&#x7EC4;&#x5927;&#x5C0F;&#x4E3A;&#x65E7;&#x6570;&#x7EC4;&#x7684;&#x4E24;&#x500D;</span>
+        <span class="hljs-keyword">int</span> newLen = oldLen * <span class="hljs-number">2</span>;
+        Entry[] newTab = <span class="hljs-keyword">new</span> Entry[newLen];
+        <span class="hljs-keyword">int</span> count = <span class="hljs-number">0</span>;
+        <span class="hljs-comment">// &#x904D;&#x5386;&#x6574;&#x4E2A;&#x65E7;&#x6570;&#x7EC4;,&#x5E76;&#x8FC1;&#x79FB;&#x5143;&#x7D20;&#x5230;&#x65B0;&#x6570;&#x7EC4;</span>
+        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> j = <span class="hljs-number">0</span>; j &lt; oldLen; ++j) {
+            Entry e = oldTab[j];
+            <span class="hljs-comment">// &#x5224;&#x65AD;&#x662F;&#x5426;&#x4E3A;&#x7A7A;,&#x7A7A;&#x7684;&#x8BDD;&#x5C31;&#x7B97;&#x4E86;</span>
+            <span class="hljs-keyword">if</span> (e != <span class="hljs-keyword">null</span>) {
+                ThreadLocal&lt;?&gt; k = e.get();
+                <span class="hljs-comment">// k&#x4E3A;&#x7A7A;&#x5373;&#x8868;&#x793A;&#x4E3A;&#x8FC7;&#x671F;&#x8282;&#x70B9;,&#x5F53;&#x5373;&#x6E05;&#x7406;&#x4E86;.</span>
+                <span class="hljs-keyword">if</span> (k == <span class="hljs-keyword">null</span>) {
+                    e.value = <span class="hljs-keyword">null</span>; 
+                } <span class="hljs-keyword">else</span> {
+                    <span class="hljs-comment">// &#x91CD;&#x65B0;&#x8BA1;&#x7B97;&#x6570;&#x7EC4;&#x4E0B;&#x6807;,&#x5982;&#x679C;&#x6570;&#x7EC4;&#x5BF9;&#x5E94;&#x4F4D;&#x7F6E;&#x5DF2;&#x5B58;&#x5728;&#x5143;&#x7D20;</span>
+                    <span class="hljs-comment">// &#x5219;&#x73AF;&#x72B6;&#x904D;&#x5386;&#x6574;&#x4E2A;&#x6570;&#x7EC4;&#x627E;&#x4E2A;&#x7A7A;&#x4F4D;&#x7F6E;&#x8D4B;&#x503C;</span>
+                    <span class="hljs-keyword">int</span> h = k.threadLocalHashCode &amp; (newLen - <span class="hljs-number">1</span>);
+                    <span class="hljs-keyword">while</span> (newTab[h] != <span class="hljs-keyword">null</span>)
+                        h = nextIndex(h, newLen);
+                    newTab[h] = e;
+                    count++;
+                }
+            }
+        }
+        <span class="hljs-comment">// &#x8BBE;&#x7F6E;&#x65B0;&#x5C5E;&#x6027;    </span>
+        setThreshold(newLen);
+        size = count;
+        table = newTab;
+}
+</code></pre>
+<p><br></p>
+<p><br></p>
+<h2 id="inheritablethreadlocal"><a name="inheritablethreadlocal" class="anchor-navigation-ex-anchor" href="#inheritablethreadlocal"><i class="fa fa-link" aria-hidden="true"></i></a>InheritableThreadLocal</h2>
+<p>ThreadLocal &#x662F;&#x5BF9;&#x5355;&#x7EBF;&#x7A0B;&#x800C;&#x8A00;&#x7684;&#xFF0C;&#x5982;&#x679C;&#x51FA;&#x73B0;&#x7EBF;&#x7A0B;&#x5207;&#x6362;&#x4F1A;&#x4E22;&#x5931; ThreadLocal &#x7684;&#x6570;&#x636E;&#xFF0C;&#x800C; InheritableThreadLocal &#x53EF;&#x4EE5;&#x5B9E;&#x73B0;&#x5B50;&#x7EBF;&#x7A0B;&#x5BF9;&#x7236;&#x7EBF;&#x7A0B; ThreadLocalMap &#x7684;&#x7EE7;&#x627F;&#x3002;</p>
+<p><strong>&#x7EE7;&#x627F;&#x7684; ThreadLocalMap &#x5C31;&#x662F; Thread &#x5BF9;&#x8C61;&#x4E2D;&#x7684; inheritableThreadLocals&#x3002;</strong></p>
+<p><br></p>
+<p>InheritableThreadLocal &#x7684;&#x4E3B;&#x8981;&#x5B9E;&#x73B0;&#x5982;&#x4E0B;&#xFF1A;</p>
+<p><img src="assets/image-20210902161137264.png" alt="InheritableThreadLocal#getMap&#x548C;createMap"></p>
+<p>&#x57FA;&#x672C;&#x903B;&#x8F91;&#x548C; ThreadLocal &#x5E76;&#x65E0;&#x4E0D;&#x540C;&#xFF0C;&#x53EA;&#x662F;&#x5207;&#x6362;&#x4E86;&#x64CD;&#x4F5C;&#x7684; ThreadLocalMap &#x5BF9;&#x8C61;&#x3002;</p>
+<p><strong>&#x56E0;&#x6B64;&#x53EA;&#x8981;&#x5728;&#x521B;&#x5EFA;&#x81EA;&#x7EBF;&#x7A0B;&#x7684;&#x65F6;&#x5019;&#x5B8C;&#x5168;&#x7EE7;&#x627F;&#x7236;&#x7EBF;&#x7A0B;&#x7684; inheritableThreadLocals &#x5BF9;&#x8C61;&#x5C31;&#x53EF;&#x4EE5;&#x5B9E;&#x73B0;&#x53D8;&#x91CF;&#x7684;&#x7EE7;&#x627F;&#x3002;</strong></p>
+<p>&#x7EE7;&#x627F;&#x7684;&#x5B9E;&#x73B0;&#x903B;&#x8F91;&#x5728; Thread &#x7684;&#x6784;&#x9020;&#x51FD;&#x6570;&#x4E2D;&#xFF0C;&#x4EE5;&#x4E0B;&#x662F; Thread#init &#x65B9;&#x6CD5;&#x7684;&#x7247;&#x6BB5;&#xFF1A;</p>
+<p><img src="assets/image-20210902161430450.png" alt="image-20210902161430450"></p>
+<p>&#x65B9;&#x6CD5;&#x4F1A;&#x83B7;&#x53D6; parent &#x7EBF;&#x7A0B;&#x7684; inheritableThreadLocals&#xFF0C;&#x5E76;&#x590D;&#x5236;&#x5230;&#x5F53;&#x524D;&#x7684; Thread &#x5BF9;&#x8C61;&#x3002;</p>
+<p><br></p>
+<h2 id="q--a"><a name="q--a" class="anchor-navigation-ex-anchor" href="#q--a"><i class="fa fa-link" aria-hidden="true"></i></a>Q &amp; A</h2>
+<blockquote>
+<p>Q: ThreadLocal &#x4E3A;&#x4F55;&#x4F1A;&#x51FA;&#x73B0;&#x5185;&#x5B58;&#x6CC4;&#x9732;&#xFF1F;</p>
+</blockquote>
+<p><strong>ThreadLocal &#x4F1A;&#x51FA;&#x73B0;&#x5185;&#x5B58;&#x6CC4;&#x9732;&#x7684;&#x4E3B;&#x8981;&#x539F;&#x56E0;&#x662F;&#x5982;&#x679C;&#x662F;&#x5F3A;&#x5F15;&#x7528;&#xFF0C;&#x90A3;&#x4E48;&#x5728; ThreadLocal &#x7C7B;&#x4E0D;&#x518D;&#x4F7F;&#x7528;&#x4E4B;&#x540E;&#xFF0C;ThreadLocalMap &#x4E2D;&#x65E0;&#x6CD5;&#x6E05;&#x9664;&#x76F8;&#x5173;&#x7684; Entry &#x5BF9;&#x8C61;&#x3002;</strong></p>
+<p>&#x5728; ThreadLocal &#x4E0D;&#x518D;&#x4F7F;&#x7528;&#x4E4B;&#x540E;&#xFF0C;ThreadLocalMap &#x4E2D;&#x6307;&#x5411; ThreadLocal &#x7684;&#x5F3A;&#x5F15;&#x7528;&#x4E5F;&#x4F1A;&#x5BFC;&#x81F4; ThreadLocal &#x65E0;&#x6CD5;&#x88AB; GC &#x56DE;&#x6536;&#xFF0C;&#x540C;&#x7406; Value &#x5BF9;&#x8C61;&#x4E5F;&#x88AB;&#x4FDD;&#x7559;&#x4E86;&#x4E0B;&#x6765;&#x3002;</p>
+<p><strong>&#x4E5F;&#x5C31;&#x51FA;&#x73B0;&#x4E86;&#x6240;&#x8C13;&#x7684;&#x5185;&#x5B58;&#x6CC4;&#x9732;&#xFF0C;&#x65E0;&#x7528;&#x7684;&#x6570;&#x636E;&#x65E0;&#x6CD5;&#x88AB; GC &#x6709;&#x6548;&#x7684;&#x6E05;&#x9664;&#x3002;</strong></p>
+<p><br></p>
+<p><br></p>
+<blockquote>
+<p> Q: ThreadLocal &#x5982;&#x4F55;&#x89E3;&#x51B3;&#x5185;&#x5B58;&#x6CC4;&#x6F0F;?</p>
+</blockquote>
+<p>ThreadLocal &#x7684;&#x5185;&#x5B58;&#x6CC4;&#x9732;&#x53EF;&#x4EE5;&#x5206;&#x4E3A; Key&#xFF08;&#x4E5F;&#x5C31;&#x662F; ThreadLocal&#xFF09;&#xFF0C;&#x4EE5;&#x53CA; Value&#x3002;</p>
+<p><strong>&#x89E3;&#x51B3; Key &#x7684;&#x5185;&#x5B58;&#x6CC4;&#x9732;&#x7684;&#x65B9;&#x6CD5;&#x5C31;&#x662F;&#x91C7;&#x7528;&#x5F31;&#x5F15;&#x7528;&#xFF0C;&#x5F31;&#x5F15;&#x7528;&#x6D88;&#x9664;&#x4E86; ThreadLocalMap &#x5BF9; ThreadLocal &#x5BF9;&#x8C61;&#x7684; GC &#x7684;&#x5F71;&#x54CD;&#x3002;</strong></p>
+<p>&#x53E6;&#x5916;&#x7684;&#x5728;&#x6BCF;&#x6B21;&#x83B7;&#x53D6;&#x6216;&#x8005;&#x6DFB;&#x52A0;&#x6570;&#x636E;&#x7684;&#x65F6;&#x5019;&#x90FD;&#x4F1A;&#x5224;&#x65AD; Key &#x662F;&#x5426;&#x88AB;&#x56DE;&#x6536;&#xFF0C;&#x5982;&#x679C; Key &#x5DF2;&#x7ECF;&#x88AB;&#x56DE;&#x6536;&#x4F1A;&#x8FDE;&#x5E26;&#x6E05;&#x7406; Value &#x5BF9;&#x8C61;&#xFF0C;&#x8FD9;&#x4E5F;&#x5C31;&#x987A;&#x5E26;&#x89E3;&#x51B3;&#x4E86; Value &#x7684;&#x6CC4;&#x9732;&#x95EE;&#x9898;&#x3002;</p>
+<p><br></p>
+<p><br></p>
+<blockquote>
+<p> Q: ThreadLocalMap &#x5982;&#x4F55;&#x89E3;&#x51B3;Hash&#x51B2;&#x7A81;&#xFF1F;</p>
+</blockquote>
+<p>Hash &#x51B2;&#x7A81;&#x5C31;&#x662F;&#x6307;&#x901A;&#x8FC7; Hash &#x8BA1;&#x7B97;&#x7684;&#x4E0B;&#x6807;&#x503C;&#x4E00;&#x81F4;&#xFF0C;&#x4E24;&#x4E2A;&#x5143;&#x7D20;&#x7684;&#x5B9A;&#x4F4D;&#x4E00;&#x81F4;&#x3002;</p>
+<p>HashMap &#x89E3;&#x51B3; Hash &#x51B2;&#x7A81;&#x7684;&#x65B9;&#x6CD5;&#x5C31;&#x662F;<strong>&#x62C9;&#x94FE;&#x6CD5;</strong>&#xFF0C;&#x5E95;&#x5C42;&#x7684;&#x6570;&#x7EC4;&#x4E2D;&#x4FDD;&#x5B58;&#x7684;&#x4E0D;&#x662F;&#x5355;&#x4E00;&#x7684;&#x6570;&#x636E;&#xFF0C;&#x800C;&#x662F;&#x4E00;&#x4E2A;&#x96C6;&#x5408;(&#x94FE;&#x8868;/&#x7EA2;&#x9ED1;&#x6811;)&#xFF0C;&#x51B2;&#x7A81;&#x4E4B;&#x540E;&#x4E0B;&#x6302;&#x3002;</p>
+<p>&#x91C7;&#x7528;&#x62C9;&#x94FE;&#x6CD5;&#x7684;&#x7ED3;&#x679C;&#x5C31;&#x662F;&#x5728;Hash&#x51B2;&#x7A81;&#x4E25;&#x91CD;&#x65F6;&#x4F1A;&#x4E25;&#x91CD;&#x5F71;&#x54CD;&#x65F6;&#x95F4;&#x590D;&#x6742;&#x5EA6;&#xFF0C;&#x56E0;&#x4E3A;&#x5C31;&#x7B97;&#x662F;&#x7EA2;&#x9ED1;&#x6811;&#x67E5;&#x8BE2;&#x7684;&#x4E8B;&#x4EF6;&#x590D;&#x6742;&#x5EA6;&#x90FD;&#x662F; O(Log2n)&#x3002;</p>
+<p>ThreadLocalMap &#x5E76;&#x6CA1;&#x6709;&#x91C7;&#x7528;&#x8FD9;&#x79CD;&#x65B9;&#x6CD5;&#xFF0C;&#x800C;&#x662F;&#x4F7F;&#x7528;&#x7684;<strong>&#x5F00;&#x653E;&#x5BFB;&#x5740;&#x6CD5;</strong>&#xFF0C;&#x5982;&#x679C;&#x5DF2;&#x7ECF;&#x6709;&#x6570;&#x636E;&#x5B58;&#x5728;&#x51B2;&#x7A81;&#x70B9;&#xFF0C;&#x5C31;&#x5728;&#x6570;&#x7EC4;&#x4E2D;&#x5F80;&#x4E0B;&#x904D;&#x5386;&#x627E;&#x5230;&#x7B2C;&#x4E00;&#x4E2A;&#x7A7A;&#x7740;&#x7684;&#x4F4D;&#x7F6E;&#x3002;</p>
+<blockquote>
+<p>&#x9700;&#x8981;&#x6CE8;&#x610F;&#x7684;&#x662F;&#xFF0C;&#x5E76;&#x4E0D;&#x662F;&#x627E;&#x5230;&#x7A7A;&#x7684;&#x4F4D;&#x7F6E;&#x5C31;&#x53EF;&#x4EE5;&#x76F4;&#x63A5;&#x66FF;&#x6362;&#xFF0C;&#x8FD8;&#x662F;&#x9700;&#x8981;&#x904D;&#x5386;&#x6574;&#x4E2A;&#x6570;&#x7EC4;&#x786E;&#x4FDD;&#x6CA1;&#x6709;&#x91CD;&#x590D;&#x7684; Key&#x3002;</p>
+</blockquote>
+<p><br></p>
+<p><br></p>
+<blockquote>
+<p> Q: ThreadLocalMap &#x548C; HashMap &#x7684;&#x5F02;&#x540C;</p>
+</blockquote>
+<p>&#x4E24;&#x4E2A;&#x90FD;&#x662F;&#x91C7;&#x7528; Hash &#x5B9A;&#x4F4D;&#x7684;&#x6570;&#x636E;&#x7ED3;&#x6784;&#xFF0C;&#x5E95;&#x5C42;&#x90FD;&#x662F;&#x4EE5;&#x6570;&#x7EC4;&#x7684;&#x5F62;&#x5F0F;&#x3002;</p>
+<p>&#x4F46;&#x662F; HashCode &#x7684;&#x83B7;&#x53D6;&#x65B9;&#x5F0F;&#x4E0D;&#x540C;&#xFF0C;HashMap &#x8C03;&#x7528;&#x5BF9;&#x8C61;&#x7684; hashCode() &#x65B9;&#x6CD5;&#xFF0C;&#x800C;  ThreadLocalMap &#x4E2D;&#x7684; Key &#x5C31;&#x662F; ThreadLocal&#xFF0C;ThreadLocal &#x7684; HashCode &#x662F;&#x9012;&#x589E;&#x5206;&#x914D;&#x7684;&#x3002;</p>
+<p>&#x53E6;&#x5916;&#x5904;&#x7406; Hash &#x51B2;&#x7A81;&#x7684;&#x65B9;&#x5F0F;&#x4E0D;&#x540C;&#xFF0C;ThreadLocalMap &#x91C7;&#x7528;&#x7684;&#x5F00;&#x653E;&#x5BFB;&#x5740;&#x6CD5;&#xFF0C;&#x800C; HashMap &#x91C7;&#x7528;&#x7684;&#x662F;&#x62C9;&#x94FE;&#x6CD5;&#x3002;</p>
+<p><br></p>
+<blockquote>
+<p>Q: ThreadLocal &#x5728;&#x7EBF;&#x7A0B;&#x6C60;&#x4E2D;&#x7684;&#x4F7F;&#x7528;</p>
+</blockquote>
+<p>ThreadLocal &#x5728;&#x7EBF;&#x7A0B;&#x6C60;&#x4E2D;&#x7684;&#x4F7F;&#x7528;&#xFF0C;&#x56E0;&#x4E3A; Thread &#x5BF9;&#x8C61;&#x7684;&#x590D;&#x7528;&#xFF0C;&#x6240;&#x4EE5;&#x4F1A;&#x5BFC;&#x81F4; ThreadLocalMap &#x53D8;&#x91CF;&#x7684;&#x4F7F;&#x7528;&#x6DF7;&#x4E71;&#x3002;</p>
+<p>&#x56E0;&#x6B64;&#x9700;&#x8981;&#x5728;&#x4EFB;&#x52A1;&#x5B8C;&#x6210;&#x4E4B;&#x540E;&#x6E05;&#x7406;&#x516C;&#x7528;&#x7684; ThreadLocal &#x5BF9;&#x8C61;&#xFF0C;&#x53EF;&#x4EE5;&#x5BF9; execute &#x7684; Runnable &#x53D8;&#x91CF;&#x8FDB;&#x884C;&#x4E8C;&#x6B21;&#x5C01;&#x88C5;&#xFF0C;&#x53C2;&#x7167; Netty &#x7684; FastThreadLocalRunnable &#x7684;&#x5B9E;&#x73B0;:</p>
+<pre><code class="lang-java">  <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ThreadLocalSafeRunnable</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">Runnable</span> </span>{
+        Runnable runnable;
+        List&lt;ThreadLocal&lt;?&gt;&gt; threadLocals;
+
+        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ThreadLocalSafeRunnable</span><span class="hljs-params">(Runnable runnable, ThreadLocal&lt;?&gt;... ths)</span> </span>{
+            <span class="hljs-keyword">this</span>.runnable = runnable;
+            <span class="hljs-keyword">if</span> (ths.length &gt; <span class="hljs-number">0</span>) {
+                <span class="hljs-keyword">this</span>.threadLocals = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;();
+                Collections.addAll(threadLocals, ths);
+            }
+        }
+
+        <span class="hljs-meta">@Override</span>
+        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>{
+            <span class="hljs-keyword">if</span> (runnable == <span class="hljs-keyword">null</span>) {
+                    <span class="hljs-keyword">return</span>;
+            }
+            <span class="hljs-keyword">try</span> {
+                    run();
+            } <span class="hljs-keyword">finally</span> {
+                    <span class="hljs-keyword">if</span> (threadLocals != <span class="hljs-keyword">null</span>) {
+                        <span class="hljs-keyword">for</span> (ThreadLocal&lt;?&gt; threadLocal : threadLocals) {
+                            threadLocal.remove();
+                        }
+                    }
+            }
+        }
+    }
+</code></pre>
+<blockquote>
+<p>Q: ThreadLocal &#x5728;&#x7EBF;&#x7A0B;&#x95F4;&#x7684;&#x4F20;&#x9012;</p>
+</blockquote>
+<p>&#x57FA;&#x672C;&#x4F7F;&#x7528; InheritableThreadLocal &#x5C31;&#x53EF;&#x4EE5;&#x3002;</p>
+<p>&#x5982;&#x679C;&#x5E0C;&#x671B;&#x7279;&#x6B8A;&#x5B9E;&#x73B0;&#xFF0C;&#x4E5F;&#x53EF;&#x4EE5;&#x76F4;&#x63A5;&#x7EE7;&#x627F; Thread&#xFF0C;&#x5B9A;&#x4E49;&#x81EA;&#x5DF1;&#x7684; ThreadLocalMap&#x3002;</p>
+
+<script>console.log("plugin-popup....");document.onclick = function(e){ e.target.tagName === "IMG" && window.open(e.target.src,e.target.src)}</script><style>img{cursor:pointer}</style>
+                                
+                                </section>
+                            
+    </div>
+    <div class="search-results">
+        <div class="has-results">
+            
+            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+            <ul class="search-results-list"></ul>
+            
+        </div>
+        <div class="no-results">
+            
+            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+            
+        </div>
+    </div>
+</div>
+
+                        </div>
+                    </div>
+                
+            </div>
+
+            
+                
+                
+                <a href="Stream.html" class="navigation navigation-next navigation-unique" aria-label="Next page: Stream 分析">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+                
+            
+        
+    </div>
+
+    <script>
+        var gitbook = gitbook || [];
+        gitbook.push(function() {
+            gitbook.page.hasChanged({"page":{"title":"ThreadLocal 源码分析","level":"1.2.1.3.1","depth":4,"next":{"title":"Stream 分析","level":"1.2.1.3.2","depth":4,"path":"java/jdk/Stream.md","ref":"java/jdk/Stream.md","articles":[]},"previous":{"title":"其他","level":"1.2.1.3","depth":3,"ref":"","articles":[{"title":"ThreadLocal 源码分析","level":"1.2.1.3.1","depth":4,"path":"java/jdk/ThreadLocal.md","ref":"java/jdk/ThreadLocal.md","articles":[]},{"title":"Stream 分析","level":"1.2.1.3.2","depth":4,"path":"java/jdk/Stream.md","ref":"java/jdk/Stream.md","articles":[]}]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":["intopic-toc","chapter-fold","splitter","expandable-chapters","back-to-top-button","popup","anchor-navigation-ex","livereload"],"pluginsConfig":{"chapter-fold":{},"intopic-toc":{"isCollapsed":true,"isScrollspyActive":true,"label":"Catalogue","maxDepth":6,"mode":"nested","selector":".markdown-section h1, .markdown-section h2, .markdown-section h3, .markdown-section h4, .markdown-section h5, .markdown-section h6","visible":true},"livereload":{},"splitter":{},"search":{},"popup":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"highlight":{},"anchor-navigation-ex":{"associatedWithSummary":true,"float":{"floatIcon":"fa fa-navicon","level1Icon":"","level2Icon":"","level3Icon":"","showLevelIcon":false},"mode":"float","multipleH1":true,"pageTop":{"level1Icon":"","level2Icon":"","level3Icon":"","showLevelIcon":false},"printLog":false,"showGoTop":false,"showLevel":false},"back-to-top-button":{},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false},"expandable-chapters":{}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"java/jdk/ThreadLocal.md","mtime":"2021-09-02T13:58:08.440Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-10-07T13:39:58.281Z"},"basePath":"../..","book":{"language":""}});
+        });
+    </script>
+</div>
+
+        
+    <script src="../../gitbook/gitbook.js"></script>
+    <script src="../../gitbook/theme.js"></script>
+    
+        
+        <script src="../../gitbook/gitbook-plugin-intopic-toc/anchor.min.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-intopic-toc/gumshoe.polyfills.min.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-intopic-toc/plugin.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-chapter-fold/chapter-fold.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-splitter/splitter.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-expandable-chapters/expandable-chapters.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-back-to-top-button/plugin.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-livereload/plugin.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-search/search-engine.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-search/search.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-lunr/lunr.min.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-lunr/search-lunr.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-sharing/buttons.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-fontsettings/fontsettings.js"></script>
+        
+    
+
+    </body>
+</html>
+

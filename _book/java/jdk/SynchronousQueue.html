@@ -1,0 +1,1508 @@
+
+<!DOCTYPE HTML>
+<html lang="" >
+    <head>
+        <meta charset="UTF-8">
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <title>SynchronousQueue · GitBook</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 3.2.3">
+        
+        
+        
+    
+    <link rel="stylesheet" href="../../gitbook/style.css">
+
+    
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-intopic-toc/style.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-chapter-fold/chapter-fold.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-splitter/splitter.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-expandable-chapters/expandable-chapters.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-back-to-top-button/plugin.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-anchor-navigation-ex/style/plugin.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-highlight/website.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-search/search.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-fontsettings/website.css">
+                
+            
+        
+
+    
+
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+
+        
+    
+    
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../../gitbook/images/apple-touch-icon-precomposed-152.png">
+    <link rel="shortcut icon" href="../../gitbook/images/favicon.ico" type="image/x-icon">
+
+    
+    <link rel="next" href="CountDownLatch.html" />
+    
+    
+    <link rel="prev" href="BlockingQueue.html" />
+    
+
+    </head>
+    <body>
+        
+<div class="book">
+    <div class="book-summary">
+        
+            
+<div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search" />
+</div>
+
+            
+                <nav role="navigation">
+                
+
+
+<ul class="summary">
+    
+    
+
+    
+
+    
+        
+        
+    
+        <li class="chapter " data-level="1.1" data-path="../../">
+            
+                <a href="../../">
+            
+                    
+                    Introduction
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2" data-path="../">
+            
+                <a href="../">
+            
+                    
+                    Java
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1" >
+            
+                <span>
+            
+                    
+                    JDK 源码分析
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1.1" >
+            
+                <span>
+            
+                    
+                    JUC
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1.1.1" data-path="AbstractQueuedSynchronizer.html">
+            
+                <a href="AbstractQueuedSynchronizer.html">
+            
+                    
+                    AbstractQueueSynchronized 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.2" data-path="ConcurrentHashMap.html">
+            
+                <a href="ConcurrentHashMap.html">
+            
+                    
+                    ConcurrentHashMap 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.3" data-path="FutureTask.html">
+            
+                <a href="FutureTask.html">
+            
+                    
+                    FutureTask 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.4" data-path="ReetrantLock.html">
+            
+                <a href="ReetrantLock.html">
+            
+                    
+                    ReetrantLocak 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.5" data-path="ThreadPoolExecutor.html">
+            
+                <a href="ThreadPoolExecutor.html">
+            
+                    
+                    ThreadPoolExecutor 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.6" data-path="BlockingQueue.html">
+            
+                <a href="BlockingQueue.html">
+            
+                    
+                    BlockingQueue 类族
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter active" data-level="1.2.1.1.7" data-path="SynchronousQueue.html">
+            
+                <a href="SynchronousQueue.html">
+            
+                    
+                    SynchronousQueue
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.8" data-path="CountDownLatch.html">
+            
+                <a href="CountDownLatch.html">
+            
+                    
+                    CountDownLatch 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.9" data-path="CyclicBarrier.html">
+            
+                <a href="CyclicBarrier.html">
+            
+                    
+                    CyclicBarrier 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.10" data-path="CopyOnWriteArrayList.html">
+            
+                <a href="CopyOnWriteArrayList.html">
+            
+                    
+                    CopyOnWriteArrayList 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.11" data-path="CopyOnWriteArraySet.html">
+            
+                <a href="CopyOnWriteArraySet.html">
+            
+                    
+                    CopyOnWriteArraySet 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.12" data-path="ConcurrentSkipListMap.html">
+            
+                <a href="ConcurrentSkipListMap.html">
+            
+                    
+                    ConcurrentSkipListMap 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.13" data-path="ScheduledThreadPoolExecutor.html">
+            
+                <a href="ScheduledThreadPoolExecutor.html">
+            
+                    
+                    cheduledThreadPoolExecutor 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.14" data-path="Semaphore.html">
+            
+                <a href="Semaphore.html">
+            
+                    
+                    Semaphore 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2" >
+            
+                <span>
+            
+                    
+                    Java 集合框架
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1.2.1" data-path="HashMap源码阅读.html">
+            
+                <a href="HashMap源码阅读.html">
+            
+                    
+                    HashMap 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2.2" data-path="HashMap.html">
+            
+                <a href="HashMap.html">
+            
+                    
+                    HashMap 原理(文字表述)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2.3" data-path="LinkedHashMap源码阅读.html">
+            
+                <a href="LinkedHashMap源码阅读.html">
+            
+                    
+                    LinkedHashMap 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2.4" data-path="ArrayList.html">
+            
+                <a href="ArrayList.html">
+            
+                    
+                    ArrayList 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2.5" data-path="LinkedList源码阅读.html">
+            
+                <a href="LinkedList源码阅读.html">
+            
+                    
+                    LinkedList 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.3" >
+            
+                <span>
+            
+                    
+                    其他
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1.3.1" data-path="ThreadLocal.html">
+            
+                <a href="ThreadLocal.html">
+            
+                    
+                    ThreadLocal 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.3.2" data-path="Stream.html">
+            
+                <a href="Stream.html">
+            
+                    
+                    Stream 分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2" >
+            
+                <span>
+            
+                    
+                    JVM（Java 虚拟机）
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.2.1" data-path="../jvm/关键字.html">
+            
+                <a href="../jvm/关键字.html">
+            
+                    
+                    Java 关键字整理
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.2" data-path="../jvm/引用类型.html">
+            
+                <a href="../jvm/引用类型.html">
+            
+                    
+                    Java 中的引用类型
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.3" data-path="../jvm/元空间和永久代.html">
+            
+                <a href="../jvm/元空间和永久代.html">
+            
+                    
+                    元空间和永久代
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.4" data-path="../jvm/synchronized.html">
+            
+                <a href="../jvm/synchronized.html">
+            
+                    
+                    synchronized 关键字
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.5" data-path="../jvm/JVM的类加载子系统.html">
+            
+                <a href="../jvm/JVM的类加载子系统.html">
+            
+                    
+                    JVM 的类加载子系统
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.3" >
+            
+                <span>
+            
+                    
+                    Guava 源码分析
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.3.1" data-path="../guava/EventBus.html">
+            
+                <a href="../guava/EventBus.html">
+            
+                    
+                    EventBus 相关源码解析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.3.2" data-path="../guava/RateLimiter.html">
+            
+                <a href="../guava/RateLimiter.html">
+            
+                    
+                    RateLimiter 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3" >
+            
+                <span>
+            
+                    
+                    Netty
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.3.1" data-path="../../netty/netty逻辑流程/EventLoop的初始化.html">
+            
+                <a href="../../netty/netty逻辑流程/EventLoop的初始化.html">
+            
+                    
+                    EventLoop 的初始化流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2" data-path="../../netty/netty逻辑流程/NIO服务端启动流程.html">
+            
+                <a href="../../netty/netty逻辑流程/NIO服务端启动流程.html">
+            
+                    
+                    NIO服务端启动流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.3" data-path="../../netty/netty逻辑流程/ChannelPipeline的结构和初始化流程.html">
+            
+                <a href="../../netty/netty逻辑流程/ChannelPipeline的结构和初始化流程.html">
+            
+                    
+                    ChannelPipeline的结构和初始化流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.4" data-path="../../netty/netty逻辑流程/NioEventLoop的事件轮询.html">
+            
+                <a href="../../netty/netty逻辑流程/NioEventLoop的事件轮询.html">
+            
+                    
+                    NioEventLoop的事件轮询
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.5" data-path="../../netty/netty逻辑流程/客户端Channel的创建流程.html">
+            
+                <a href="../../netty/netty逻辑流程/客户端Channel的创建流程.html">
+            
+                    
+                    客户端Channel的建立过程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.6" data-path="../../netty/netty逻辑流程/ChannelPipeline事件传递机制.html">
+            
+                <a href="../../netty/netty逻辑流程/ChannelPipeline事件传递机制.html">
+            
+                    
+                    ChannelPipeline事件传递机制
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.7" data-path="../../netty/netty逻辑流程/Netty中的编解码逻辑.html">
+            
+                <a href="../../netty/netty逻辑流程/Netty中的编解码逻辑.html">
+            
+                    
+                    Netty 中的编解码逻辑
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.8" data-path="../../netty/netty逻辑流程/Netty中写数据的逻辑.html">
+            
+                <a href="../../netty/netty逻辑流程/Netty中写数据的逻辑.html">
+            
+                    
+                    Netty 中写数据的逻辑
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.9" data-path="../../netty/netty逻辑流程/Netty中读数据的流程.html">
+            
+                <a href="../../netty/netty逻辑流程/Netty中读数据的流程.html">
+            
+                    
+                    Netty 中读数据的流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.10" data-path="../../netty/util/FastThreadLocal.html">
+            
+                <a href="../../netty/util/FastThreadLocal.html">
+            
+                    
+                    FastThreadLocal 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.11" data-path="../../netty/util/ChannelPool.html">
+            
+                <a href="../../netty/util/ChannelPool.html">
+            
+                    
+                    ChannelPool 相关分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.12" data-path="../../netty/ChannelOption整理.html">
+            
+                <a href="../../netty/ChannelOption整理.html">
+            
+                    
+                    ChannelOption 整理
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4" >
+            
+                <span>
+            
+                    
+                    Spring
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.1" >
+            
+                <span>
+            
+                    
+                    Spring Core
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.1.1" data-path="../../spring/spring-core/aop/aop 概念.md">
+            
+                <span>
+            
+                    
+                    AOP相关概念
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.1.2" data-path="../../spring/spring-core/aop/ProxyFactory.html">
+            
+                <a href="../../spring/spring-core/aop/ProxyFactory.html">
+            
+                    
+                    ProxyFactory
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.1.3" data-path="../../spring/spring-core/aop/Aop实现的不同方式.html">
+            
+                <a href="../../spring/spring-core/aop/Aop实现的不同方式.html">
+            
+                    
+                    Aop 实现的不同方式
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.1.4" data-path="../../spring/spring-core/module/async.html">
+            
+                <a href="../../spring/spring-core/module/async.html">
+            
+                    
+                    Async的实现原理
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.2" >
+            
+                <span>
+            
+                    
+                    SpringBoot
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.2.1" data-path="../../spring/spring-boot/SpringBoot的事件模型 .html">
+            
+                <a href="../../spring/spring-boot/SpringBoot的事件模型 .html">
+            
+                    
+                    SpringBoot的事件模型
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.2.2" data-path="../../spring/spring-boot/SpringBoot的启动流程.html">
+            
+                <a href="../../spring/spring-boot/SpringBoot的启动流程.html">
+            
+                    
+                    SpringBoot的启动流程简述
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.2.3" data-path="../../spring/spring-boot/SpringBoot的工厂加载模式.html">
+            
+                <a href="../../spring/spring-boot/SpringBoot的工厂加载模式.html">
+            
+                    
+                    SpringBoot的工厂加载模式
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.3" >
+            
+                <span>
+            
+                    
+                    SpringCloud
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.3.1" data-path="../../spring/spring-cloud/consul.html">
+            
+                <a href="../../spring/spring-cloud/consul.html">
+            
+                    
+                    consul 简述
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.3.2" data-path="../../spring/spring-cloud/feign.html">
+            
+                <a href="../../spring/spring-cloud/feign.html">
+            
+                    
+                    feign 简述
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.3.3" data-path="../../spring/spring-cloud/zuul.html">
+            
+                <a href="../../spring/spring-cloud/zuul.html">
+            
+                    
+                    zuul 简述
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5" >
+            
+                <span>
+            
+                    
+                    设计模式
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.5.1" data-path="../../系统设计/Gof设计模式.html">
+            
+                <a href="../../系统设计/Gof设计模式.html">
+            
+                    
+                    Gof 的设计模式
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6" >
+            
+                <span>
+            
+                    
+                    中间件
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.6.1" >
+            
+                <span>
+            
+                    
+                    RabbitMQ
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.6.1.1" data-path="../../消息队列/RabbitMQ如何保证消息不丢失.html">
+            
+                <a href="../../消息队列/RabbitMQ如何保证消息不丢失.html">
+            
+                    
+                    RabbitMQ 如何保证消息不丢失
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6.2" >
+            
+                <span>
+            
+                    
+                    Redis
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.6.2.1" data-path="../../redis/Redis的五种数据结构.html">
+            
+                <a href="../../redis/Redis的五种数据结构.html">
+            
+                    
+                    Redis 的五种数据结构
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6.2.2" data-path="../../redis/Redis的Sentinel模式.html">
+            
+                <a href="../../redis/Redis的Sentinel模式.html">
+            
+                    
+                    Redis 的哨兵模式
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6.2.3" data-path="../../redis/Redis的主从复制模式.html">
+            
+                <a href="../../redis/Redis的主从复制模式.html">
+            
+                    
+                    Redis 的主从复制模式
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.7" >
+            
+                <span>
+            
+                    
+                    网络
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.7.1" >
+            
+                <span>
+            
+                    
+                    TCP
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.7.1.1" data-path="../../网络/tcp协议整理1.html">
+            
+                <a href="../../网络/tcp协议整理1.html">
+            
+                    
+                    TCP 协议总结（一）
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.7.1.2" data-path="../../网络/tcp内核参数整理.html">
+            
+                <a href="../../网络/tcp内核参数整理.html">
+            
+                    
+                    Linux 中的相关 TCP 参数
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+    
+
+    <li class="divider"></li>
+
+    <li>
+        <a href="https://www.gitbook.com" target="blank" class="gitbook-link">
+            Published with GitBook
+        </a>
+    </li>
+</ul>
+
+
+                </nav>
+            
+        
+    </div>
+
+    <div class="book-body">
+        
+            <div class="body-inner">
+                
+                    
+
+<div class="book-header" role="navigation">
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href="../.." >SynchronousQueue</a>
+    </h1>
+</div>
+
+
+
+
+                    <div class="page-wrapper" tabindex="-1" role="main">
+                        <div class="page-inner">
+                            
+<div id="book-search-results">
+    <div class="search-noresults">
+    
+                                <section class="normal markdown-section">
+                                
+                                <div id="anchor-navigation-ex-navbar"><i class="fa fa-navicon"></i><ul><li><span class="title-icon "></span><a href="#synchronousqueue"><b></b>SynchronousQueue</a></li><ul><li><span class="title-icon "></span><a href="#&#x6982;&#x8FF0;"><b></b>&#x6982;&#x8FF0;</a></li><li><span class="title-icon "></span><a href="#&#x5B9E;&#x73B0;&#x539F;&#x7406;"><b></b>&#x5B9E;&#x73B0;&#x539F;&#x7406;</a></li><ul><li><span class="title-icon "></span><a href="#take--put-&#x65B9;&#x6CD5;"><b></b>Take / Put &#x65B9;&#x6CD5;</a></li><li><span class="title-icon "></span><a href="#transferqueue"><b></b>TransferQueue</a></li><li><span class="title-icon "></span><a href="#transferstack"><b></b>TransferStack</a></li></ul><li><span class="title-icon "></span><a href="#synchronousqueue-&#x7684;&#x4F5C;&#x7528;"><b></b>SynchronousQueue &#x7684;&#x4F5C;&#x7528;</a></li><ul><li><span class="title-icon "></span><a href="#&#x4F7F;&#x7528;-synchronousqueue-&#x4F5C;&#x4E3A;&#x7EBF;&#x7A0B;&#x6C60;&#x7684;&#x4EFB;&#x52A1;&#x961F;&#x5217;"><b></b>&#x4F7F;&#x7528; SynchronousQueue &#x4F5C;&#x4E3A;&#x7EBF;&#x7A0B;&#x6C60;&#x7684;&#x4EFB;&#x52A1;&#x961F;&#x5217;</a></li></ul><li><span class="title-icon "></span><a href="#&#x53C2;&#x8003;"><b></b>&#x53C2;&#x8003;</a></li></ul></ul></div><h1 id="synchronousqueue"><a name="synchronousqueue" class="anchor-navigation-ex-anchor" href="#synchronousqueue"><i class="fa fa-link" aria-hidden="true"></i></a>SynchronousQueue</h1>
+<hr>
+<p>[TOC]</p>
+<hr>
+<h2 id="&#x6982;&#x8FF0;"><a name="&#x6982;&#x8FF0;" class="anchor-navigation-ex-anchor" href="#&#x6982;&#x8FF0;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x6982;&#x8FF0;</h2>
+<p>SynchronousQueue &#x7EE7;&#x627F;&#x4E8E; BlockingQueue&#xFF0C;&#x56E0;&#x6B64;&#x4E5F;&#x4E0D;&#x63A5;&#x53D7;&#x4EFB;&#x4F55; NULL &#x503C;&#x3002;</p>
+<p>&#x548C;&#x5176;&#x4ED6; BlockingQueue &#x4E0D;&#x540C;&#x7684;&#x662F;&#xFF0C;<strong>SynchronousQueue &#x4E0D;&#x4FDD;&#x5B58;&#x4EFB;&#x4F55;&#x5143;&#x7D20;&#xFF0C;&#x751A;&#x81F3;&#x65E0;&#x6CD5;&#x67E5;&#x770B;&#x6216;&#x8005;&#x904D;&#x5386;&#x5176;&#x4E2D;&#x7684;&#x5143;&#x7D20;&#xFF0C;&#x53EA;&#x6709;&#x5728;&#x6709;&#x7EBF;&#x7A0B;&#x5220;&#x9664;&#x7684;&#x65F6;&#x5019;&#x624D;&#x53EF;&#x4EE5;&#x8FDB;&#x884C;&#x6DFB;&#x52A0;&#x5143;&#x7D20;&#xFF0C;&#x53CD;&#x4E4B;&#x4EA6;&#x7136;&#x3002;</strong></p>
+<p>&#x5E76;&#x4E14; <strong>SynchronousQueue &#x7684;&#x4E3B;&#x8981;&#x903B;&#x8F91;&#x96C6;&#x4E2D;&#x5728; Put / Take &#x8FD9;&#x5BF9;&#x65B9;&#x6CD5;</strong>&#x4E0A;&#xFF0C;&#x8C03;&#x7528; offer &#x6DFB;&#x52A0;&#x5143;&#x7D20;&#x65F6;&#xFF0C;&#x5982;&#x679C;&#x6CA1;&#x6709;&#x914D;&#x5BF9;&#x7684;&#x5220;&#x9664;&#x64CD;&#x4F5C;&#x4E5F;&#x4E0D;&#x4F1A;&#x963B;&#x585E;&#x3002;</p>
+<blockquote>
+<p>SynchronousQueue &#x5C31;&#x662F;<strong>&#x7EBF;&#x7A0B;&#x7684;&#x4E00;&#x5BF9;&#x4E00;&#x5339;&#x914D;&#x5668;</strong>&#xFF0C;&#x751F;&#x4EA7;&#x548C;&#x6D88;&#x8D39;&#x4E24;&#x79CD;&#x7EBF;&#x7A0B;&#x4E92;&#x76F8;&#x5339;&#x914D;&#x3002;</p>
+</blockquote>
+<p><br></p>
+<h2 id="&#x5B9E;&#x73B0;&#x539F;&#x7406;"><a name="&#x5B9E;&#x73B0;&#x539F;&#x7406;" class="anchor-navigation-ex-anchor" href="#&#x5B9E;&#x73B0;&#x539F;&#x7406;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x5B9E;&#x73B0;&#x539F;&#x7406;</h2>
+<p>SynchronousQueue &#x5305;&#x542B;&#x4E86;&#x516C;&#x5E73;&#x548C;&#x975E;&#x516C;&#x5E73;&#x4E24;&#x79CD;&#x6A21;&#x5F0F;&#x3002;</p>
+<blockquote>
+<p>&#x516C;&#x5E73;&#x548C;&#x975E;&#x516C;&#x5E73;&#x6A21;&#x5F0F;&#x7684;&#x542B;&#x4E49;&#xFF1A;</p>
+</blockquote>
+<p><strong>&#x516C;&#x5E73;&#x662F;&#x6307;&#x5148;&#x6765;&#x5148;&#x670D;&#x52A1;&#xFF08;FIFO&#xFF09;&#xFF0C;&#x4EE5; TransferQueue &#x5B9E;&#x73B0;</strong>&#xFF0C;&#x4F8B;&#x5982;&#x5148;&#x6765;&#x7684;&#x6D88;&#x8D39;&#x8FDB;&#x7A0B;&#x4F1A;&#x548C;&#x5148;&#x6765;&#x7684;&#x751F;&#x4EA7;&#x8FDB;&#x7A0B;&#x5339;&#x914D;&#x3002;</p>
+<p><strong>&#x975E;&#x516C;&#x5E73;&#x5219;&#x662F;&#x540E;&#x6765;&#x5148;&#x670D;&#x52A1;&#xFF08;FIFO&#xFF09;&#xFF0C;&#x4EE5; TransferStack &#x5B9E;&#x73B0;</strong>&#xFF0C;&#x6309;&#x7167; Stack &#x5F39;&#x51FA;&#x7684;&#x987A;&#x5E8F;&#x548C;&#x53E6;&#x4E00;&#x7C7B;&#x578B;&#x7684;&#x7EBF;&#x7A0B;&#x5339;&#x914D;&#x3002;</p>
+<p><br></p>
+<h3 id="take--put-&#x65B9;&#x6CD5;"><a name="take--put-&#x65B9;&#x6CD5;" class="anchor-navigation-ex-anchor" href="#take--put-&#x65B9;&#x6CD5;"><i class="fa fa-link" aria-hidden="true"></i></a>Take / Put &#x65B9;&#x6CD5;</h3>
+<p>&#x4EE5;&#x4E0B;&#x662F; SynchronousQueue#take &#x7684;&#x65B9;&#x6CD5;&#x5B9E;&#x73B0;&#xFF1A;</p>
+<p><img src="assets/image-20210819095954529.png" alt="SynchronousQueue#take"></p>
+<p>&#x7136;&#x540E;&#x662F; SynchronousQueue#put &#x7684;&#x65B9;&#x6CD5;&#x5B9E;&#x73B0;&#xFF1A;</p>
+<p><img src="assets/image-20210819100105516.png" alt="SynchronousQueue#put"></p>
+<p>&#x4E24;&#x4E2A;&#x65B9;&#x6CD5;&#x7684;&#x5B9E;&#x73B0;&#x90FD;&#x662F;&#x901A;&#x8FC7; Transferer#transfer &#x5B9E;&#x73B0;&#x7684;&#xFF0C;<strong>&#x4E3B;&#x8981;&#x7684;&#x533A;&#x522B;&#x5C31;&#x662F;&#x53C2;&#x6570;&#xFF0C;put &#x7684;&#x65F6;&#x5019;&#x4F1A;&#x5C06;&#x5143;&#x7D20;&#x4F5C;&#x4E3A;&#x7B2C;&#x4E00;&#x4E2A;&#x53C2;&#x6570;&#x3002;</strong></p>
+<blockquote>
+<p><strong>&#x4EE5;&#x4E0B;&#x5C31;&#x79F0;&#x4E3A; Put &#x7EBF;&#x7A0B;&#x548C; Take &#x7EBF;&#x7A0B;&#x3002;</strong></p>
+</blockquote>
+<p><br></p>
+<h3 id="transferqueue"><a name="transferqueue" class="anchor-navigation-ex-anchor" href="#transferqueue"><i class="fa fa-link" aria-hidden="true"></i></a>TransferQueue</h3>
+<p>TransferQueue &#x4F7F;&#x7528;&#x94FE;&#x8868;&#x7684;&#x5F62;&#x5F0F;&#x4FDD;&#x5B58;&#x5F85;&#x5339;&#x914D;&#x7684;&#x7EBF;&#x7A0B;&#x8282;&#x70B9;&#x3002;</p>
+<p>&#x4EE5;&#x4E0B;&#x4E3A;&#x6784;&#x9020;&#x51FD;&#x6570;&#x7684;&#x5B9E;&#x73B0;&#xFF1A;</p>
+<p><img src="assets/image-20210819101534610.png" alt="image-20210819101534610"></p>
+<p>&#x6240;&#x4EE5;&#x521D;&#x59CB;&#x5316;&#x7684; TransferQueue&#xFF0C;&#x5C31;&#x662F;&#x5355;&#x4E2A;&#x7684; NULL &#x8282;&#x70B9;&#xFF08;&#x5934;&#x5C3E;&#x8282;&#x70B9;&#x76F8;&#x540C;&#xFF09;&#x3002;</p>
+<p>&#x7136;&#x540E;&#x5C31;&#x662F; TransferQueue#transfer &#x65B9;&#x6CD5;&#x7684;&#x5B9E;&#x73B0;&#xFF0C;&#x4E3B;&#x8981;&#x5173;&#x6CE8;&#x4EE5;&#x4E0B;&#x51E0;&#x4E2A;&#x70B9;&#xFF1A;</p>
+<ul>
+<li>&#x5982;&#x4F55;&#x963B;&#x585E;/&#x4FDD;&#x5B58;&#x5F85;&#x5339;&#x914D;&#x7684;&#x7EBF;&#x7A0B;</li>
+<li>&#x5982;&#x4F55;&#x5339;&#x914D;&#x7EBF;&#x7A0B;&#xFF08;&#x7EBF;&#x7A0B;&#x5339;&#x914D;&#x5982;&#x4F55;&#x4FDD;&#x8BC1; FIFO&#xFF09;</li>
+</ul>
+<p>&#x4EE5;&#x4E0B;&#x662F;&#x8BE5;&#x65B9;&#x6CD5;&#x7684;&#x6E90;&#x7801;&#x5B9E;&#x73B0;&#xFF1A;</p>
+<pre><code class="lang-java"><span class="hljs-meta">@SuppressWarnings</span>(<span class="hljs-string">&quot;unchecked&quot;</span>)
+<span class="hljs-function">E <span class="hljs-title">transfer</span><span class="hljs-params">(E e, <span class="hljs-keyword">boolean</span> timed, <span class="hljs-keyword">long</span> nanos)</span> </span>{
+    QNode s = <span class="hljs-keyword">null</span>; <span class="hljs-comment">// constructed/reused as needed</span>
+    <span class="hljs-comment">// &#x662F;&#x5426;&#x662F; put &#x7EBF;&#x7A0B;</span>
+    <span class="hljs-keyword">boolean</span> isData = (e != <span class="hljs-keyword">null</span>);
+    <span class="hljs-keyword">for</span> (;;) {
+        QNode t = tail;
+        QNode h = head;
+        <span class="hljs-comment">// &#x672A;&#x521D;&#x59CB;&#x5316;&#x5B8C;&#x6BD5;</span>
+        <span class="hljs-keyword">if</span> (t == <span class="hljs-keyword">null</span> || h == <span class="hljs-keyword">null</span>)         <span class="hljs-comment">// saw uninitialized value</span>
+            <span class="hljs-keyword">continue</span>;                       <span class="hljs-comment">// spin</span>
+           <span class="hljs-comment">// &#x5F53;&#x524D;&#x6CA1;&#x6709;&#x5F85;&#x5339;&#x914D;&#x7684;&#x7EBF;&#x7A0B;&#x6216;&#x8005;&#x5F53;&#x524D;&#x7EBF;&#x7A0B;&#x548C;&#x672B;&#x5C3E;&#x7EBF;&#x7A0B;&#x7C7B;&#x578B;&#x76F8;&#x540C;</span>
+        <span class="hljs-comment">// &#x6B64;&#x65F6;&#x9700;&#x8981;&#x963B;&#x585E;&#x5F53;&#x524D;&#x7EBF;&#x7A0B;</span>
+        <span class="hljs-keyword">if</span> (h == t || t.isData == isData) { <span class="hljs-comment">// empty or same-mode</span>
+            QNode tn = t.next;
+            <span class="hljs-keyword">if</span> (t != tail)                  <span class="hljs-comment">// inconsistent read</span>
+                <span class="hljs-keyword">continue</span>;
+            <span class="hljs-comment">// &#x4FEE;&#x590D; tail &#x6307;&#x9488;&#xFF0C;&#x4E00;&#x5B9A;&#x662F;&#x6307;&#x5411;&#x672B;&#x5C3E;</span>
+            <span class="hljs-keyword">if</span> (tn != <span class="hljs-keyword">null</span>) {               <span class="hljs-comment">// lagging tail</span>
+                advanceTail(t, tn);
+                <span class="hljs-keyword">continue</span>;
+            }
+            <span class="hljs-comment">// &#x662F;&#x5426;&#x9700;&#x8981;&#x963B;&#x585E;&#xFF0C;&#x9664;&#x4E86; take / put &#x4E4B;&#x5916;&#x8FD8;&#x4F1A;&#x6709;&#x4E0D;&#x9700;&#x8981;&#x963B;&#x585E;&#x7684;&#x65B9;&#x6CD5;</span>
+            <span class="hljs-keyword">if</span> (timed &amp;&amp; nanos &lt;= <span class="hljs-number">0</span>)        <span class="hljs-comment">// can&apos;t wait</span>
+                <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+            <span class="hljs-comment">// &#x521B;&#x5EFA;&#x9700;&#x8981;&#x5165;&#x961F;&#x5217;&#x7684;&#x8282;&#x70B9;</span>
+            <span class="hljs-keyword">if</span> (s == <span class="hljs-keyword">null</span>)
+                s = <span class="hljs-keyword">new</span> QNode(e, isData);
+            <span class="hljs-comment">// &#x5C06;&#x65B0;&#x8282;&#x70B9;&#x7F6E;&#x4E3A;t&#x7684;&#x540E;&#x7EE7;&#x8282;&#x70B9;</span>
+            <span class="hljs-keyword">if</span> (!t.casNext(<span class="hljs-keyword">null</span>, s))        <span class="hljs-comment">// failed to link in</span>
+                <span class="hljs-keyword">continue</span>;
+            <span class="hljs-comment">// &#x5C06;&#x65B0;&#x8282;&#x70B9;&#x7F6E;&#x4E3A; tail &#x8282;&#x70B9;</span>
+            advanceTail(t, s);              <span class="hljs-comment">// swing tail and wait</span>
+            <span class="hljs-comment">// &#x963B;&#x585E;&#x5230;&#x6761;&#x4EF6;&#x6EE1;&#x8DB3;&#xFF0C;&#x65B9;&#x6CD5;&#x4E2D;&#x4F1A;&#x6709;&#x81EA;&#x65CB;</span>
+            Object x = awaitFulfill(s, e, timed, nanos);
+            <span class="hljs-keyword">if</span> (x == s) {                   <span class="hljs-comment">// wait was cancelled</span>
+                clean(t, s);
+                <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+            }
+            <span class="hljs-keyword">if</span> (!s.isOffList()) {           <span class="hljs-comment">// not already unlinked</span>
+                advanceHead(t, s);          <span class="hljs-comment">// unlink if head</span>
+                <span class="hljs-keyword">if</span> (x != <span class="hljs-keyword">null</span>)              <span class="hljs-comment">// and forget fields</span>
+                    s.item = s;
+                s.waiter = <span class="hljs-keyword">null</span>;
+            }
+            <span class="hljs-keyword">return</span> (x != <span class="hljs-keyword">null</span>) ? (E)x : e;
+        } <span class="hljs-keyword">else</span> {                            <span class="hljs-comment">// complementary-mode</span>
+            <span class="hljs-comment">// &#x6709;&#x5F85;&#x5339;&#x914D;&#x7684;&#x8282;&#x70B9;&#x5E76;&#x4E14;&#x7EBF;&#x7A0B;&#x7C7B;&#x578B;&#x4E0D;&#x540C;</span>
+            <span class="hljs-comment">// &#x6B64;&#x65F6;&#x9700;&#x8981;&#x5524;&#x9192;&#x963B;&#x585E;&#x7684;&#x7EBF;&#x7A0B;&#x5E76;&#x8FD4;&#x56DE;&#x76F8;&#x5173;&#x6570;&#x636E;</span>
+            QNode m = h.next;               <span class="hljs-comment">// node to fulfill </span>
+            <span class="hljs-comment">// &#x8C03;&#x7528;&#x671F;&#x95F4;&#x53D1;&#x751F;&#x4E86;&#x6539;&#x53D8;</span>
+            <span class="hljs-keyword">if</span> (t != tail || m == <span class="hljs-keyword">null</span> || h != head)
+                <span class="hljs-keyword">continue</span>;                   <span class="hljs-comment">// inconsistent read</span>
+            <span class="hljs-comment">// &#x83B7;&#x53D6;&#x643A;&#x5E26;&#x7684;&#x6570;&#x636E;</span>
+            Object x = m.item;
+            <span class="hljs-comment">// &#x6EE1;&#x8DB3;&#x4EE5;&#x4E0B;&#x6761;&#x4EF6;&#x4F1A;&#x91CD;&#x8BD5;&#xFF1A;</span>
+            <span class="hljs-keyword">if</span> (isData == (x != <span class="hljs-keyword">null</span>) ||    <span class="hljs-comment">// m already fulfilled</span>
+                x == m ||                   <span class="hljs-comment">// m cancelled</span>
+                <span class="hljs-comment">// Item &#x4F1A;&#x88AB;&#x66FF;&#x6362;</span>
+                <span class="hljs-comment">// &#x5982;&#x679C; Put &#x7EBF;&#x7A0B;&#x7B49;&#x5F85;&#xFF0C;&#x540E;&#x6765;&#x7684; Take &#x7EBF;&#x7A0B;&#x4F1A;&#x7F6E;&#x7A7A;&#x5176;&#x4E2D;&#x7684;item</span>
+                <span class="hljs-comment">// &#x5982;&#x679C; Take &#x7EBF;&#x7A0B;&#x7B49;&#x5F85;&#xFF0C;&#x540E;&#x6765;&#x7684; Put &#x7EBF;&#x7A0B;&#x4F1A;&#x5C06;&#x6570;&#x636E;&#x653E;&#x7F6E;&#x5230; item &#x4E2D;</span>
+                !m.casItem(x, e)) {         <span class="hljs-comment">// lost CAS</span>
+                advanceHead(h, m);          <span class="hljs-comment">// dequeue and retry</span>
+                <span class="hljs-keyword">continue</span>;
+            }
+            <span class="hljs-comment">// &#x914D;&#x5BF9;&#x6210;&#x529F;</span>
+            advanceHead(h, m);              <span class="hljs-comment">// successfully fulfilled</span>
+            <span class="hljs-comment">// &#x5524;&#x9192;&#x963B;&#x585E;&#x7684;&#x7EBF;&#x7A0B;</span>
+            LockSupport.unpark(m.waiter);
+            <span class="hljs-keyword">return</span> (x != <span class="hljs-keyword">null</span>) ? (E)x : e;
+        }
+    }
+}
+</code></pre>
+<blockquote>
+<p><strong>&#x65B9;&#x6CD5;&#x4E2D;&#x7EAF;&#x7CB9;&#x9760; CAS &#x6765;&#x5B9E;&#x73B0;&#x65E0;&#x9501;&#x5316;&#x5E76;&#x53D1;</strong>&#xFF08;&#x770B;&#x8D77;&#x6765;&#x6709;&#x4E9B;&#x61F5;&#xFF09;&#x3002;</p>
+</blockquote>
+<p>TransferQueue &#x4F7F;&#x7528; head &#x548C; tail &#x7EF4;&#x62A4;&#x5355;&#x5411;&#x961F;&#x5217;&#xFF0C;&#x5165;&#x961F;&#x5217;&#x65F6; tail &#x5411;&#x540E;&#xFF0C;&#x51FA;&#x961F;&#x5217;&#x65F6; head &#x5411;&#x540E;&#xFF0C;&#x540C;&#x4E2A;&#x65F6;&#x95F4;&#x94FE;&#x8868;&#x5185;&#x53EA;&#x4F1A;&#x5B58;&#x5728;&#x76F8;&#x540C;&#x7C7B;&#x578B;&#x7684; QNode&#x3002;</p>
+<blockquote>
+<p><strong>&#x5F53;&#x524D;&#x7EBF;&#x7A0B;&#x7684;&#x7C7B;&#x578B;&#x6839;&#x636E;&#x662F;&#x5426;&#x643A;&#x5E26;&#x6570;&#x636E;&#x8C03;&#x7528;&#x5224;&#x65AD;&#xFF0C;&#x5982;&#x679C;&#x5165;&#x53C2; e != null&#xFF0C;&#x5219;&#x4E3A; Put &#x7EBF;&#x7A0B;&#xFF0C;&#x53CD;&#x4E4B;&#x5219;&#x4E3A; Take &#x7EBF;&#x7A0B;&#x3002;</strong></p>
+</blockquote>
+<p>&#x65E0;&#x8BBA;&#x662F; Put &#x8FD8;&#x662F; Take &#x7EBF;&#x7A0B;&#xFF0C;&#x6267;&#x884C;&#x65F6;&#x5982;&#x679C;&#x6CA1;&#x6709;&#x5339;&#x914D;&#x7EBF;&#x7A0B;&#xFF0C;&#x5219;&#x4F1A;&#x5C1D;&#x8BD5;&#x8FDB;&#x5165;&#x963B;&#x585E;&#x72B6;&#x6001;&#xFF0C;&#x662F;&#x5426;&#x9700;&#x8981;&#x963B;&#x585E;&#x4E5F;&#x6839;&#x636E;&#x540E;&#x9762;&#x4E24;&#x4E2A;&#x5165;&#x53C2;&#x5224;&#x65AD;&#xFF0C;&#x5982;&#x679C;&#x5F53;&#x524D;&#x5B58;&#x5728;&#x53EF;&#x4EE5;&#x5339;&#x914D;&#x7684;&#x7EBF;&#x7A0B;&#xFF0C;&#x5219;&#x4F1A;&#x5C1D;&#x8BD5;&#x5524;&#x9192;&#x963B;&#x585E;&#x4E2D;&#x7684;&#x7EBF;&#x7A0B;&#x3002;</p>
+<p><strong>&#x963B;&#x585E;&#x7EBF;&#x7A0B;&#x4F1A;&#x548C;&#x5BF9;&#x5E94;&#x7684;&#x5143;&#x7D20; e&#xFF0C;&#x4E00;&#x8D77;&#x88AB;&#x5305;&#x88C5;&#x4E3A; QNode&#xFF0C;&#x5E76;&#x4E14;&#x4E0B;&#x6302;&#x5230;&#x94FE;&#x8868;&#x672B;&#x5C3E;&#x3002;</strong></p>
+<blockquote>
+<p><strong>Put / Take &#x4E24;&#x79CD;&#x7EBF;&#x7A0B;&#x7684;&#x6570;&#x636E;&#x7684;&#x4EA4;&#x6362;&#x4F7F;&#x7528; QNode.item &#x5143;&#x7D20;&#x6765;&#x5B9E;&#x73B0;&#x3002;</strong></p>
+</blockquote>
+<p>Put &#x7EBF;&#x7A0B;&#x5339;&#x914D;&#x4E0A; Take &#x7EBF;&#x7A0B;&#x540E;&#x4F1A;&#x5C06;&#x81EA;&#x8EAB;&#x6570;&#x636E; CAS &#x5230; Take &#x5BF9;&#x5E94;&#x7684; QNode &#x4E2D;&#xFF0C;&#x53CD;&#x4E4B;&#x4E00;&#x6837;&#xFF0C;&#x5982;&#x679C;<strong>&#x53D6;&#x6D88;&#x5219;&#x5C06; QNode &#x5BF9;&#x8C61;&#x8D4B;&#x503C;&#x7ED9; item&#x3002;</strong></p>
+<h3 id="transferstack"><a name="transferstack" class="anchor-navigation-ex-anchor" href="#transferstack"><i class="fa fa-link" aria-hidden="true"></i></a>TransferStack</h3>
+<p><strong>TransferStack &#x4F7F;&#x7528;&#x5355;&#x4E2A;&#x7684; head &#x53D8;&#x91CF;&#x6307;&#x5411; Stack &#x7684;&#x6808;&#x9876;&#xFF0C;&#x6BCF;&#x6B21;&#x5339;&#x914D;&#x90FD;&#x662F;&#x4ECE;&#x6808;&#x9876;&#x53D6;&#x8282;&#x70B9;&#x3002;</strong></p>
+<h2 id="synchronousqueue-&#x7684;&#x4F5C;&#x7528;"><a name="synchronousqueue-&#x7684;&#x4F5C;&#x7528;" class="anchor-navigation-ex-anchor" href="#synchronousqueue-&#x7684;&#x4F5C;&#x7528;"><i class="fa fa-link" aria-hidden="true"></i></a>SynchronousQueue &#x7684;&#x4F5C;&#x7528;</h2>
+<h3 id="&#x4F7F;&#x7528;-synchronousqueue-&#x4F5C;&#x4E3A;&#x7EBF;&#x7A0B;&#x6C60;&#x7684;&#x4EFB;&#x52A1;&#x961F;&#x5217;"><a name="&#x4F7F;&#x7528;-synchronousqueue-&#x4F5C;&#x4E3A;&#x7EBF;&#x7A0B;&#x6C60;&#x7684;&#x4EFB;&#x52A1;&#x961F;&#x5217;" class="anchor-navigation-ex-anchor" href="#&#x4F7F;&#x7528;-synchronousqueue-&#x4F5C;&#x4E3A;&#x7EBF;&#x7A0B;&#x6C60;&#x7684;&#x4EFB;&#x52A1;&#x961F;&#x5217;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x4F7F;&#x7528; SynchronousQueue &#x4F5C;&#x4E3A;&#x7EBF;&#x7A0B;&#x6C60;&#x7684;&#x4EFB;&#x52A1;&#x961F;&#x5217;</h3>
+<blockquote>
+<p>&#x7EBF;&#x7A0B;&#x6C60;&#x4E2D;&#x4F7F;&#x7528; BlockingQueue#offer &#x6DFB;&#x52A0;&#x4EFB;&#x52A1;&#xFF0C;&#x4F7F;&#x7528; BlockingQueue#take &#x4EE5;&#x53CA; BlockingQueue#poll(time) &#x83B7;&#x53D6;&#x7EBF;&#x7A0B;&#xFF08;&#x5B9A;&#x65F6;&#x548C;&#x4E0D;&#x5B9A;&#x65F6;&#xFF09;&#x3002;</p>
+</blockquote>
+<p>SynchronousQueue &#x7684; offer &#x65B9;&#x6CD5;<strong>&#x4E0D;&#x4F1A;&#x963B;&#x585E;&#x5F53;&#x524D;&#x7EBF;&#x7A0B;&#xFF0C;&#x5982;&#x679C;&#x6CA1;&#x6709;&#x5339;&#x914D;&#x7684;&#x7EBF;&#x7A0B;&#x5219;&#x76F4;&#x63A5;&#x8FD4;&#x56DE;&#x6DFB;&#x52A0;&#x5931;&#x8D25;</strong>&#x3002;</p>
+<p>&#x6240;&#x4EE5;&#x7EBF;&#x7A0B;&#x6C60;&#x4E2D;&#x4F7F;&#x7528; SynchronousQueue &#x4F5C;&#x4E3A;&#x4EFB;&#x52A1;&#x961F;&#x5217;&#x65F6;&#xFF0C;&#x5F53;&#x6838;&#x5FC3;&#x7EBF;&#x7A0B;&#x6C60;&#x6EE1;&#x4E86;&#x4E4B;&#x540E;&#xFF0C;&#x4F1A;&#x76F4;&#x63A5;&#x5C1D;&#x8BD5;&#x6DFB;&#x52A0;&#x975E;&#x6838;&#x5FC3;&#x7EBF;&#x7A0B;&#xFF0C;&#x76F4;&#x5230;&#x7EBF;&#x7A0B;&#x6570;&#x8FBE;&#x5230;&#x6700;&#x5927;&#x3002;</p>
+<h2 id="&#x53C2;&#x8003;"><a name="&#x53C2;&#x8003;" class="anchor-navigation-ex-anchor" href="#&#x53C2;&#x8003;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x53C2;&#x8003;</h2>
+<p><a href="https://zhuanlan.zhihu.com/p/29227508" target="_blank">SynchronousQueue &#x5B9E;&#x73B0;&#x539F;&#x7406;</a></p>
+
+<script>console.log("plugin-popup....");document.onclick = function(e){ e.target.tagName === "IMG" && window.open(e.target.src,e.target.src)}</script><style>img{cursor:pointer}</style>
+                                
+                                </section>
+                            
+    </div>
+    <div class="search-results">
+        <div class="has-results">
+            
+            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+            <ul class="search-results-list"></ul>
+            
+        </div>
+        <div class="no-results">
+            
+            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+            
+        </div>
+    </div>
+</div>
+
+                        </div>
+                    </div>
+                
+            </div>
+
+            
+                
+                <a href="BlockingQueue.html" class="navigation navigation-prev " aria-label="Previous page: BlockingQueue 类族">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+                
+                
+                <a href="CountDownLatch.html" class="navigation navigation-next " aria-label="Next page: CountDownLatch 源码分析">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+                
+            
+        
+    </div>
+
+    <script>
+        var gitbook = gitbook || [];
+        gitbook.push(function() {
+            gitbook.page.hasChanged({"page":{"title":"SynchronousQueue","level":"1.2.1.1.7","depth":4,"next":{"title":"CountDownLatch 源码分析","level":"1.2.1.1.8","depth":4,"path":"java/jdk/CountDownLatch.md","ref":"java/jdk/CountDownLatch.md","articles":[]},"previous":{"title":"BlockingQueue 类族","level":"1.2.1.1.6","depth":4,"path":"java/jdk/BlockingQueue.md","ref":"java/jdk/BlockingQueue.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":["intopic-toc","chapter-fold","splitter","expandable-chapters","back-to-top-button","popup","anchor-navigation-ex","livereload"],"pluginsConfig":{"chapter-fold":{},"intopic-toc":{"isCollapsed":true,"isScrollspyActive":true,"label":"Catalogue","maxDepth":6,"mode":"nested","selector":".markdown-section h1, .markdown-section h2, .markdown-section h3, .markdown-section h4, .markdown-section h5, .markdown-section h6","visible":true},"livereload":{},"splitter":{},"search":{},"popup":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"highlight":{},"anchor-navigation-ex":{"associatedWithSummary":true,"float":{"floatIcon":"fa fa-navicon","level1Icon":"","level2Icon":"","level3Icon":"","showLevelIcon":false},"mode":"float","multipleH1":true,"pageTop":{"level1Icon":"","level2Icon":"","level3Icon":"","showLevelIcon":false},"printLog":false,"showGoTop":false,"showLevel":false},"back-to-top-button":{},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false},"expandable-chapters":{}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"java/jdk/SynchronousQueue.md","mtime":"2021-08-19T13:33:02.302Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-10-07T13:39:58.281Z"},"basePath":"../..","book":{"language":""}});
+        });
+    </script>
+</div>
+
+        
+    <script src="../../gitbook/gitbook.js"></script>
+    <script src="../../gitbook/theme.js"></script>
+    
+        
+        <script src="../../gitbook/gitbook-plugin-intopic-toc/anchor.min.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-intopic-toc/gumshoe.polyfills.min.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-intopic-toc/plugin.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-chapter-fold/chapter-fold.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-splitter/splitter.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-expandable-chapters/expandable-chapters.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-back-to-top-button/plugin.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-livereload/plugin.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-search/search-engine.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-search/search.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-lunr/lunr.min.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-lunr/search-lunr.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-sharing/buttons.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-fontsettings/fontsettings.js"></script>
+        
+    
+
+    </body>
+</html>
+

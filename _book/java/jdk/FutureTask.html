@@ -1,0 +1,1548 @@
+
+<!DOCTYPE HTML>
+<html lang="" >
+    <head>
+        <meta charset="UTF-8">
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <title>FutureTask 源码分析 · GitBook</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 3.2.3">
+        
+        
+        
+    
+    <link rel="stylesheet" href="../../gitbook/style.css">
+
+    
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-intopic-toc/style.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-chapter-fold/chapter-fold.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-splitter/splitter.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-expandable-chapters/expandable-chapters.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-back-to-top-button/plugin.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-anchor-navigation-ex/style/plugin.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-highlight/website.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-search/search.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-fontsettings/website.css">
+                
+            
+        
+
+    
+
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+
+        
+    
+    
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../../gitbook/images/apple-touch-icon-precomposed-152.png">
+    <link rel="shortcut icon" href="../../gitbook/images/favicon.ico" type="image/x-icon">
+
+    
+    <link rel="next" href="ReetrantLock.html" />
+    
+    
+    <link rel="prev" href="ConcurrentHashMap.html" />
+    
+
+    </head>
+    <body>
+        
+<div class="book">
+    <div class="book-summary">
+        
+            
+<div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search" />
+</div>
+
+            
+                <nav role="navigation">
+                
+
+
+<ul class="summary">
+    
+    
+
+    
+
+    
+        
+        
+    
+        <li class="chapter " data-level="1.1" data-path="../../">
+            
+                <a href="../../">
+            
+                    
+                    Introduction
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2" data-path="../">
+            
+                <a href="../">
+            
+                    
+                    Java
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1" >
+            
+                <span>
+            
+                    
+                    JDK 源码分析
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1.1" >
+            
+                <span>
+            
+                    
+                    JUC
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1.1.1" data-path="AbstractQueuedSynchronizer.html">
+            
+                <a href="AbstractQueuedSynchronizer.html">
+            
+                    
+                    AbstractQueueSynchronized 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.2" data-path="ConcurrentHashMap.html">
+            
+                <a href="ConcurrentHashMap.html">
+            
+                    
+                    ConcurrentHashMap 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter active" data-level="1.2.1.1.3" data-path="FutureTask.html">
+            
+                <a href="FutureTask.html">
+            
+                    
+                    FutureTask 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.4" data-path="ReetrantLock.html">
+            
+                <a href="ReetrantLock.html">
+            
+                    
+                    ReetrantLocak 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.5" data-path="ThreadPoolExecutor.html">
+            
+                <a href="ThreadPoolExecutor.html">
+            
+                    
+                    ThreadPoolExecutor 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.6" data-path="BlockingQueue.html">
+            
+                <a href="BlockingQueue.html">
+            
+                    
+                    BlockingQueue 类族
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.7" data-path="SynchronousQueue.html">
+            
+                <a href="SynchronousQueue.html">
+            
+                    
+                    SynchronousQueue
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.8" data-path="CountDownLatch.html">
+            
+                <a href="CountDownLatch.html">
+            
+                    
+                    CountDownLatch 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.9" data-path="CyclicBarrier.html">
+            
+                <a href="CyclicBarrier.html">
+            
+                    
+                    CyclicBarrier 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.10" data-path="CopyOnWriteArrayList.html">
+            
+                <a href="CopyOnWriteArrayList.html">
+            
+                    
+                    CopyOnWriteArrayList 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.11" data-path="CopyOnWriteArraySet.html">
+            
+                <a href="CopyOnWriteArraySet.html">
+            
+                    
+                    CopyOnWriteArraySet 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.12" data-path="ConcurrentSkipListMap.html">
+            
+                <a href="ConcurrentSkipListMap.html">
+            
+                    
+                    ConcurrentSkipListMap 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.13" data-path="ScheduledThreadPoolExecutor.html">
+            
+                <a href="ScheduledThreadPoolExecutor.html">
+            
+                    
+                    cheduledThreadPoolExecutor 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.14" data-path="Semaphore.html">
+            
+                <a href="Semaphore.html">
+            
+                    
+                    Semaphore 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2" >
+            
+                <span>
+            
+                    
+                    Java 集合框架
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1.2.1" data-path="HashMap源码阅读.html">
+            
+                <a href="HashMap源码阅读.html">
+            
+                    
+                    HashMap 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2.2" data-path="HashMap.html">
+            
+                <a href="HashMap.html">
+            
+                    
+                    HashMap 原理(文字表述)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2.3" data-path="LinkedHashMap源码阅读.html">
+            
+                <a href="LinkedHashMap源码阅读.html">
+            
+                    
+                    LinkedHashMap 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2.4" data-path="ArrayList.html">
+            
+                <a href="ArrayList.html">
+            
+                    
+                    ArrayList 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2.5" data-path="LinkedList源码阅读.html">
+            
+                <a href="LinkedList源码阅读.html">
+            
+                    
+                    LinkedList 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.3" >
+            
+                <span>
+            
+                    
+                    其他
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1.3.1" data-path="ThreadLocal.html">
+            
+                <a href="ThreadLocal.html">
+            
+                    
+                    ThreadLocal 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.3.2" data-path="Stream.html">
+            
+                <a href="Stream.html">
+            
+                    
+                    Stream 分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2" >
+            
+                <span>
+            
+                    
+                    JVM（Java 虚拟机）
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.2.1" data-path="../jvm/关键字.html">
+            
+                <a href="../jvm/关键字.html">
+            
+                    
+                    Java 关键字整理
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.2" data-path="../jvm/引用类型.html">
+            
+                <a href="../jvm/引用类型.html">
+            
+                    
+                    Java 中的引用类型
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.3" data-path="../jvm/元空间和永久代.html">
+            
+                <a href="../jvm/元空间和永久代.html">
+            
+                    
+                    元空间和永久代
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.4" data-path="../jvm/synchronized.html">
+            
+                <a href="../jvm/synchronized.html">
+            
+                    
+                    synchronized 关键字
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.5" data-path="../jvm/JVM的类加载子系统.html">
+            
+                <a href="../jvm/JVM的类加载子系统.html">
+            
+                    
+                    JVM 的类加载子系统
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.3" >
+            
+                <span>
+            
+                    
+                    Guava 源码分析
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.3.1" data-path="../guava/EventBus.html">
+            
+                <a href="../guava/EventBus.html">
+            
+                    
+                    EventBus 相关源码解析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.3.2" data-path="../guava/RateLimiter.html">
+            
+                <a href="../guava/RateLimiter.html">
+            
+                    
+                    RateLimiter 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3" >
+            
+                <span>
+            
+                    
+                    Netty
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.3.1" data-path="../../netty/netty逻辑流程/EventLoop的初始化.html">
+            
+                <a href="../../netty/netty逻辑流程/EventLoop的初始化.html">
+            
+                    
+                    EventLoop 的初始化流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2" data-path="../../netty/netty逻辑流程/NIO服务端启动流程.html">
+            
+                <a href="../../netty/netty逻辑流程/NIO服务端启动流程.html">
+            
+                    
+                    NIO服务端启动流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.3" data-path="../../netty/netty逻辑流程/ChannelPipeline的结构和初始化流程.html">
+            
+                <a href="../../netty/netty逻辑流程/ChannelPipeline的结构和初始化流程.html">
+            
+                    
+                    ChannelPipeline的结构和初始化流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.4" data-path="../../netty/netty逻辑流程/NioEventLoop的事件轮询.html">
+            
+                <a href="../../netty/netty逻辑流程/NioEventLoop的事件轮询.html">
+            
+                    
+                    NioEventLoop的事件轮询
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.5" data-path="../../netty/netty逻辑流程/客户端Channel的创建流程.html">
+            
+                <a href="../../netty/netty逻辑流程/客户端Channel的创建流程.html">
+            
+                    
+                    客户端Channel的建立过程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.6" data-path="../../netty/netty逻辑流程/ChannelPipeline事件传递机制.html">
+            
+                <a href="../../netty/netty逻辑流程/ChannelPipeline事件传递机制.html">
+            
+                    
+                    ChannelPipeline事件传递机制
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.7" data-path="../../netty/netty逻辑流程/Netty中的编解码逻辑.html">
+            
+                <a href="../../netty/netty逻辑流程/Netty中的编解码逻辑.html">
+            
+                    
+                    Netty 中的编解码逻辑
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.8" data-path="../../netty/netty逻辑流程/Netty中写数据的逻辑.html">
+            
+                <a href="../../netty/netty逻辑流程/Netty中写数据的逻辑.html">
+            
+                    
+                    Netty 中写数据的逻辑
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.9" data-path="../../netty/netty逻辑流程/Netty中读数据的流程.html">
+            
+                <a href="../../netty/netty逻辑流程/Netty中读数据的流程.html">
+            
+                    
+                    Netty 中读数据的流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.10" data-path="../../netty/util/FastThreadLocal.html">
+            
+                <a href="../../netty/util/FastThreadLocal.html">
+            
+                    
+                    FastThreadLocal 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.11" data-path="../../netty/util/ChannelPool.html">
+            
+                <a href="../../netty/util/ChannelPool.html">
+            
+                    
+                    ChannelPool 相关分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.12" data-path="../../netty/ChannelOption整理.html">
+            
+                <a href="../../netty/ChannelOption整理.html">
+            
+                    
+                    ChannelOption 整理
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4" >
+            
+                <span>
+            
+                    
+                    Spring
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.1" >
+            
+                <span>
+            
+                    
+                    Spring Core
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.1.1" data-path="../../spring/spring-core/aop/aop 概念.md">
+            
+                <span>
+            
+                    
+                    AOP相关概念
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.1.2" data-path="../../spring/spring-core/aop/ProxyFactory.html">
+            
+                <a href="../../spring/spring-core/aop/ProxyFactory.html">
+            
+                    
+                    ProxyFactory
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.1.3" data-path="../../spring/spring-core/aop/Aop实现的不同方式.html">
+            
+                <a href="../../spring/spring-core/aop/Aop实现的不同方式.html">
+            
+                    
+                    Aop 实现的不同方式
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.1.4" data-path="../../spring/spring-core/module/async.html">
+            
+                <a href="../../spring/spring-core/module/async.html">
+            
+                    
+                    Async的实现原理
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.2" >
+            
+                <span>
+            
+                    
+                    SpringBoot
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.2.1" data-path="../../spring/spring-boot/SpringBoot的事件模型 .html">
+            
+                <a href="../../spring/spring-boot/SpringBoot的事件模型 .html">
+            
+                    
+                    SpringBoot的事件模型
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.2.2" data-path="../../spring/spring-boot/SpringBoot的启动流程.html">
+            
+                <a href="../../spring/spring-boot/SpringBoot的启动流程.html">
+            
+                    
+                    SpringBoot的启动流程简述
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.2.3" data-path="../../spring/spring-boot/SpringBoot的工厂加载模式.html">
+            
+                <a href="../../spring/spring-boot/SpringBoot的工厂加载模式.html">
+            
+                    
+                    SpringBoot的工厂加载模式
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.3" >
+            
+                <span>
+            
+                    
+                    SpringCloud
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.3.1" data-path="../../spring/spring-cloud/consul.html">
+            
+                <a href="../../spring/spring-cloud/consul.html">
+            
+                    
+                    consul 简述
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.3.2" data-path="../../spring/spring-cloud/feign.html">
+            
+                <a href="../../spring/spring-cloud/feign.html">
+            
+                    
+                    feign 简述
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.3.3" data-path="../../spring/spring-cloud/zuul.html">
+            
+                <a href="../../spring/spring-cloud/zuul.html">
+            
+                    
+                    zuul 简述
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5" >
+            
+                <span>
+            
+                    
+                    设计模式
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.5.1" data-path="../../系统设计/Gof设计模式.html">
+            
+                <a href="../../系统设计/Gof设计模式.html">
+            
+                    
+                    Gof 的设计模式
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6" >
+            
+                <span>
+            
+                    
+                    中间件
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.6.1" >
+            
+                <span>
+            
+                    
+                    RabbitMQ
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.6.1.1" data-path="../../消息队列/RabbitMQ如何保证消息不丢失.html">
+            
+                <a href="../../消息队列/RabbitMQ如何保证消息不丢失.html">
+            
+                    
+                    RabbitMQ 如何保证消息不丢失
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6.2" >
+            
+                <span>
+            
+                    
+                    Redis
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.6.2.1" data-path="../../redis/Redis的五种数据结构.html">
+            
+                <a href="../../redis/Redis的五种数据结构.html">
+            
+                    
+                    Redis 的五种数据结构
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6.2.2" data-path="../../redis/Redis的Sentinel模式.html">
+            
+                <a href="../../redis/Redis的Sentinel模式.html">
+            
+                    
+                    Redis 的哨兵模式
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6.2.3" data-path="../../redis/Redis的主从复制模式.html">
+            
+                <a href="../../redis/Redis的主从复制模式.html">
+            
+                    
+                    Redis 的主从复制模式
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.7" >
+            
+                <span>
+            
+                    
+                    网络
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.7.1" >
+            
+                <span>
+            
+                    
+                    TCP
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.7.1.1" data-path="../../网络/tcp协议整理1.html">
+            
+                <a href="../../网络/tcp协议整理1.html">
+            
+                    
+                    TCP 协议总结（一）
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.7.1.2" data-path="../../网络/tcp内核参数整理.html">
+            
+                <a href="../../网络/tcp内核参数整理.html">
+            
+                    
+                    Linux 中的相关 TCP 参数
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+    
+
+    <li class="divider"></li>
+
+    <li>
+        <a href="https://www.gitbook.com" target="blank" class="gitbook-link">
+            Published with GitBook
+        </a>
+    </li>
+</ul>
+
+
+                </nav>
+            
+        
+    </div>
+
+    <div class="book-body">
+        
+            <div class="body-inner">
+                
+                    
+
+<div class="book-header" role="navigation">
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href="../.." >FutureTask 源码分析</a>
+    </h1>
+</div>
+
+
+
+
+                    <div class="page-wrapper" tabindex="-1" role="main">
+                        <div class="page-inner">
+                            
+<div id="book-search-results">
+    <div class="search-noresults">
+    
+                                <section class="normal markdown-section">
+                                
+                                <div id="anchor-navigation-ex-navbar"><i class="fa fa-navicon"></i><ul><li><span class="title-icon "></span><a href="#futuretask&#x6E90;&#x7801;&#x89E3;&#x6790;"><b></b>FutureTask&#x6E90;&#x7801;&#x89E3;&#x6790;</a></li><ul><li><span class="title-icon "></span><a href="#&#x6982;&#x8FF0;"><b></b>&#x6982;&#x8FF0;</a></li><ul><li><span class="title-icon "></span><a href="#&#x76F8;&#x5173;&#x7C7B;&#x65CF;"><b></b>&#x76F8;&#x5173;&#x7C7B;&#x65CF;</a></li><li><span class="title-icon "></span><a href="#&#x57FA;&#x672C;&#x6982;&#x5FF5;"><b></b>&#x57FA;&#x672C;&#x6982;&#x5FF5;</a></li></ul><li><span class="title-icon "></span><a href="#&#x6E90;&#x7801;&#x5B9E;&#x73B0;"><b></b>&#x6E90;&#x7801;&#x5B9E;&#x73B0;</a></li><ul><li><span class="title-icon "></span><a href="#&#x83B7;&#x53D6;&#x4EFB;&#x52A1;&#x7ED3;&#x679C;"><b></b>&#x83B7;&#x53D6;&#x4EFB;&#x52A1;&#x7ED3;&#x679C;</a></li><li><span class="title-icon "></span><a href="#&#x4EFB;&#x52A1;&#x6267;&#x884C;"><b></b>&#x4EFB;&#x52A1;&#x6267;&#x884C;</a></li><li><span class="title-icon "></span><a href="#&#x963B;&#x585E;&#x53CA;&#x5524;&#x9192;"><b></b>&#x963B;&#x585E;&#x53CA;&#x5524;&#x9192;</a></li><li><span class="title-icon "></span><a href="#&#x4EFB;&#x52A1;&#x53D6;&#x6D88;"><b></b>&#x4EFB;&#x52A1;&#x53D6;&#x6D88;</a></li><li><span class="title-icon "></span><a href="#&#x4EFB;&#x52A1;&#x72B6;&#x6001;"><b></b>&#x4EFB;&#x52A1;&#x72B6;&#x6001;</a></li></ul><li><span class="title-icon "></span><a href="#&#x603B;&#x7ED3;"><b></b>&#x603B;&#x7ED3;</a></li></ul></ul></div><h1 id="futuretask&#x6E90;&#x7801;&#x89E3;&#x6790;"><a name="futuretask&#x6E90;&#x7801;&#x89E3;&#x6790;" class="anchor-navigation-ex-anchor" href="#futuretask&#x6E90;&#x7801;&#x89E3;&#x6790;"><i class="fa fa-link" aria-hidden="true"></i></a>FutureTask&#x6E90;&#x7801;&#x89E3;&#x6790;</h1>
+<blockquote>
+<p>FutureTask &#x5C31;&#x662F;&#x5BF9;&#x4E00;&#x4E2A;&#x5F02;&#x6B65;&#x4EFB;&#x52A1;&#x7684;&#x62BD;&#x8C61;&#x3002;</p>
+</blockquote>
+<p>[TOC]</p>
+<hr>
+<h2 id="&#x6982;&#x8FF0;"><a name="&#x6982;&#x8FF0;" class="anchor-navigation-ex-anchor" href="#&#x6982;&#x8FF0;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x6982;&#x8FF0;</h2>
+<h3 id="&#x76F8;&#x5173;&#x7C7B;&#x65CF;"><a name="&#x76F8;&#x5173;&#x7C7B;&#x65CF;" class="anchor-navigation-ex-anchor" href="#&#x76F8;&#x5173;&#x7C7B;&#x65CF;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x76F8;&#x5173;&#x7C7B;&#x65CF;</h3>
+<p>FutureTask &#x7684;&#x7EE7;&#x627F;&#x5173;&#x7CFB;&#x56FE;&#x5982;&#x4E0B;:</p>
+<p><img src="assets/FutureTask%20%E7%B1%BB%E5%9B%BE.png" alt="image-20210101220124616"></p>
+<p>FutureTask &#x76F4;&#x63A5;&#x7EE7;&#x627F;&#x4E86; RunnableFuture&#xFF0C;&#x800C; RunabkleFuture &#x53C8;&#x7EE7;&#x627F;&#x4E86; Future &#x548C; Runnable &#x63A5;&#x53E3;&#x3002;</p>
+<p>&#x76F8;&#x5F53;&#x4E8E; FutureTask &#x95F4;&#x63A5;&#x7EE7;&#x627F;&#x4E86; Runnable&#xFF0C;<strong>&#x6240;&#x4EE5;&#x5B83;&#x53EF;&#x4EE5;&#x4F5C;&#x4E3A;&#x4E00;&#x4E2A;&#x4EFB;&#x52A1;&#x5411; ThreadPoolExecutor &#x63D0;&#x4EA4;&#x5E76;&#x6267;&#x884C;&#x3002;</strong></p>
+<p>&#x53E6;&#x5916;&#x7684; Future &#x53EF;&#x4EE5;&#x7B80;&#x5355;&#x770B;&#x4E00;&#x4E0B;&#x5B83;&#x7684;&#x65B9;&#x6CD5;&#x5217;&#x8868;&#xFF1A;</p>
+<p><img src="assets/FutureTask%20%E6%96%B9%E6%B3%95%E5%88%97%E8%A1%A8.png" alt="image-20210101222620223"></p>
+<table>
+<thead>
+<tr>
+<th>&#x65B9;&#x6CD5;&#x540D;&#x79F0;</th>
+<th>&#x65B9;&#x6CD5;&#x4F5C;&#x7528;</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>cancel(boolean)</td>
+<td>&#x53D6;&#x6D88;&#x4EFB;&#x52A1;&#xFF0C;&#x5E03;&#x5C14;&#x53C2;&#x6570;&#x8868;&#x793A;&#x5982;&#x679C;&#x4EFB;&#x52A1;&#x5DF2;&#x7ECF;&#x542F;&#x52A8;&#x662F;&#x5426;&#x9700;&#x8981;&#x4E2D;&#x65AD;</td>
+</tr>
+<tr>
+<td>get()</td>
+<td>&#x963B;&#x585E;&#x83B7;&#x53D6;&#x4EFB;&#x52A1;&#x7ED3;&#x679C;</td>
+</tr>
+<tr>
+<td>get(long,TimeUnit)</td>
+<td>&#x5E26;&#x8D85;&#x65F6;&#x65F6;&#x95F4;&#x7684;&#x963B;&#x585E;&#x83B7;&#x53D6;&#x4EFB;&#x52A1;&#x7ED3;&#x679C;&#x3002;</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Future &#x5728; JDK &#x4E2D;&#x8868;&#x793A;&#x5F02;&#x6B65;&#x7ED3;&#x679C;&#x3002;</p>
+<p>cannel(Boolean) &#x65B9;&#x6CD5;&#x7684;&#x53C2;&#x6570;&#x9700;&#x8981;&#x6CE8;&#x610F;&#xFF0C;&#x5982;&#x679C;&#x4E3A; ture &#x90A3;&#x4E48;&#x5C31;&#x7B97;&#x4EFB;&#x52A1;&#x5DF2;&#x7ECF;&#x542F;&#x52A8;&#x4E5F;&#x4F1A;&#x53D1;&#x51FA;&#x4E2D;&#x65AD;&#x4FE1;&#x53F7;&#x3002;</p>
+<p>Netty &#x4E2D;&#x7684; Future &#x589E;&#x52A0;&#x4E86;&#x65B9;&#x6CD5;&#x7684;&#x56DE;&#x8C03;&#x3002; </p>
+</blockquote>
+<h3 id="&#x57FA;&#x672C;&#x6982;&#x5FF5;"><a name="&#x57FA;&#x672C;&#x6982;&#x5FF5;" class="anchor-navigation-ex-anchor" href="#&#x57FA;&#x672C;&#x6982;&#x5FF5;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x57FA;&#x672C;&#x6982;&#x5FF5;</h3>
+<p>&#x4EE5;&#x4E0B;&#x662F; FutureTask &#x7684;&#x7C7B;&#x6CE8;&#x91CA;:</p>
+<p><img src="assets/FutureTask%20%E7%B1%BB%E6%B3%A8%E9%87%8A.png" alt="image-20210101220304793"></p>
+<p>FutureTask &#x662F;&#x4E00;&#x4E2A;&#x53EF;&#x4EE5;&#x53D6;&#x6D88;&#x7684;&#x5F02;&#x6B65;&#x8BA1;&#x7B97;&#x4EFB;&#x52A1;&#xFF0C;&#x63D0;&#x4F9B;&#x4E86; Future &#x4E2D;&#x542F;&#x52A8;&#x4EFB;&#x52A1;&#xFF0C;&#x53D6;&#x6D88;&#x4EFB;&#x52A1;&#x4EE5;&#x53CA;&#x5728;&#x83B7;&#x53D6;&#x4EFB;&#x52A1;&#x7ED3;&#x679C;&#x7684;&#x57FA;&#x7840;&#x5B9E;&#x73B0;&#xFF0C;&#x4EFB;&#x52A1;&#x7684;&#x7ED3;&#x679C;&#x53EA;&#x6709;&#x5728;&#x7ED3;&#x675F;&#x4E4B;&#x540E;&#x624D;&#x80FD;&#x83B7;&#x53D6;&#x3002;get &#x65B9;&#x6CD5;&#x4F1A;&#x963B;&#x585E;&#x76F4;&#x5230;&#x4EFB;&#x52A1;&#x7ED3;&#x675F;&#xFF0C;&#x5728;&#x4EFB;&#x52A1;&#x5DF2;&#x7ECF;&#x7ED3;&#x675F;&#x4E4B;&#x540E;&#xFF0C;&#x4E0D;&#x80FD;&#x91CD;&#x542F;&#x6216;&#x8005;&#x53D6;&#x6D88;&#x3002;</p>
+<p>FutureTask &#x53EF;&#x4EE5;&#x7528;&#x4E8E;&#x5305;&#x88C5; Callable &#x6216;&#x8005; Runnable &#x5BF9;&#x8C61;&#xFF0C;&#x56E0;&#x4E3A; FutureTask &#x7EE7;&#x627F;&#x4E86; Runnable&#xFF0C;&#x6240;&#x4EE5; FutureTask &#x4E5F;&#x53EF;&#x4EE5;&#x7528; Executor&#x6267;&#x884C;&#x3002;</p>
+<blockquote>
+<p>&#x603B;&#x800C;&#x8A00;&#x4E4B;&#xFF0C;FutureTask &#x5C31;&#x662F;&#x4E00;&#x4E2A;&#x5F02;&#x6B65;&#x7684;&#x4EFB;&#x52A1;&#x7C7B;&#x578B;&#xFF0C;&#x5B83;&#x63D0;&#x4F9B;&#x7684;&#x4F5C;&#x7528;&#x5982;&#x4E0B;:</p>
+<ol>
+<li><p>&#x53EF;&#x4EE5;&#x5F02;&#x6B65;&#x6267;&#x884C;&#xFF0C;&#x56E0;&#x4E3A; FutureTask &#x5B9E;&#x73B0;&#x4E86; Runnable &#x63A5;&#x53E3;&#x3002; </p>
+</li>
+<li><p>&#x63D0;&#x4F9B;&#x7ED3;&#x679C;&#x7684;&#x83B7;&#x53D6;&#x65B9;&#x6CD5;&#x3002;</p>
+<ul>
+<li><p>&#x5728;&#x7ED3;&#x675F;&#x4E4B;&#x540E; FutureTask &#x9700;&#x8981;&#x4FDD;&#x5B58;&#x8FD9;&#x4E2A;&#x7ED3;&#x679C;&#xFF0C;</p>
+</li>
+<li><p>&#x5728;&#x672A;&#x7ED3;&#x675F;&#x7684;&#x65F6;&#x5019;&#x963B;&#x585E;&#x83B7;&#x53D6;&#x7ED3;&#x679C;&#x7684;&#x7EBF;&#x7A0B;</p>
+</li>
+<li>&#x5728;&#x7ED3;&#x675F;&#x4E4B;&#x540E;&#x5524;&#x9192;&#x5E76;&#x901A;&#x77E5;&#x5BF9;&#x5E94;&#x7EBF;&#x7A0B;</li>
+</ul>
+</li>
+<li><p>&#x53EF;&#x4EE5;&#x5728;&#x672A;&#x7ED3;&#x675F;&#x4E4B;&#x524D;&#x968F;&#x65F6;&#x53D6;&#x6D88;&#x4EFB;&#x52A1;&#xFF0C;&#x6B64;&#x65F6;&#x9700;&#x8981;&#x5524;&#x9192;&#x963B;&#x585E;&#x7684;&#x7EBF;&#x7A0B;</p>
+</li>
+</ol>
+</blockquote>
+<h2 id="&#x6E90;&#x7801;&#x5B9E;&#x73B0;"><a name="&#x6E90;&#x7801;&#x5B9E;&#x73B0;" class="anchor-navigation-ex-anchor" href="#&#x6E90;&#x7801;&#x5B9E;&#x73B0;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x6E90;&#x7801;&#x5B9E;&#x73B0;</h2>
+<h3 id="&#x83B7;&#x53D6;&#x4EFB;&#x52A1;&#x7ED3;&#x679C;"><a name="&#x83B7;&#x53D6;&#x4EFB;&#x52A1;&#x7ED3;&#x679C;" class="anchor-navigation-ex-anchor" href="#&#x83B7;&#x53D6;&#x4EFB;&#x52A1;&#x7ED3;&#x679C;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x83B7;&#x53D6;&#x4EFB;&#x52A1;&#x7ED3;&#x679C;</h3>
+<p><strong>FutureTask &#x4E2D;&#x5B9A;&#x4E49;&#x4E86; outcome &#x8FD9;&#x4E2A;&#x6210;&#x5458;&#x53D8;&#x91CF;&#x7528;&#x4E8E;&#x5B58;&#x50A8;&#x4EFB;&#x52A1;&#x7684;&#x6267;&#x884C;&#x7ED3;&#x679C;&#x3002;</strong></p>
+<p>&#x4E0D;&#x4EC5;&#x5305;&#x542B;&#x6B63;&#x5E38;&#x7684;&#x8FD4;&#x56DE;&#x7ED3;&#x679C;&#xFF0C;&#x5982;&#x679C;&#x6267;&#x884C;&#x6709;&#x5F02;&#x5E38;&#x4E5F;&#x4F1A;&#x4FDD;&#x5B58;&#x5728; outcome&#x3002;</p>
+<p><img src="assets/image-20210101225438275.png" alt="image-20210101225438275"></p>
+<p>&#x901A;&#x8FC7; get() &#x65B9;&#x6CD5;&#x83B7;&#x53D6;&#x4EFB;&#x52A1;&#x7684;&#x7ED3;&#x679C;:</p>
+<p><img src="assets/image-20210101225800773.png" alt="image-20210101225800773"></p>
+<p>&#x901A;&#x8FC7;&#x5F53;&#x524D;&#x4EFB;&#x52A1;&#x72B6;&#x6001;&#x7684;&#x5BF9;&#x6BD4;&#xFF0C;&#x5982;&#x679C;&#x4EFB;&#x52A1;&#x7684;&#x72B6;&#x6001;&#x5C0F;&#x4E8E; COMPLETING &#xFF0C;&#x8868;&#x793A;&#x4EFB;&#x52A1;&#x8FD8;&#x6CA1;&#x6709;&#x7ED3;&#x675F;&#xFF0C;&#x5C31;&#x8FDB;&#x5165;&#x963B;&#x585E;&#x7684;&#x6D41;&#x7A0B;&#x3002;</p>
+<p>&#x963B;&#x585E;&#x7ED3;&#x675F;&#x4E4B;&#x540E;&#xFF0C;&#x4F1A;&#x8FD4;&#x56DE;&#x6700;&#x65B0;&#x7684;&#x4EFB;&#x52A1;&#x72B6;&#x6001;&#xFF08;awaitDone &#x4E2D;&#x7684;&#x903B;&#x8F91;&#x53EF;&#x4EE5;&#x770B;&#x4E0B;&#x6587;&#xFF09;&#xFF0C;&#x7136;&#x540E;&#x5904;&#x7406;&#xFF0C;&#x5982;&#x679C;&#x4EFB;&#x52A1;&#x5DF2;&#x7ECF;&#x5B8C;&#x6210;&#xFF0C;&#x5426;&#x5219;&#x76F4;&#x63A5;&#x8FDB;&#x884C;&#x72B6;&#x6001;&#x5904;&#x7406;&#x3002;</p>
+<p>&#x4EE5;&#x4E0B;&#x662F;&#x72B6;&#x6001;&#x7684;&#x5904;&#x7406;&#x65B9;&#x6CD5;&#xFF0C;<strong>&#x6B64;&#x65F6;&#x4EFB;&#x52A1;&#x7684;&#x72B6;&#x6001;&#x80AF;&#x5B9A;&#x5927;&#x4E8E; COMPLETING :</strong></p>
+<p><img src="assets/image-20210101230013589.png" alt="image-20210101230013589"></p>
+<p>&#x5982;&#x679C;&#x4EFB;&#x52A1;&#x72B6;&#x6001;&#x6B63;&#x5E38;&#x5219;&#x8FD4;&#x56DE;&#x6B63;&#x5E38;&#x7684;&#x7ED3;&#x679C;&#xFF0C;&#x5426;&#x5219;&#x90FD;&#x4F1A;&#x62A5;&#x9519;&#xFF0C;&#x5305;&#x542B;&#x4EFB;&#x52A1;&#x5DF2;&#x7ECF;&#x53D6;&#x6D88;&#x5F02;&#x5E38;&#x6216;&#x8005;&#x6267;&#x884C;&#x5931;&#x8D25;&#x5F02;&#x5E38;&#x3002;</p>
+<blockquote>
+<p>FutureTask &#x901A;&#x8FC7;&#x72B6;&#x6001;&#x6765;&#x5224;&#x65AD;&#x4EFB;&#x52A1;&#x7684;&#x6267;&#x884C;&#x7ED3;&#x679C;&#xFF0C;&#x4F8B;&#x5982;&#x4EFB;&#x52A1;&#x88AB;&#x53D6;&#x6D88;&#x5C31;&#x662F; CANCELLED &#xFF0C;&#x4EFB;&#x52A1;&#x5B8C;&#x6210;&#x5C31;&#x662F; NORMAL&#x3002;</p>
+<p>&#x5177;&#x4F53;&#x7684;&#x72B6;&#x6001;&#x6D41;&#x8F6C;&#x89C1;&#x4E0B;&#x56FE;&#x3002;</p>
+</blockquote>
+<p>&#x8FD9;&#x91CC;&#x76F4;&#x63A5;&#x5C31;&#x4F7F;&#x7528;&#x7684;&#x7684; outcome &#xFF0C;&#x90A3;&#x4E48;&#x7ED3;&#x679C;&#x53C8;&#x662F;&#x4EC0;&#x4E48;&#x65F6;&#x5019;&#x88AB;&#x8D4B;&#x503C;&#x5230;&#x8FD9;&#x91CC;&#x7684;&#x5462;&#xFF1F;</p>
+<h3 id="&#x4EFB;&#x52A1;&#x6267;&#x884C;"><a name="&#x4EFB;&#x52A1;&#x6267;&#x884C;" class="anchor-navigation-ex-anchor" href="#&#x4EFB;&#x52A1;&#x6267;&#x884C;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x4EFB;&#x52A1;&#x6267;&#x884C;</h3>
+<p>&#x63A5;&#x4E0B;&#x6765;&#x770B; FutureTask &#x4F5C;&#x4E3A; Runnable &#x7684; run() &#x65B9;&#x6CD5;:</p>
+<p><img src="assets/image-20210101231540437.png" alt="image-20210101231540437"></p>
+<p>&#x5228;&#x9664;&#x5176;&#x4ED6;&#x4EE3;&#x7801;&#x6765;&#x8BF4;&#xFF0C;&#x6574;&#x4E2A; run() &#x7684;&#x903B;&#x8F91;&#x975E;&#x5E38;&#x7B80;&#x5355;&#xFF0C;&#x5C31;&#x662F;&#x8C03;&#x7528; Callable &#x7684; call() &#x65B9;&#x6CD5;&#xFF0C;&#x83B7;&#x53D6;&#x6267;&#x884C;&#x7ED3;&#x679C;&#xFF0C;&#x7136;&#x540E; set &#x7ED3;&#x679C;&#x5230;FutureTask&#x3002;</p>
+<blockquote>
+<p>  FutureTask  &#x53EF;&#x4EE5;&#x4EE5;  Callable  &#x4EE5;&#x53CA;  Runnable  &#x4E3A;&#x539F;&#x59CB;&#x5BF9;&#x8C61;&#xFF0C;&#x5982;&#x679C;&#x4E3A;  Runnable  &#x5C31;&#x4F1A;&#x5148;&#x5C06;&#x5176;&#x5305;&#x88C5;&#x6210;&#x4E00;&#x4E2A;  FutureTask  &#x3002;</p>
+<p>&#x8BE6;&#x7EC6;&#x903B;&#x8F91;&#x89C1;&#x6784;&#x9020;&#x51FD;&#x6570;&#x3002;</p>
+</blockquote>
+<p>&#x4EE5;&#x4E0B;&#x4E3A;&#x7ED3;&#x679C;&#x8D4B;&#x503C;&#x65B9;&#x6CD5;&#xFF1A;</p>
+<p><img src="assets/image-20210101231956159.png" alt="image-20210101231956159"></p>
+<p>&#x5148;&#x5C06;&#x72B6;&#x6001;&#x4ECE; NEW &#x53D8;&#x4E3A; COMPLETING &#xFF0C;&#x8D4B;&#x503C;&#x5230; outcome &#x4E4B;&#x540E;&#x53C8;&#x53D8;&#x4E3A; NORMAL &#x3002;</p>
+<blockquote>
+<p>&#x4EFB;&#x52A1;&#x5728;&#x6267;&#x884C;&#x671F;&#x95F4;&#x72B6;&#x6001;&#x4E00;&#x76F4;&#x4E3A; NEW &#x3002;</p>
+<p>  COMPLETING  &#x72B6;&#x6001;&#x4E0B;&#xFF0C;&#x4EFB;&#x52A1;&#x5DF2;&#x7ECF;&#x6267;&#x884C;&#x5B8C;&#x6BD5;&#xFF0C;&#x8FDB;&#x5165;&#x4EFB;&#x52A1;&#x7ED3;&#x679C;&#x7684;&#x4FDD;&#x5B58;&#x9636;&#x6BB5;&#x3002;</p>
+<p>&#x4FDD;&#x5B58;&#x5B8C;&#x6BD5;&#x540E;&#xFF0C;&#x4EFB;&#x52A1;&#x8FDB;&#x5165;  NORMAL  &#x72B6;&#x6001;&#x3002;</p>
+</blockquote>
+<p>&#x4FEE;&#x6539;&#x4E3A;  NORMAL  &#x72B6;&#x6001;&#x4E4B;&#x540E;&#xFF0C;&#x4F1A;&#x8FDB;&#x4E00;&#x6B65;&#x8C03;&#x7528;  finishCompletion  &#x65B9;&#x6CD5;&#xFF0C;&#x8BE5;&#x65B9;&#x6CD5;&#x7528;&#x4E8E;&#x5524;&#x9192;&#x963B;&#x585E;&#x7684;&#x7B49;&#x5F85;&#x7EBF;&#x7A0B;&#x3002;</p>
+<blockquote>
+<p>&#x9664;&#x4E86; run &#x65B9;&#x6CD5;&#xFF0C;&#x53E6;&#x5916;&#x8FD8;&#x6709; runAndReset &#x65B9;&#x6CD5;&#xFF0C;&#x8BE5;&#x65B9;&#x6CD5;&#x5728;&#x6267;&#x884C;&#x5B8C;&#x4E4B;&#x540E;&#x5E76;&#x4E0D;&#x8BBE;&#x7F6E;&#x6267;&#x884C;&#x7ED3;&#x679C;&#xFF0C;&#x5E76;&#x4E14;&#x72B6;&#x6001;&#x8FD8;&#x4E3A; NEW&#x3002;</p>
+<p>&#x5728; ScheduledThreadPoolExecutor &#x4E2D;&#x5B9E;&#x73B0;&#x5468;&#x671F;&#x6027;&#x4EFB;&#x52A1;&#x5C31;&#x7528;&#x4E86;&#x8BE5;&#x65B9;&#x6CD5;&#x3002;</p>
+</blockquote>
+<h3 id="&#x963B;&#x585E;&#x53CA;&#x5524;&#x9192;"><a name="&#x963B;&#x585E;&#x53CA;&#x5524;&#x9192;" class="anchor-navigation-ex-anchor" href="#&#x963B;&#x585E;&#x53CA;&#x5524;&#x9192;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x963B;&#x585E;&#x53CA;&#x5524;&#x9192;</h3>
+<p>&#x5148;&#x6765;&#x770B;&#x963B;&#x585E;&#x7684;&#x903B;&#x8F91;&#xFF0C;&#x4E5F;&#x5C31;&#x662F;  awaitDone  &#x65B9;&#x6CD5;:</p>
+<p><img src="assets/image-20210101230626457.png" alt="image-20210101230626457"></p>
+<p>&#x8FD9;&#x91CC;&#x6709;&#x7C7B;&#x4F3C;AQS&#x81EA;&#x65CB;&#x5165;&#x961F;&#x5217;&#x7684;&#x903B;&#x8F91;&#x3002;</p>
+<p>&#x6BCF;&#x6B21;&#x5FAA;&#x73AF;&#x524D;&#x90FD;&#x4F1A;&#x5224;&#x65AD;&#x5F53;&#x524D;&#x7EBF;&#x7A0B;&#x662F;&#x5426;&#x88AB;&#x4E2D;&#x65AD;&#xFF0C;&#x4E2D;&#x65AD;&#x7684;&#x8BDD;&#x4F1A;&#x5C06;&#x5F53;&#x524D;&#x7EBF;&#x7A0B;&#x4ECE;Waiter&#x4E2D;&#x5220;&#x9664;&#x3002;</p>
+<blockquote>
+<p>&#x83B7;&#x53D6; FutureTask &#x7684;&#x6267;&#x884C;&#x7ED3;&#x679C;&#x662F;&#x53EF;&#x4EE5;&#x4E2D;&#x65AD;&#x7684;&#x3002;</p>
+</blockquote>
+<p>&#x7136;&#x540E;&#x6839;&#x636E;&#x72B6;&#x6001;&#x5224;&#x65AD;&#xFF0C;&#x5982;&#x679C;&#x72B6;&#x6001;&#x5927;&#x4E8E;  COMPLETING&#xFF0C;&#x8BF4;&#x660E;&#x4EFB;&#x52A1;&#x5DF2;&#x7ECF;&#x5B8C;&#x6210;&#xFF0C;&#x5219;&#x76F4;&#x63A5;&#x8FD4;&#x56DE;&#x5F53;&#x524D;&#x7684;&#x72B6;&#x6001;&#x3002;</p>
+<p>&#x5982;&#x679C;&#x72B6;&#x6001;&#x4E3A;  COMPLETING  &#xFF0C;&#x5219;&#x8BA9;&#x51FA;&#x5F53;&#x524D;&#x7684;CPU&#x65F6;&#x95F4;&#x7247;&#xFF0C;</p>
+<p>&#x5982;&#x679C;  q  &#x4E3A;&#x7A7A;&#x5C31;&#x521B;&#x5EFA;&#x4E00;&#x4E2A;  WaitNode&#xFF0C;&#x5982;&#x679C;  queued  &#x4E3A;false&#x5219;&#x5C06;  q  &#x4E5F;&#x5C31;&#x662F;&#x4E0A;&#x6B21;&#x5FAA;&#x73AF;&#x521B;&#x5EFA;&#x7684;  WaitNode  &#x5165;&#x961F;&#x5217;&#x3002;</p>
+<p>&#x521B;&#x5EFA;&#x7684;  WaitNode  &#x4F1A;&#x5305;&#x542B;&#x5F53;&#x524D;&#x7684;&#x7EBF;&#x7A0B;:</p>
+<p><img src="assets/image-20210101232520786.png" alt="image-20210101232520786"></p>
+<blockquote>
+<p>  WaitNode  &#x5C31;&#x662F;&#x7B80;&#x5316;&#x7248;&#x7684;&#x94FE;&#x8868;&#xFF0C;&#x4EE5;&#x6240;&#x6709;&#x963B;&#x585E;&#x7684;&#x7EBF;&#x7A0B;&#x4F5C;&#x4E3A;&#x8282;&#x70B9;&#xFF0C;&#x4FDD;&#x5B58;&#x6240;&#x6709;&#x7B49;&#x5F85;&#x7ED3;&#x679C;&#x7684;&#x7EBF;&#x7A0B;&#x3002;</p>
+<p>&#x53E6;&#x5916;&#x6839;&#x636E;  UNSAFE  &#x7684;&#x65B9;&#x6CD5;&#x8C03;&#x7528;&#x60C5;&#x51B5;&#x53EF;&#x4EE5;&#x770B;&#x51FA;&#x65B0;&#x7684;  WaitNode  &#x662F;&#x6DFB;&#x52A0;&#x5230;&#x94FE;&#x8868;&#x7684;&#x5934;&#x4E2D;&#x7684;&#xFF0C;&#x4E5F;&#x5C31;&#x662F;&#x5934;&#x63D2;&#x6CD5;&#x3002;</p>
+</blockquote>
+<p>&#x4E4B;&#x540E;&#x6839;&#x636E;&#x662F;&#x5426;&#x6709;&#x8D85;&#x65F6;&#x65F6;&#x95F4;&#xFF0C;&#x8C03;&#x7528;&#x5BF9;&#x5E94;&#x7684;  LockSupport#park  &#x65B9;&#x6CD5;&#x6302;&#x8D77;&#x7EBF;&#x7A0B;&#x3002;</p>
+<blockquote>
+<p>&#x603B;&#x7ED3;&#x6765;&#x8BF4;&#xFF0C;&#x963B;&#x585E;&#x7684;&#x903B;&#x8F91;&#x5B8C;&#x6574;&#x7684;&#x5C31;&#x662F;&#x521B;&#x5EFA;  WaitNode  &#xFF0C;&#x8FDB;&#x5165;&#x7B49;&#x5F85;&#x961F;&#x5217;&#xFF0C;&#x6302;&#x8D77;&#x5F53;&#x524D;&#x7EBF;&#x7A0B;&#x3002;</p>
+<p>&#x5728;&#x4EFB;&#x52A1;&#x4E00;&#x76F4;&#x5728;&#x6267;&#x884C;&#x7684;&#x60C5;&#x51B5;&#x4E0B;&#xFF0C;</p>
+<p>&#x9996;&#x6B21;&#x5FAA;&#x73AF;&#x4F1A;&#x521B;&#x5EFA;&#x4E00;&#x4E2A;  WaitNode  &#xFF0C;&#x7B2C;&#x4E8C;&#x6B21;&#x5FAA;&#x73AF;&#x4F1A;&#x5C06;  WaitNode  &#x5165;&#x961F;&#x5217;&#xFF0C;&#x7B2C;&#x4E09;&#x6B21;&#x5FAA;&#x73AF;&#x4F1A;&#x5C06;&#x5F53;&#x524D;&#x7684;&#x7EBF;&#x7A0B;&#x6302;&#x8D77;&#x3002;</p>
+<p>&#x5982;&#x679C;&#x7B2C;&#x4E8C;&#x6B65;&#x4E00;&#x76F4;&#x5931;&#x8D25;&#x5C31;&#x4F1A;&#x65E0;&#x9650;&#x5FAA;&#x73AF;&#x7684;&#x5C1D;&#x8BD5;&#x5165;&#x961F;&#x5217;&#xFF0C;&#x56E0;&#x6B64;&#x5C1D;&#x8BD5;&#x83B7;&#x53D6;&#x7ED3;&#x679C;&#x7684;&#x7EBF;&#x7A0B;&#x8FC7;&#x591A;&#xFF0C;&#x5BFC;&#x81F4;&#x7ADE;&#x4E89;&#x6FC0;&#x70C8;&#xFF0C;&#x90A3;&#x4E48;&#x5C31;&#x4F1A;&#x5B58;&#x5728;&#x5927;&#x91CF;&#x7684;&#x5FAA;&#x73AF;&#x3002;</p>
+<p>&#x7406;&#x8BBA;&#x4E0A;&#x6765;&#x8BF4;&#x81F3;&#x5C11;&#x9700;&#x8981;&#x4E09;&#x6B21;&#x5FAA;&#x73AF;&#x624D;&#x4F1A;&#x6302;&#x8D77;&#x5F53;&#x524D;&#x7EBF;&#x7A0B;&#xFF0C;&#x5176;&#x4E2D;&#x5982;&#x679C;&#x4EFB;&#x52A1;&#x72B6;&#x6001;&#x6539;&#x53D8;&#x5C31;&#x4F1A;&#x8FDB;&#x5165;&#x4E0A;&#x8FF0;&#x7684;&#x51E0;&#x79CD;&#x72B6;&#x6001;&#x7684; if &#x8BED;&#x53E5;&#x3002;</p>
+</blockquote>
+<p>&#x518D;&#x6765;&#x8BF4;&#x8BF4;&#x5524;&#x9192;&#x7684;&#x4E8B;&#x60C5;&#xFF0C;&#x4E5F;&#x5C31;&#x662F;&#x5728;  set()  &#x548C;  setException()  &#x4E2D;&#x8C03;&#x7528;&#x7684;  finishCompletion()  &#x65B9;&#x6CD5;&#x3002;</p>
+<p>  finishCompletion  &#x65B9;&#x6CD5;&#x5C31;&#x662F;&#x5728;&#x4EFB;&#x52A1;&#x6267;&#x884C;&#x5B8C;&#x6BD5;&#x4E4B;&#x540E;&#x5524;&#x9192;&#x6240;&#x6709;&#x7684;&#x963B;&#x585E;&#x7EBF;&#x7A0B;&#x7684;&#x903B;&#x8F91;&#x3002;</p>
+<p><img src="assets/image-20210101232424527.png" alt="image-20210101232424527"></p>
+<p>&#x8BE5;&#x65B9;&#x6CD5;&#x5C31;&#x662F;&#x4ECE;  waiters  &#x5F00;&#x59CB;&#x904D;&#x5386;&#x6240;&#x6709;&#x963B;&#x585E;&#x7EBF;&#x7A0B;&#x5E76;&#x4E00;&#x4E00;&#x5524;&#x9192;&#x3002;</p>
+<blockquote>
+<p>&#x56E0;&#x4E3A;  waiters  &#x7684;&#x5165;&#x961F;&#x987A;&#x5E8F;&#x662F;&#x5934;&#x63D2;&#x6CD5;&#xFF0C;&#x6240;&#x4EE5;&#x6B64;&#x65F6;&#x7684;&#x5524;&#x9192;&#x662F;&#x6839;&#x636E;&#x963B;&#x585E;&#x4E8B;&#x4EF6;&#x7684;&#x524D;&#x540E;&#xFF0C;&#x4EE5;FILO&#x7684;&#x5F62;&#x5F0F;&#x5904;&#x7406;&#x7684;&#x3002;</p>
+<p>&#x6700;&#x5148;&#x7B49;&#x5F85;&#x7684;&#x7EBF;&#x7A0B;&#xFF0C;&#x6700;&#x540E;&#x88AB;&#x5524;&#x9192;&#x3002;</p>
+<p>&#x8FD9;&#x91CC;&#x53EF;&#x4EE5;&#x7A0D;&#x52A0;&#x4FEE;&#x6539;&#xFF0C;&#x4F7F;&#x652F;&#x6301;&#x5934;&#x63D2;&#x6CD5;&#x548C;&#x5C3E;&#x63D2;&#x6CD5;&#x3002;</p>
+</blockquote>
+<p>  done()  &#x662F;&#x6A21;&#x677F;&#x65B9;&#x6CD5;&#xFF0C;&#x53EF;&#x4EE5;&#x5728;&#x5B50;&#x7C7B;&#x4E2D;&#x5B9E;&#x73B0;&#xFF0C;&#x7528;&#x4E8E;&#x6269;&#x5C55;&#x3002;</p>
+<h3 id="&#x4EFB;&#x52A1;&#x53D6;&#x6D88;"><a name="&#x4EFB;&#x52A1;&#x53D6;&#x6D88;" class="anchor-navigation-ex-anchor" href="#&#x4EFB;&#x52A1;&#x53D6;&#x6D88;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x4EFB;&#x52A1;&#x53D6;&#x6D88;</h3>
+<blockquote>
+<p>&#x5165;&#x53C2;  mayInterruptIfRunning  &#x7684;&#x610F;&#x601D;&#x5C31;&#x662F;<strong>&#x5982;&#x679C;&#x4EFB;&#x52A1;&#x5DF2;&#x7ECF;&#x542F;&#x52A8;&#x662F;&#x5426;&#x9700;&#x8981;&#x4E2D;&#x65AD;</strong>&#x3002;</p>
+</blockquote>
+<p><img src="assets/image-20210101233445663.png" alt="image-20210101233445663"></p>
+<p>&#x53D6;&#x6D88;&#x7684;&#x65B9;&#x6CD5;&#x76F8;&#x5BF9;&#x7B80;&#x5355;&#xFF0C;&#x8C03;&#x7528;  runner  &#x4E5F;&#x5C31;&#x662F;&#x6B63;&#x5728;&#x6267;&#x884C;&#x4EFB;&#x52A1;&#x7684;&#x7EBF;&#x7A0B;&#xFF0C;&#x7136;&#x540E;&#x4E2D;&#x65AD;&#x5B83;&#xFF0C;&#x4E2D;&#x65AD;&#x4E4B;&#x540E;&#x72B6;&#x6001;&#x53D8;&#x4E3A;  INTERRUPTED  &#x3002;</p>
+<blockquote>
+<p>&#x524D;&#x7F6E;&#x7684;&#x6761;&#x4EF6;&#x5224;&#x65AD;&#xFF0C;&#x53EA;&#x6709;&#x72B6;&#x6001;&#x4E3A;  NEW  &#x7684;&#x4EFB;&#x52A1;&#x624D;&#x53EF;&#x4EE5;&#x53D6;&#x6D88;&#x3002;</p>
+<p>&#x65B0;&#x5EFA;&#x548C;&#x6267;&#x884C;&#x4E2D;&#x7684;&#x4EFB;&#x52A1;&#x90FD;&#x662F; New &#x7684;&#x72B6;&#x6001;&#x3002;</p>
+</blockquote>
+<p>&#x8FD9;&#x662F;&#x5C31;&#x4F1A;&#x51FA;&#x73B0;&#x4E00;&#x79CD;&#x60C5;&#x51B5;&#xFF0C;&#x5982;&#x679C;&#x6267;&#x884C;&#x4EFB;&#x52A1;&#x7684;&#x7EBF;&#x7A0B;&#x5728;&#x7EBF;&#x7A0B;&#x6C60;&#x4E2D;&#xFF0C;&#x90A3;&#x4E48;&#x8BE5;&#x7EBF;&#x7A0B;&#x4F1A;&#x5982;&#x4F55;&#x5462;&#xFF1F;</p>
+<p>&#x53EF;&#x4EE5;&#x5728;  FutureTask  &#x7684;  run()  &#x65B9;&#x6CD5;&#x4E2D;&#x518D;&#x770B;&#x4E00;&#x773C;:</p>
+<p><img src="assets/image-20210102001307542.png" alt="image-20210102001307542"></p>
+<p>&#x5982;&#x4E0A;&#x56FE;&#xFF0C;&#x5F02;&#x5E38;&#x5176;&#x5B9E;&#x5728;  FutureTask  &#x7684;  run()  &#x65B9;&#x6CD5;&#x4E2D;&#x5168;&#x88AB; catch &#x4F4F;&#x4E86;&#xFF0C;&#x6240;&#x4EE5;&#x5BF9;&#x4E8E;&#x7EBF;&#x7A0B;&#x6C60;&#x6216;&#x8005;&#x666E;&#x901A;&#x7EBF;&#x7A0B;&#x6765;&#x8BF4;&#x5C31;&#x662F;&#x7C7B;&#x4F3C;&#x666E;&#x901A;&#x7684;&#x4EFB;&#x52A1;&#x7ED3;&#x675F;&#x3002;</p>
+<blockquote>
+<p>&#x8FD9;&#x91CC;&#x4E5F;&#x662F;  FutureTask  &#x7684;&#x8BBE;&#x8BA1;&#x91CD;&#x70B9;&#x5427;&#xFF0C;  FuturTask  &#x5728;&#x6267;&#x884C;&#x5305;&#x88F9;&#x7684;&#x4EFB;&#x52A1;(Runnable/Callable)&#x7684;&#x8FC7;&#x7A0B;&#x4E2D;&#x4E0D;&#x4F1A;&#x5411;&#x5916;&#x629B;&#x51FA;&#x4EFB;&#x4F55;&#x7684;&#x5F02;&#x5E38;&#xFF0C;&#x5F02;&#x5E38;&#x90FD;&#x662F;&#x88AB;&#x5F53;&#x505A;&#x6B63;&#x5E38;&#x7684;&#x8FD4;&#x56DE;&#x5904;&#x7406;&#x7684;&#x3002;</p>
+</blockquote>
+<p>&#x53E6;&#x5916;&#x5C31;&#x662F;&#x8FD9;&#x4E2A;&#x72B6;&#x6001;&#x7684;&#x53D8;&#x5316;&#xFF0C;&#x53D6;&#x6D88;  CNACELLED  &#x5E76;&#x4E0D;&#x4E00;&#x5B9A;&#x662F;&#x4EFB;&#x52A1;&#x53D6;&#x6D88;&#x7684;&#x6700;&#x7EC8;&#x72B6;&#x6001;&#xFF0C;&#x4E5F;&#x53EF;&#x80FD;&#x662F;  INPERRUPTED  &#x3002;</p>
+<blockquote>
+<p>&#x4E5F;&#x5C31;&#x662F;&#x8BF4;&#xFF0C;&#x53D6;&#x6D88;&#x4EFB;&#x52A1;&#x7684;&#x65F6;&#x5019;&#x5165;&#x53C2;&#x5982;&#x679C;&#x4E3A;  false  &#xFF0C;&#x4EFB;&#x52A1;&#x53EF;&#x80FD;&#x8FD8;&#x662F;&#x7EE7;&#x7EED;&#x5728;&#x6267;&#x884C;&#x7684;&#xFF0C;&#x53EA;&#x662F;&#x7ED3;&#x679C;&#x4E0D;&#x53EF;&#x89C1;&#x4E86;&#x3002;</p>
+</blockquote>
+<p>&#x4E0A;&#x6587;&#x4E5F;&#x8BF4;&#x8FC7;&#xFF0C;&#x5982;&#x679C;&#x6700;&#x7EC8;&#x83B7;&#x53D6;&#x7684;&#x72B6;&#x6001;&#x4E3A;  CANCELLED&#xFF0C;&#x4F1A;&#x629B;&#x51FA;  CancellationException  &#x3002;</p>
+<h3 id="&#x4EFB;&#x52A1;&#x72B6;&#x6001;"><a name="&#x4EFB;&#x52A1;&#x72B6;&#x6001;" class="anchor-navigation-ex-anchor" href="#&#x4EFB;&#x52A1;&#x72B6;&#x6001;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x4EFB;&#x52A1;&#x72B6;&#x6001;</h3>
+<p>&#x4EE5;&#x4E0B;&#x662F;&#x5728;  FutureTask  &#x4E2D;&#x5B9A;&#x4E49;&#x7684;&#x4E03;&#x79CD;&#x4EFB;&#x52A1;&#x72B6;&#x6001;&#x3002;</p>
+<p><img src="assets/image-20210101224215562.png" alt="image-20210101224215562"></p>
+<p>  NEW  &#x8868;&#x793A;&#x521D;&#x59CB;&#x72B6;&#x6001;&#x4EE5;&#x53CA;&#x6267;&#x884C;&#x4E2D;&#x7684;&#x72B6;&#x6001;&#xFF0C;&#x4E5F;&#x5C31;&#x662F;&#x8BF4;&#x4EFB;&#x52A1;&#x4ECE;&#x521B;&#x5EFA;&#x5230;&#x5B8C;&#x6210;&#x90FD;&#x662F;  NEW  &#x7684;&#x72B6;&#x6001;&#x3002;</p>
+<p>  COMPLETING  &#x8868;&#x793A;&#x4EFB;&#x52A1;&#x7ED3;&#x675F;&#x6B63;&#x5728;&#x4FDD;&#x5B58;&#x4EFB;&#x52A1;&#x7ED3;&#x679C;&#x7684;&#x72B6;&#x6001;&#x3002;</p>
+<p>  NORMAL  &#x8868;&#x793A;&#x4EFB;&#x52A1;&#x6B63;&#x5E38;&#x7ED3;&#x675F;&#x7684;&#x72B6;&#x6001;&#x3002;</p>
+<p>  EXCEPTIONAL  &#x8868;&#x793A;&#x4EFB;&#x52A1;&#x6267;&#x884C;&#x51FA;&#x73B0;&#x5F02;&#x5E38;&#x7684;&#x72B6;&#x6001;&#x3002;</p>
+<p>  CNACELLED  &#x8868;&#x793A;&#x4EFB;&#x52A1;&#x5DF2;&#x7ECF;&#x88AB;&#x53D6;&#x6D88;&#x3002;</p>
+<p>  INTERRUPTING  &#x8868;&#x793A;&#x4EFB;&#x52A1;&#x6B63;&#x5728;&#x4E2D;&#x65AD;&#x4E2D;&#xFF0C;  INPERRUPTED  &#x8868;&#x793A;&#x4EFB;&#x52A1;&#x5DF2;&#x7ECF;&#x4E2D;&#x65AD;&#x3002;</p>
+<p><img src="assets/FutureTask%20%E4%BB%BB%E5%8A%A1%E7%8A%B6%E6%80%81.png" style="zoom: 50%;"></p>
+<h2 id="&#x603B;&#x7ED3;"><a name="&#x603B;&#x7ED3;" class="anchor-navigation-ex-anchor" href="#&#x603B;&#x7ED3;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x603B;&#x7ED3;</h2>
+<p>FutureTask &#x4EE3;&#x8868;&#x4E86;&#x4E00;&#x4E2A;&#x53EF;&#x5F02;&#x6B65;&#x6267;&#x884C;&#x7684;&#x4EFB;&#x52A1;&#xFF0C;&#x63D0;&#x4F9B;&#x4E86;&#x4EFB;&#x52A1;&#x7ED3;&#x679C;&#x7684;&#x5B58;&#x653E;&#x4EE5;&#x53CA;&#x83B7;&#x53D6;&#x65B9;&#x6CD5;&#xFF0C;&#x4E5F;&#x7EF4;&#x62A4;&#x4E86;&#x4EFB;&#x52A1;&#x7684;&#x5373;&#x65F6;&#x72B6;&#x6001;&#x3002;</p>
+<p>FutureTask &#x6700;&#x7EC8;&#x4F7F;&#x7528; LockSupport &#x6765;&#x5B8C;&#x6210;&#x7EBF;&#x7A0B;&#x7684;&#x963B;&#x585E;&#x548C;&#x5524;&#x9192;&#x3002;</p>
+<p>FutureTask &#x9700;&#x8981;&#x5728;&#x4EFB;&#x52A1;&#x6CA1;&#x6709;&#x5B8C;&#x6210;&#x7684;&#x65F6;&#x5019;&#x963B;&#x585E;&#x83B7;&#x53D6;&#x7ED3;&#x679C;&#x7684;&#x7EBF;&#x7A0B;&#xFF0C;&#x6B64;&#x65F6;&#x4F1A;&#x5C06;&#x6240;&#x6709;&#x83B7;&#x53D6;&#x7ED3;&#x679C;&#x7684;&#x7EBF;&#x7A0B;&#x7EC4;&#x6210;&#x4E00;&#x4E2A;&#x94FE;&#x8868;&#x3002;</p>
+<p>&#x5176;&#x5185;&#x90E8;&#x7EF4;&#x62A4;&#x4E86;&#x4E00;&#x4E2A;&#x5355;&#x5411;&#x7684;&#x963B;&#x585E;&#x94FE;&#x8868;&#xFF0C;&#x91C7;&#x7528;<strong>&#x5934;&#x63D2;&#x6CD5;</strong>&#x4FDD;&#x5B58;&#x6240;&#x6709;&#x7B49;&#x5F85;&#x4EFB;&#x52A1;&#x7ED3;&#x679C;&#x7684;&#x7EBF;&#x7A0B;&#x5BF9;&#x8C61;&#xFF0C;&#x53D6;&#x6D88;&#x4EFB;&#x52A1;&#x6216;&#x8005;&#x4EFB;&#x52A1;&#x5B8C;&#x6210;&#x540E;&#x4ECE;&#x5934;&#x5F00;&#x59CB;&#x5524;&#x9192;&#x6240;&#x6709;&#x7EBF;&#x7A0B;&#x5904;&#x7406;&#x3002;</p>
+<blockquote>
+<p>&#x56E0;&#x4E3A;&#x5934;&#x63D2;&#x6CD5;&#x7684;&#x7F18;&#x6545;&#xFF0C;&#x7B2C;&#x4E00;&#x4E2A;&#x963B;&#x585E;&#x7684;&#x7EBF;&#x7A0B;&#x53CD;&#x800C;&#x662F;&#x6700;&#x540E;&#x4E00;&#x4E2A;&#x88AB;&#x5524;&#x9192;&#x7684;&#x3002;</p>
+</blockquote>
+<p>FutrueTask &#x4E2D;&#x4F7F;&#x7528;&#x4E0D;&#x540C;&#x7684;&#x72B6;&#x6001;&#x8868;&#x793A;&#x5F53;&#x524D;&#x7684;&#x4EFB;&#x52A1;&#x6267;&#x884C;&#x8FDB;&#x5EA6;&#xFF0C;&#x4EE5;&#x5355;&#x4E2A;  outcome  &#x8868;&#x793A;&#x5F02;&#x5E38;&#x548C;&#x7ED3;&#x679C;&#x3002;</p>
+<p>FutureTask&#x662F;&#x4E00;&#x4E2A;&#x57FA;&#x672C;&#x7684;&#x5F02;&#x6B65;&#x4EFB;&#x52A1;&#x6A21;&#x578B;&#xFF0C;&#x57FA;&#x4E8E;&#x8BE5;&#x79CD;&#x5F02;&#x6B65;&#x4EFB;&#x52A1;&#x6A21;&#x578B;&#x53EF;&#x4EE5;&#x6269;&#x5C55;&#x51FA;&#x66F4;&#x591A;&#x7684;&#x4E1C;&#x897F;&#xFF0C;&#x4F8B;&#x5982;&#x5728;  ScheduledThreadPoolExecutor  &#x4E2D;&#x7684;  ScheduledFutureTask  &#x3002;</p>
+
+<script>console.log("plugin-popup....");document.onclick = function(e){ e.target.tagName === "IMG" && window.open(e.target.src,e.target.src)}</script><style>img{cursor:pointer}</style>
+                                
+                                </section>
+                            
+    </div>
+    <div class="search-results">
+        <div class="has-results">
+            
+            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+            <ul class="search-results-list"></ul>
+            
+        </div>
+        <div class="no-results">
+            
+            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+            
+        </div>
+    </div>
+</div>
+
+                        </div>
+                    </div>
+                
+            </div>
+
+            
+                
+                <a href="ConcurrentHashMap.html" class="navigation navigation-prev " aria-label="Previous page: ConcurrentHashMap 源码分析">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+                
+                
+                <a href="ReetrantLock.html" class="navigation navigation-next " aria-label="Next page: ReetrantLocak 源码分析">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+                
+            
+        
+    </div>
+
+    <script>
+        var gitbook = gitbook || [];
+        gitbook.push(function() {
+            gitbook.page.hasChanged({"page":{"title":"FutureTask 源码分析","level":"1.2.1.1.3","depth":4,"next":{"title":"ReetrantLocak 源码分析","level":"1.2.1.1.4","depth":4,"path":"java/jdk/ReetrantLock.md","ref":"java/jdk/ReetrantLock.md","articles":[]},"previous":{"title":"ConcurrentHashMap 源码分析","level":"1.2.1.1.2","depth":4,"path":"java/jdk/ConcurrentHashMap.md","ref":"java/jdk/ConcurrentHashMap.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":["intopic-toc","chapter-fold","splitter","expandable-chapters","back-to-top-button","popup","anchor-navigation-ex","livereload"],"pluginsConfig":{"chapter-fold":{},"intopic-toc":{"isCollapsed":true,"isScrollspyActive":true,"label":"Catalogue","maxDepth":6,"mode":"nested","selector":".markdown-section h1, .markdown-section h2, .markdown-section h3, .markdown-section h4, .markdown-section h5, .markdown-section h6","visible":true},"livereload":{},"splitter":{},"search":{},"popup":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"highlight":{},"anchor-navigation-ex":{"associatedWithSummary":true,"float":{"floatIcon":"fa fa-navicon","level1Icon":"","level2Icon":"","level3Icon":"","showLevelIcon":false},"mode":"float","multipleH1":true,"pageTop":{"level1Icon":"","level2Icon":"","level3Icon":"","showLevelIcon":false},"printLog":false,"showGoTop":false,"showLevel":false},"back-to-top-button":{},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false},"expandable-chapters":{}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"java/jdk/FutureTask.md","mtime":"2021-07-24T13:05:27.227Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-10-07T13:39:58.281Z"},"basePath":"../..","book":{"language":""}});
+        });
+    </script>
+</div>
+
+        
+    <script src="../../gitbook/gitbook.js"></script>
+    <script src="../../gitbook/theme.js"></script>
+    
+        
+        <script src="../../gitbook/gitbook-plugin-intopic-toc/anchor.min.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-intopic-toc/gumshoe.polyfills.min.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-intopic-toc/plugin.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-chapter-fold/chapter-fold.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-splitter/splitter.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-expandable-chapters/expandable-chapters.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-back-to-top-button/plugin.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-livereload/plugin.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-search/search-engine.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-search/search.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-lunr/lunr.min.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-lunr/search-lunr.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-sharing/buttons.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-fontsettings/fontsettings.js"></script>
+        
+    
+
+    </body>
+</html>
+
