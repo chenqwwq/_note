@@ -1,0 +1,1674 @@
+
+<!DOCTYPE HTML>
+<html lang="" >
+    <head>
+        <meta charset="UTF-8">
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <title>BeanPostProcessor 类族 · GitBook</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 3.2.3">
+        
+        
+        
+    
+    <link rel="stylesheet" href="../../../../gitbook/style.css">
+
+    
+            
+                
+                <link rel="stylesheet" href="../../../../gitbook/gitbook-plugin-intopic-toc/style.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../../../gitbook/gitbook-plugin-chapter-fold/chapter-fold.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../../../gitbook/gitbook-plugin-splitter/splitter.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../../../gitbook/gitbook-plugin-expandable-chapters/expandable-chapters.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../../../gitbook/gitbook-plugin-back-to-top-button/plugin.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../../../gitbook/gitbook-plugin-anchor-navigation-ex/style/plugin.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../../../gitbook/gitbook-plugin-highlight/website.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../../../gitbook/gitbook-plugin-search/search.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../../../gitbook/gitbook-plugin-fontsettings/website.css">
+                
+            
+        
+
+    
+
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+
+        
+    
+    
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../../../../gitbook/images/apple-touch-icon-precomposed-152.png">
+    <link rel="shortcut icon" href="../../../../gitbook/images/favicon.ico" type="image/x-icon">
+
+    
+    <link rel="next" href="../../aop/aop 概念.md" />
+    
+    
+    <link rel="prev" href="../Resouce和Autowired.html" />
+    
+
+    </head>
+    <body>
+        
+<div class="book">
+    <div class="book-summary">
+        
+            
+<div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search" />
+</div>
+
+            
+                <nav role="navigation">
+                
+
+
+<ul class="summary">
+    
+    
+
+    
+
+    
+        
+        
+    
+        <li class="chapter " data-level="1.1" data-path="../../../../">
+            
+                <a href="../../../../">
+            
+                    
+                    Introduction
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2" data-path="../../../../java/">
+            
+                <a href="../../../../java/">
+            
+                    
+                    Java
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1" >
+            
+                <span>
+            
+                    
+                    JDK 源码分析
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1.1" >
+            
+                <span>
+            
+                    
+                    JUC
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1.1.1" data-path="../../../../java/jdk/AbstractQueuedSynchronizer.html">
+            
+                <a href="../../../../java/jdk/AbstractQueuedSynchronizer.html">
+            
+                    
+                    AbstractQueueSynchronized 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.2" data-path="../../../../java/jdk/ConcurrentHashMap.html">
+            
+                <a href="../../../../java/jdk/ConcurrentHashMap.html">
+            
+                    
+                    ConcurrentHashMap 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.3" data-path="../../../../java/jdk/FutureTask.html">
+            
+                <a href="../../../../java/jdk/FutureTask.html">
+            
+                    
+                    FutureTask 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.4" data-path="../../../../java/jdk/ReetrantLock.html">
+            
+                <a href="../../../../java/jdk/ReetrantLock.html">
+            
+                    
+                    ReetrantLocak 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.5" data-path="../../../../java/jdk/ThreadPoolExecutor.html">
+            
+                <a href="../../../../java/jdk/ThreadPoolExecutor.html">
+            
+                    
+                    ThreadPoolExecutor 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.6" data-path="../../../../java/jdk/BlockingQueue.html">
+            
+                <a href="../../../../java/jdk/BlockingQueue.html">
+            
+                    
+                    BlockingQueue 类族
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.7" data-path="../../../../java/jdk/SynchronousQueue.html">
+            
+                <a href="../../../../java/jdk/SynchronousQueue.html">
+            
+                    
+                    SynchronousQueue
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.8" data-path="../../../../java/jdk/CountDownLatch.html">
+            
+                <a href="../../../../java/jdk/CountDownLatch.html">
+            
+                    
+                    CountDownLatch 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.9" data-path="../../../../java/jdk/CyclicBarrier.html">
+            
+                <a href="../../../../java/jdk/CyclicBarrier.html">
+            
+                    
+                    CyclicBarrier 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.10" data-path="../../../../java/jdk/CopyOnWriteArrayList.html">
+            
+                <a href="../../../../java/jdk/CopyOnWriteArrayList.html">
+            
+                    
+                    CopyOnWriteArrayList 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.11" data-path="../../../../java/jdk/CopyOnWriteArraySet.html">
+            
+                <a href="../../../../java/jdk/CopyOnWriteArraySet.html">
+            
+                    
+                    CopyOnWriteArraySet 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.12" data-path="../../../../java/jdk/ConcurrentSkipListMap.html">
+            
+                <a href="../../../../java/jdk/ConcurrentSkipListMap.html">
+            
+                    
+                    ConcurrentSkipListMap 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.13" data-path="../../../../java/jdk/ScheduledThreadPoolExecutor.html">
+            
+                <a href="../../../../java/jdk/ScheduledThreadPoolExecutor.html">
+            
+                    
+                    cheduledThreadPoolExecutor 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.1.14" data-path="../../../../java/jdk/Semaphore.html">
+            
+                <a href="../../../../java/jdk/Semaphore.html">
+            
+                    
+                    Semaphore 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2" >
+            
+                <span>
+            
+                    
+                    Java 集合框架
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1.2.1" data-path="../../../../java/jdk/HashMap源码阅读.html">
+            
+                <a href="../../../../java/jdk/HashMap源码阅读.html">
+            
+                    
+                    HashMap 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2.2" data-path="../../../../java/jdk/HashMap.html">
+            
+                <a href="../../../../java/jdk/HashMap.html">
+            
+                    
+                    HashMap 原理(文字表述)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2.3" data-path="../../../../java/jdk/LinkedHashMap源码阅读.html">
+            
+                <a href="../../../../java/jdk/LinkedHashMap源码阅读.html">
+            
+                    
+                    LinkedHashMap 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2.4" data-path="../../../../java/jdk/ArrayList.html">
+            
+                <a href="../../../../java/jdk/ArrayList.html">
+            
+                    
+                    ArrayList 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.2.5" data-path="../../../../java/jdk/LinkedList源码阅读.html">
+            
+                <a href="../../../../java/jdk/LinkedList源码阅读.html">
+            
+                    
+                    LinkedList 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.3" >
+            
+                <span>
+            
+                    
+                    其他
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1.3.1" data-path="../../../../java/jdk/ThreadLocal.html">
+            
+                <a href="../../../../java/jdk/ThreadLocal.html">
+            
+                    
+                    ThreadLocal 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.1.3.2" data-path="../../../../java/jdk/Stream.html">
+            
+                <a href="../../../../java/jdk/Stream.html">
+            
+                    
+                    Stream 分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2" >
+            
+                <span>
+            
+                    
+                    JVM（Java 虚拟机）
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.2.1" data-path="../../../../java/jvm/关键字.html">
+            
+                <a href="../../../../java/jvm/关键字.html">
+            
+                    
+                    Java 关键字整理
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.2" data-path="../../../../java/jvm/引用类型.html">
+            
+                <a href="../../../../java/jvm/引用类型.html">
+            
+                    
+                    Java 中的引用类型
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.3" data-path="../../../../java/jvm/元空间和永久代.html">
+            
+                <a href="../../../../java/jvm/元空间和永久代.html">
+            
+                    
+                    元空间和永久代
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.4" data-path="../../../../java/jvm/synchronized.html">
+            
+                <a href="../../../../java/jvm/synchronized.html">
+            
+                    
+                    synchronized 关键字
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.2.5" data-path="../../../../java/jvm/JVM的类加载子系统.html">
+            
+                <a href="../../../../java/jvm/JVM的类加载子系统.html">
+            
+                    
+                    JVM 的类加载子系统
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.3" >
+            
+                <span>
+            
+                    
+                    Guava 源码分析
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.3.1" data-path="../../../../java/guava/EventBus.html">
+            
+                <a href="../../../../java/guava/EventBus.html">
+            
+                    
+                    EventBus 相关源码解析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2.3.2" data-path="../../../../java/guava/RateLimiter.html">
+            
+                <a href="../../../../java/guava/RateLimiter.html">
+            
+                    
+                    RateLimiter 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3" >
+            
+                <span>
+            
+                    
+                    Netty
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.3.1" data-path="../../../../netty/netty逻辑流程/EventLoop的初始化.html">
+            
+                <a href="../../../../netty/netty逻辑流程/EventLoop的初始化.html">
+            
+                    
+                    EventLoop 的初始化流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2" data-path="../../../../netty/netty逻辑流程/NIO服务端启动流程.html">
+            
+                <a href="../../../../netty/netty逻辑流程/NIO服务端启动流程.html">
+            
+                    
+                    NIO服务端启动流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.3" data-path="../../../../netty/netty逻辑流程/ChannelPipeline的结构和初始化流程.html">
+            
+                <a href="../../../../netty/netty逻辑流程/ChannelPipeline的结构和初始化流程.html">
+            
+                    
+                    ChannelPipeline的结构和初始化流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.4" data-path="../../../../netty/netty逻辑流程/NioEventLoop的事件轮询.html">
+            
+                <a href="../../../../netty/netty逻辑流程/NioEventLoop的事件轮询.html">
+            
+                    
+                    NioEventLoop的事件轮询
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.5" data-path="../../../../netty/netty逻辑流程/客户端Channel的创建流程.html">
+            
+                <a href="../../../../netty/netty逻辑流程/客户端Channel的创建流程.html">
+            
+                    
+                    客户端Channel的建立过程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.6" data-path="../../../../netty/netty逻辑流程/ChannelPipeline事件传递机制.html">
+            
+                <a href="../../../../netty/netty逻辑流程/ChannelPipeline事件传递机制.html">
+            
+                    
+                    ChannelPipeline事件传递机制
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.7" data-path="../../../../netty/netty逻辑流程/Netty中的编解码逻辑.html">
+            
+                <a href="../../../../netty/netty逻辑流程/Netty中的编解码逻辑.html">
+            
+                    
+                    Netty 中的编解码逻辑
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.8" data-path="../../../../netty/netty逻辑流程/Netty中写数据的逻辑.html">
+            
+                <a href="../../../../netty/netty逻辑流程/Netty中写数据的逻辑.html">
+            
+                    
+                    Netty 中写数据的逻辑
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.9" data-path="../../../../netty/netty逻辑流程/Netty中读数据的流程.html">
+            
+                <a href="../../../../netty/netty逻辑流程/Netty中读数据的流程.html">
+            
+                    
+                    Netty 中读数据的流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.10" data-path="../../../../netty/util/FastThreadLocal.html">
+            
+                <a href="../../../../netty/util/FastThreadLocal.html">
+            
+                    
+                    FastThreadLocal 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.11" data-path="../../../../netty/util/ChannelPool.html">
+            
+                <a href="../../../../netty/util/ChannelPool.html">
+            
+                    
+                    ChannelPool 相关分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.12" data-path="../../../../netty/ChannelOption整理.html">
+            
+                <a href="../../../../netty/ChannelOption整理.html">
+            
+                    
+                    ChannelOption 整理
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4" >
+            
+                <span>
+            
+                    
+                    Spring
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.1" >
+            
+                <span>
+            
+                    
+                    Spring Core
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.1.1" data-path="../Bean对象的获取和创建流程.html">
+            
+                <a href="../Bean对象的获取和创建流程.html">
+            
+                    
+                    Bean对象的获取和创建流程（究极简述
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.1.2" data-path="../Spring循环依赖问题.html">
+            
+                <a href="../Spring循环依赖问题.html">
+            
+                    
+                    Spring 循环依赖问题
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.1.3" data-path="../Resouce和Autowired.html">
+            
+                <a href="../Resouce和Autowired.html">
+            
+                    
+                    Resouce和Autowired
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter active" data-level="1.4.1.4" data-path="BeanPostProcessor类族概述.html">
+            
+                <a href="BeanPostProcessor类族概述.html">
+            
+                    
+                    BeanPostProcessor 类族
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.1.5" data-path="../../aop/aop 概念.md">
+            
+                <span>
+            
+                    
+                    AOP相关概念
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.1.6" data-path="../../aop/ProxyFactory.html">
+            
+                <a href="../../aop/ProxyFactory.html">
+            
+                    
+                    ProxyFactory
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.1.7" data-path="../../aop/Aop实现的不同方式.html">
+            
+                <a href="../../aop/Aop实现的不同方式.html">
+            
+                    
+                    Aop 实现的不同方式
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.1.8" data-path="../../module/async.html">
+            
+                <a href="../../module/async.html">
+            
+                    
+                    Async的实现原理
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.2" >
+            
+                <span>
+            
+                    
+                    SpringBoot
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.2.1" data-path="../../../spring-boot/SpringBoot的事件模型 .html">
+            
+                <a href="../../../spring-boot/SpringBoot的事件模型 .html">
+            
+                    
+                    SpringBoot的事件模型
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.2.2" data-path="../../../spring-boot/SpringBoot的启动流程.html">
+            
+                <a href="../../../spring-boot/SpringBoot的启动流程.html">
+            
+                    
+                    SpringBoot的启动流程简述
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.2.3" data-path="../../../spring-boot/SpringBoot的工厂加载模式.html">
+            
+                <a href="../../../spring-boot/SpringBoot的工厂加载模式.html">
+            
+                    
+                    SpringBoot的工厂加载模式
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.3" >
+            
+                <span>
+            
+                    
+                    SpringCloud
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.3.1" data-path="../../../spring-cloud/consul.html">
+            
+                <a href="../../../spring-cloud/consul.html">
+            
+                    
+                    consul 简述
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.3.2" data-path="../../../spring-cloud/feign.html">
+            
+                <a href="../../../spring-cloud/feign.html">
+            
+                    
+                    feign 简述
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.3.3" data-path="../../../spring-cloud/zuul.html">
+            
+                <a href="../../../spring-cloud/zuul.html">
+            
+                    
+                    zuul 简述
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5" >
+            
+                <span>
+            
+                    
+                    数据库
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.5.1" data-path="../../../../数据库/mysql/数据库的事务.html">
+            
+                <a href="../../../../数据库/mysql/数据库的事务.html">
+            
+                    
+                    数据库的事务
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5.2" >
+            
+                <span>
+            
+                    
+                    MySQL
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.5.2.1" data-path="../../../../数据库/mysql/MySQL 的整体架构.html">
+            
+                <a href="../../../../数据库/mysql/MySQL 的整体架构.html">
+            
+                    
+                    MySQL 的整体架构
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5.2.2" data-path="../../../../数据库/mysql/日志相关.html">
+            
+                <a href="../../../../数据库/mysql/日志相关.html">
+            
+                    
+                    MySQL 日志相关
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5.2.3" data-path="../../../../数据库/mysql/索引相关.html">
+            
+                <a href="../../../../数据库/mysql/索引相关.html">
+            
+                    
+                    MySQL 中的索引
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5.2.4" data-path="../../../../数据库/mysql/锁相关.html">
+            
+                <a href="../../../../数据库/mysql/锁相关.html">
+            
+                    
+                    InnoDB 中的锁
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6" >
+            
+                <span>
+            
+                    
+                    设计模式
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.6.1" data-path="../../../../系统设计/Gof设计模式.html">
+            
+                <a href="../../../../系统设计/Gof设计模式.html">
+            
+                    
+                    Gof 的设计模式
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.7" >
+            
+                <span>
+            
+                    
+                    中间件
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.7.1" >
+            
+                <span>
+            
+                    
+                    RabbitMQ
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.7.1.1" data-path="../../../../消息队列/RabbitMQ如何保证消息不丢失.html">
+            
+                <a href="../../../../消息队列/RabbitMQ如何保证消息不丢失.html">
+            
+                    
+                    RabbitMQ 如何保证消息不丢失
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.7.2" >
+            
+                <span>
+            
+                    
+                    Redis
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.7.2.1" data-path="../../../../redis/Redis的五种数据结构.html">
+            
+                <a href="../../../../redis/Redis的五种数据结构.html">
+            
+                    
+                    Redis 的五种数据结构
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.7.2.2" data-path="../../../../redis/Redis的Sentinel模式.html">
+            
+                <a href="../../../../redis/Redis的Sentinel模式.html">
+            
+                    
+                    Redis 的哨兵模式
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.7.2.3" data-path="../../../../redis/Redis的主从复制模式.html">
+            
+                <a href="../../../../redis/Redis的主从复制模式.html">
+            
+                    
+                    Redis 的主从复制模式
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.8" >
+            
+                <span>
+            
+                    
+                    网络
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.8.1" >
+            
+                <span>
+            
+                    
+                    TCP
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.8.1.1" data-path="../../../../网络/tcp协议整理1.html">
+            
+                <a href="../../../../网络/tcp协议整理1.html">
+            
+                    
+                    TCP 协议总结（一）
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.8.1.2" data-path="../../../../网络/tcp内核参数整理.html">
+            
+                <a href="../../../../网络/tcp内核参数整理.html">
+            
+                    
+                    Linux 中的相关 TCP 参数
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+    
+
+    <li class="divider"></li>
+
+    <li>
+        <a href="https://www.gitbook.com" target="blank" class="gitbook-link">
+            Published with GitBook
+        </a>
+    </li>
+</ul>
+
+
+                </nav>
+            
+        
+    </div>
+
+    <div class="book-body">
+        
+            <div class="body-inner">
+                
+                    
+
+<div class="book-header" role="navigation">
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href="../../../.." >BeanPostProcessor 类族</a>
+    </h1>
+</div>
+
+
+
+
+                    <div class="page-wrapper" tabindex="-1" role="main">
+                        <div class="page-inner">
+                            
+<div id="book-search-results">
+    <div class="search-noresults">
+    
+                                <section class="normal markdown-section">
+                                
+                                <div id="anchor-navigation-ex-navbar"><i class="fa fa-navicon"></i><ul><li><span class="title-icon "></span><a href="#beanpostprocessor&#x7C7B;&#x65CF;"><b></b>BeanPostProcessor&#x7C7B;&#x65CF;</a></li><ul><li><span class="title-icon "></span><a href="#beanpostprocessor"><b></b>BeanPostProcessor</a></li><ul><li><span class="title-icon "></span><a href="#&#x8C03;&#x7528;&#x573A;&#x666F;"><b></b>&#x8C03;&#x7528;&#x573A;&#x666F;</a></li></ul><li><span class="title-icon "></span><a href="#instantiationawarebeanpostprocessor"><b></b>InstantiationAwareBeanPostProcessor</a></li><ul><li><span class="title-icon "></span><a href="#&#x8C03;&#x7528;&#x573A;&#x666F;_1"><b></b>&#x8C03;&#x7528;&#x573A;&#x666F;</a></li></ul><li><span class="title-icon "></span><a href="#smartinstantiationawarebeanpostprocessor"><b></b>SmartInstantiationAwareBeanPostProcessor</a></li><li><span class="title-icon "></span><a href="#mergedbeandefinitionpostprocessor"><b></b>MergedBeanDefinitionPostProcessor</a></li><li><span class="title-icon "></span><a href="#destructionawarebeanpostprocessor"><b></b>DestructionAwareBeanPostProcessor</a></li><li><span class="title-icon "></span><a href="#&#x5185;&#x7F6E;&#x7684;-beanpostprocessor"><b></b>&#x5185;&#x7F6E;&#x7684; BeanPostProcessor</a></li></ul></ul></div><h1 id="beanpostprocessor&#x7C7B;&#x65CF;"><a name="beanpostprocessor&#x7C7B;&#x65CF;" class="anchor-navigation-ex-anchor" href="#beanpostprocessor&#x7C7B;&#x65CF;"><i class="fa fa-link" aria-hidden="true"></i></a>BeanPostProcessor&#x7C7B;&#x65CF;</h1>
+<blockquote>
+<p>BeanPostProcessor&#x662F;Spring&#x4E2D;&#x7684;&#x6838;&#x5FC3;&#x94A9;&#x5B50;&#x65B9;&#x6CD5;&#xFF0C;&#x5B83;&#x7684;&#x8BB8;&#x591A;&#x5B50;&#x7C7B;&#x5206;&#x522B;&#x63D0;&#x4F9B;&#x4E86;&#x4E0D;&#x540C;&#x65F6;&#x95F4;&#x4E0D;&#x540C;&#x5F62;&#x5F0F;&#x7684;&#x56DE;&#x8C03;&#xFF0C;&#x603B;&#x8BA1;10&#x4E2A;&#x6269;&#x5C55;&#x70B9;&#x3002;</p>
+<p>&#x672C;&#x6587;&#x53EA;&#x4F5C;&#x7B80;&#x5355;&#x7684;&#x4ECB;&#x7ECD;&#xFF0C;&#x7740;&#x91CD;&#x5728;&#x76F8;&#x5173;&#x94A9;&#x5B50;&#x65B9;&#x6CD5;&#x7684;&#x8C03;&#x7528;&#x65F6;&#x673A;&#x3002;</p>
+</blockquote>
+<!-- more -->
+<hr>
+<p>[TOC]</p>
+<h2 id="beanpostprocessor"><a name="beanpostprocessor" class="anchor-navigation-ex-anchor" href="#beanpostprocessor"><i class="fa fa-link" aria-hidden="true"></i></a>BeanPostProcessor</h2>
+<blockquote>
+<p>BeanPostProcessor &#x7C7B;&#x65CF;&#x4E2D;&#x6700;&#x57FA;&#x7840;&#x7684;&#x6269;&#x5C55;&#x7C7B;&#xFF0C;<strong>&#x63D0;&#x4F9B;&#x4E86;&#x521D;&#x59CB;&#x5316;&#x524D;&#x540E;&#x7684;&#x94A9;&#x5B50;&#x65B9;&#x6CD5;&#x3002;</strong></p>
+<p><strong>&#x8FD9;&#x91CC;&#x7684;&#x521D;&#x59CB;&#x5316;&#x662F;&#x6307;&#x5728; Bean &#x7684;&#x521B;&#x5EFA;&#x8FC7;&#x7A0B;&#x4E2D;&#x7684;&#x521D;&#x59CB;&#x5316;&#xFF0C;&#x5728;&#x8C03;&#x7528; InitMethod &#x65B9;&#x6CD5;&#x524D;&#x540E;&#x3002;</strong></p>
+</blockquote>
+<p>&#x4EE5;&#x4E0B;&#x662F; BeanPostProcessor &#x7684;&#x65B9;&#x6CD5;&#x5217;&#x8868;&#xFF1A;</p>
+<p> <img src="../../../../pic/image-20200512111500702.png" alt="image-20200512111500702"></p>
+<ul>
+<li><p>postProcessBeforeInitialization &#x662F;&#x5728;&#x521D;&#x59CB;&#x5316;&#x524D;&#x8C03;&#x7528;</p>
+</li>
+<li><p>postProcessAfterInitialization &#x662F;&#x521D;&#x59CB;&#x5316;&#x4E4B;&#x540E;&#x8C03;&#x7528;</p>
+</li>
+</ul>
+<p>&#x4E24;&#x4E2A;&#x65B9;&#x6CD5;&#x90FD;<strong>&#x63D0;&#x4F9B;&#x4E86;&#x5B8C;&#x6574;&#x7684; Bean &#x5BF9;&#x8C61;&#x4EE5;&#x53CA; beanName &#x53EF;&#x4F9B;&#x4FEE;&#x6539;</strong>&#x3002;</p>
+<p><br></p>
+<p><br></p>
+<h3 id="&#x8C03;&#x7528;&#x573A;&#x666F;"><a name="&#x8C03;&#x7528;&#x573A;&#x666F;" class="anchor-navigation-ex-anchor" href="#&#x8C03;&#x7528;&#x573A;&#x666F;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x8C03;&#x7528;&#x573A;&#x666F;</h3>
+<p>&#x4E0B;&#x56FE;&#x662F; doCreateBean -&gt; initializeBean &#x65B9;&#x6CD5;&#x7247;&#x6BB5;&#xFF1A;</p>
+<p> <img src="../../../../pic/image-20200514214941902.png" alt="image-20200514214941902"></p>
+<p>&#x5982;&#x56FE;&#x6240;&#x793A;&#xFF0C;&#x5728;&#x8C03;&#x7528; init-method &#x65B9;&#x6CD5;&#x7684;&#x524D;&#x540E;&#x5206;&#x522B;&#x4F1A;&#x8C03;&#x7528; before &#x548C; after &#x4E24;&#x4E2A;&#x94A9;&#x5B50;&#x65B9;&#x6CD5;&#x3002;</p>
+<p><strong>&#x9664;&#x6B64;&#x4E4B;&#x5916; postProcessAfterInitialization &#x65B9;&#x6CD5;&#x8FD8;&#x4F1A;&#x5728;&#x5B8C;&#x6210;&#x81EA;&#x5B9A;&#x4E49;&#x5B9E;&#x4F8B;&#x5316;&#x4E4B;&#x540E;&#x8C03;&#x7528;&#x3002;</strong></p>
+<p> <img src="../../../../pic/image-20200514215136761.png" alt="image-20200514215136761"></p>
+<p>&#x4E0A;&#x56FE;&#x7684;&#x7247;&#x6BB5;&#x5728; createBean &#x65B9;&#x6CD5;&#x7684;&#x4E2D;&#x95F4;&#x90E8;&#x5206;&#xFF0C;&#x518D;&#x901A;&#x8FC7; InstantiationAwareBeanPostProcessor#postProcessBeforeInstantiation &#x521B;&#x5EFA; Bean &#x4E4B;&#x540E;&#xFF0C;&#x4E5F;&#x4F1A;&#x904D;&#x5386;&#x8C03;&#x7528; postProcessAfterInitialization &#x65B9;&#x6CD5;&#x3002;</p>
+<p><br></p>
+<h2 id="instantiationawarebeanpostprocessor"><a name="instantiationawarebeanpostprocessor" class="anchor-navigation-ex-anchor" href="#instantiationawarebeanpostprocessor"><i class="fa fa-link" aria-hidden="true"></i></a>InstantiationAwareBeanPostProcessor</h2>
+<blockquote>
+<p>&#x8BE5;&#x7C7B;&#x662F;&#x5728; Bean &#x5B9E;&#x4F8B;&#x5316;&#x524D;&#x540E;&#x8C03;&#x7528;&#x7684;&#x94A9;&#x5B50;&#x65B9;&#x6CD5;&#x3002;</p>
+<p><strong>&#x8BE5;&#x63A5;&#x53E3;&#x5728;&#x7EE7;&#x627F;BeanPostProcessor&#x7684;&#x57FA;&#x7840;&#x4E0A;&#x6269;&#x5C55;&#x4E86;&#x5728;&#x5B9E;&#x4F8B;&#x5316;&#x524D;&#x540E;&#x7684;&#x94A9;&#x5B50;&#x65B9;&#x6CD5;&#x3002;</strong></p>
+</blockquote>
+<p>&#x4EE5;&#x4E0B;&#x662F; InstantiationAwareBeanPostProcessor &#x7684;&#x65B9;&#x6CD5;&#x5217;&#x8868;&#xFF08;&#x4E0D;&#x5305;&#x542B; BeanPostProcessor  &#x7EE7;&#x627F;&#x7684;&#x7C7B;&#xFF09;&#xFF1A;</p>
+<p> <img src="../../../../pic/image-20200513065845525.png" alt="image-20200513065845525"></p>
+<ul>
+<li>postProcessBeforeInstantiation &#x65B9;&#x6CD5;&#x63D0;&#x4F9B;&#x4E86; Class &#x5BF9;&#x8C61;&#x548C; BeanName &#x4F5C;&#x4E3A;&#x53C2;&#x6570;&#xFF0C;&#x53EF;&#x4EE5;&#x5728;&#x6B64;&#x57FA;&#x7840;&#x4E0A;&#x81EA;&#x5B9A;&#x4E49;&#x5BF9; Bean &#x7684;&#x5B9E;&#x4F8B;&#x5316;&#x4EE5;&#x53CA;&#x521D;&#x59CB;&#x5316;</li>
+</ul>
+<blockquote>
+<p>&#x5C24;&#x5176;&#x6CE8;&#x610F;&#x7684;&#x662F;&#xFF0C;&#x5982;&#x679C;&#x901A;&#x8FC7;&#x8BE5;&#x65B9;&#x6CD5;&#x521B;&#x5EFA;&#x4E86; Bean &#x5BF9;&#x8C61;&#xFF0C;&#x5C31;&#x4E0D;&#x4F1A;&#x6709; InitMethod &#x7684;&#x8C03;&#x7528;&#x3002;</p>
+</blockquote>
+<ul>
+<li>postProcessAfterInstantiation &#x65B9;&#x6CD5;&#x63D0;&#x4F9B;&#x4E86; Bean &#x5BF9;&#x8C61;&#x4EE5;&#x53CA; BeanName &#x4F5C;&#x4E3A;&#x53C2;&#x6570;&#xFF0C;&#x7406;&#x8BBA;&#x4E0A;&#x53EF;&#x4EE5;&#x5B8C;&#x6210;&#x548C; BeanPostProcessor &#x4E24;&#x4E2A;&#x65B9;&#x6CD5;&#x76F8;&#x540C;&#x7684;&#x529F;&#x80FD;&#xFF0C;&#x4F46;&#x662F;&#x8BE5;&#x65B9;&#x6CD5;&#x7684;&#x8C03;&#x7528;&#x65F6;&#x673A;&#x6709;&#x6240;&#x533A;&#x522B;&#x3002;</li>
+<li>postProcessProperties &#x548C; postProcessPropertyValues &#x90FD;&#x662F;&#x5BF9;&#x4E8E;&#x5C5E;&#x6027;&#x586B;&#x5145;</li>
+</ul>
+<h3 id="&#x8C03;&#x7528;&#x573A;&#x666F;_1"><a name="&#x8C03;&#x7528;&#x573A;&#x666F;_1" class="anchor-navigation-ex-anchor" href="#&#x8C03;&#x7528;&#x573A;&#x666F;_1"><i class="fa fa-link" aria-hidden="true"></i></a>&#x8C03;&#x7528;&#x573A;&#x666F;</h3>
+<p>&#x8C03;&#x7528;postProcessBeforeInstantiation&#x65B9;&#x6CD5;&#x53EF;&#x4EE5;&#x5728;Spring&#x9ED8;&#x8BA4;&#x7684;&#x5B9E;&#x4F8B;&#x5316;&#x65B9;&#x6CD5;&#x4E4B;&#x524D;&#xFF0C;&#x5B9A;&#x4E49;&#x81EA;&#x5DF1;&#x7684;&#x5B9E;&#x4F8B;&#x5316;&#x65B9;&#x6CD5;&#x3002;</p>
+<p>&#x4F8B;&#x5982;&#x751F;&#x6210;&#x4EE3;&#x7406;&#x5E76;&#x66FF;&#x6362;&#x4E4B;&#x7C7B;&#x7684;&#xFF0C;&#x8FD4;&#x56DE;&#x7684;Object&#x82E5;&#x4E0D;&#x4E3A;&#x7A7A;&#x5219;&#x53EF;&#x4EE5;&#x5728;&#x6267;&#x884C;&#x5B8C;BeanPostProcessor&#x7684;&#x540E;&#x7F6E;&#x65B9;&#x6CD5;&#x4E4B;&#x540E;&#xFF0C;&#x76F4;&#x63A5;&#x8DF3;&#x8FC7;&#x5B9E;&#x4F8B;&#x5316;&#x65B9;&#x6CD5;doCreateBean&#x3002;</p>
+<p>&#x5728;&#x4E0A;&#x6587;resolveBeforeInstantiation&#x65B9;&#x6CD5;&#x7684;&#x622A;&#x56FE;&#x4E2D;&#x4E5F;&#x53EF;&#x4EE5;&#x770B;&#x5230;&#x8BE5;&#x65B9;&#x6CD5;&#x7684;&#x6267;&#x884C;&#x70B9;&#x3002;</p>
+<p>postProcessAfterInstantiation&#x65B9;&#x6CD5;&#x5219;&#x662F;&#x5728;&#x5B9E;&#x4F8B;&#x5316;&#x4E4B;&#x540E;&#x4F46;&#x5728;&#x5C5E;&#x6027;&#x586B;&#x5145;&#x4E4B;&#x524D;&#x7684;&#x94A9;&#x5B50;&#x65B9;&#x6CD5;&#xFF0C;&#x82E5;&#x8FD4;&#x56DE;false&#x5219;&#x8DF3;&#x8FC7;&#x5C5E;&#x6027;&#x586B;&#x5145;&#x65B9;&#x6CD5;&#x3002;</p>
+<p>&#x4E0B;&#x56FE;&#x662F;doCreateBean -&gt; populateBean&#x65B9;&#x6CD5;&#x7684;&#x7247;&#x6BB5;:</p>
+<p> <img src="../../../../pic/image-20200514220943898.png" alt="image-20200514220943898"></p>
+<p>&#x53EF;&#x4EE5;&#x770B;&#x5230;postProcessAfterInstantiation&#x540E;&#x7F6E;&#x65B9;&#x6CD5;&#x7684;&#x6267;&#x884C;&#x903B;&#x8F91;&#x4EE5;&#x53CA;&#x8981;&#x6C42;&#xFF0C;&#x9996;&#x5148;&#x5C31;&#x9700;&#x8981;BeanDefinition&#x4E0D;&#x662F;&#x5408;&#x6210;&#x7684;&#x3002;</p>
+<p>postProcessProperties&#x4E5F;&#x662F;&#x5728;&#x5C5E;&#x6027;&#x88AB;&#x586B;&#x5145;&#x4E4B;&#x524D;&#x88AB;&#x8C03;&#x7528;&#xFF0C;&#x8FD4;&#x56DE;&#x4E00;&#x4E2A;&#x81EA;&#x5B9A;&#x4E49;&#x7684;PropertyValues&#x5BF9;&#x8C61;&#xFF0C;&#x4F20;&#x5165;&#x5F53;&#x524D;&#x7684;&#x5C5E;&#x6027;&#x96C6;&#x5408;&#xFF0C;&#x5B9E;&#x4F8B;&#x5BF9;&#x8C61;&#x4EE5;&#x53CA;bean&#x540D;&#x79F0;&#xFF0C;&#x53EF;&#x4EE5;&#x5728;&#x8BE5;&#x65B9;&#x6CD5;&#x4E2D;&#x4FEE;&#x6539;&#x5C5E;&#x6027;&#x96C6;&#x5408;&#x3002;</p>
+<p>&#x8BE5;&#x5C5E;&#x6027;&#x96C6;&#x5408;&#x6700;&#x7EC8;&#x4F1A;&#x88AB;&#x586B;&#x5145;&#x5230;Bean&#x4E2D;&#x3002;</p>
+<p>&#x4E0B;&#x56FE;&#x4E5F;&#x662F;doCreateBean -&gt; populateBean&#x65B9;&#x6CD5;&#x7684;&#x7247;&#x6BB5;:</p>
+<p> <img src="../../../../pic/image-20200514221355982.png" alt="image-20200514221355982"></p>
+<p>&#x9664;&#x4E86;postProcessProperties&#x65B9;&#x6CD5;&#xFF0C;&#x5728;&#x5176;&#x672A;&#x751F;&#x6548;&#x65F6;&#xFF0C;postProcessPropertyValues&#x65B9;&#x6CD5;&#x4E5F;&#x4F1A;&#x88AB;&#x5C1D;&#x8BD5;&#x8C03;&#x7528;&#x3002;</p>
+<p>&#x4F46;&#x5176;&#x5B9E;postProcessPropertyValues&#x65B9;&#x6CD5;&#x5728;&#x63A5;&#x53E3;&#x4E2D;&#x5DF2;&#x7ECF;&#x88AB;&#x58F0;&#x660E;&#x4E3A;&#x4E0D;&#x63A8;&#x8350;&#x4F7F;&#x7528;&#x7684;&#x3002;</p>
+<p> <img src="../../../../pic/image-20200514221517357.png" alt="image-20200514221517357"></p>
+<h2 id="smartinstantiationawarebeanpostprocessor"><a name="smartinstantiationawarebeanpostprocessor" class="anchor-navigation-ex-anchor" href="#smartinstantiationawarebeanpostprocessor"><i class="fa fa-link" aria-hidden="true"></i></a>SmartInstantiationAwareBeanPostProcessor</h2>
+<p>&#x8BE5;&#x63A5;&#x53E3;&#x6269;&#x5C55;&#x4E86;InstantiationAwareBeanPostProcessor&#xFF0C;<strong>&#x4E3B;&#x8981;&#x662F;&#x5B9E;&#x4F8B;&#x5316;&#x8FC7;&#x7A0B;&#x4E2D;&#x83B7;&#x53D6;Class&#x5BF9;&#x8C61;&#x7B49;&#x4E00;&#x4E9B;&#x903B;&#x8F91;&#x7684;&#x6269;&#x5C55;&#x3002;</strong></p>
+<p> <img src="../../../../pic/image-20200513071519512.png" alt="image-20200513071519512"></p>
+<p>predictBeanType&#x65B9;&#x6CD5;&#x7528;&#x4E8E;&#x9884;&#x6D4B;Bean&#x7684;&#x7C7B;&#x578B;&#xFF0C;&#x660E;&#x663E;&#x5B9E;&#x5728;&#x5B9E;&#x4F8B;&#x5316;&#x4E4B;&#x524D;&#x7684;&#x3002;</p>
+<p>&#x8FD9;&#x4E2A;&#x5728;createBean&#x7684;&#x6D41;&#x7A0B;&#x4E2D;&#x5177;&#x4F53;&#x7684;&#x8C03;&#x7528;&#x70B9;&#x672A;&#x627E;&#x5230;&#xFF0C;&#x4E0D;&#x8FC7;&#x5E94;&#x8BE5;&#x662F;&#x5E38;&#x89C4;&#x624B;&#x6BB5;&#x4E0D;&#x80FD;&#x5F97;&#x5230;Class&#x5BF9;&#x8C61;&#x540E;&#x7684;&#x4E00;&#x79CD;&#x8865;&#x5145;&#x3002;</p>
+<p>determineCandidateConstructors&#x7528;&#x4E8E;&#x63A8;&#x65AD;&#x53EF;&#x7528;&#x7684;&#x6784;&#x9020;&#x51FD;&#x6570;&#x3002;</p>
+<p>&#x4EE5;&#x4E0B;&#x662F;createBean -&gt; doCreateBean -&gt; createBeanInstance&#x65B9;&#x6CD5;&#x7684;&#x7247;&#x6BB5;&#xFF1A;</p>
+<p> <img src="../../../../pic/image-20200514231440825.png" alt="image-20200514231440825"></p>
+<p>&#x5728;createBeanInstance&#x4E2D;&#x5B9A;&#x4E49;&#x4E86;&#x597D;&#x51E0;&#x79CD;&#x5B9E;&#x4F8B;&#x5316;&#x65B9;&#x6CD5;&#xFF0C;&#x4ECE;&#x4E0A;&#x5230;&#x4E0B;&#x6BCF;&#x4E00;&#x6B65;&#x90FD;&#x4F1A;&#x5C1D;&#x8BD5;&#x53BB;&#x5B9E;&#x4F8B;&#x5316;&#x5BF9;&#x8C61;&#xFF0C;&#x5982;&#x679C;&#x5B9E;&#x4F8B;&#x5316;&#x6210;&#x529F;&#x5C31;&#x9000;&#x51FA;&#x4E86;&#x3002;</p>
+<p>&#x8BE5;&#x65B9;&#x6CD5;&#x5728;&#x4F7F;&#x7528;autowireConstructor&#x4E4B;&#x524D;&#x63A8;&#x65AD;&#x51FA;&#x5408;&#x9002;&#x7684;&#x6784;&#x9020;&#x65B9;&#x6CD5;&#x3002;</p>
+<p>&#x4EE5;&#x4E0B;&#x5C31;&#x662F;&#x63A8;&#x65AD;&#xFF0C;&#x4E5F;&#x5C31;&#x662F;&#x8C03;&#x7528;&#x65B9;&#x6CD5;&#x7684;&#x903B;&#x8F91;&#xFF1A;</p>
+<p> <img src="../../../../pic/image-20200514231656247.png" alt="image-20200514231656247"></p>
+<p>&#x904D;&#x5386;&#x8C03;&#x7528;SmartInstantiationAwareBeanPostProcessor#determineCandidateConstructors&#x65B9;&#x6CD5;&#x7684;&#x65F6;&#x5019;&#xFF0C;&#x53EA;&#x8981;&#x6709;&#x4E00;&#x4E2A;&#x6210;&#x529F;&#x8FD4;&#x56DE;&#xFF0C;&#x5C31;&#x76F4;&#x63A5;&#x8FD4;&#x56DE;&#x4E86;&#x3002;</p>
+<p>&#x6240;&#x4EE5;&#x5728;BeanFactory&#x4E2D;&#x5982;&#x679C;&#x6709;&#x591A;&#x4E2A;SmartInstantiationAwareBeanPostProcessor&#x4F5C;&#x7528;&#x4E8E;&#x76F8;&#x540C;Bean&#x7684;&#x63A8;&#x65AD;&#xFF0C;&#x5C31;&#x9700;&#x8981;&#x6CE8;&#x610F;&#x6267;&#x884C;&#x7684;&#x987A;&#x5E8F;&#x3002;</p>
+<p>getEarlyBeanReference&#x7528;&#x4E8E;&#x83B7;&#x53D6;&#x65E9;&#x671F;&#x5F15;&#x7528;&#xFF0C;&#x5904;&#x7406;&#x5FAA;&#x73AF;&#x4F9D;&#x8D56;&#x7684;&#x60C5;&#x51B5;&#x3002;</p>
+<p>&#x5B9E;&#x4F8B;&#x5316;&#x5B8C;&#x6210;&#x4E4B;&#x540E;&#xFF0C;&#x8FD8;&#x672A;&#x586B;&#x5145;&#x5C5E;&#x6027;&#xFF0C;&#x4E3A;&#x4E86;&#x89E3;&#x51B3;&#x5FAA;&#x73AF;&#x4F9D;&#x8D56;&#x95EE;&#x9898;&#xFF0C;&#x6B64;&#x65F6;&#x5C31;&#x8981;&#x901A;&#x8FC7;&#x8BE5;&#x65B9;&#x6CD5;&#x66B4;&#x9732;&#x65E9;&#x671F;&#x7684;&#x5F15;&#x7528;&#x3002;</p>
+<p>&#x4E0B;&#x56FE;&#x5B9E;&#x5728;createBean -&gt; doCreateBean&#x7684;&#x7247;&#x6BB5;&#xFF1A;</p>
+<p> <img src="../../../../pic/image-20200514230908223.png" alt="image-20200514230908223"></p>
+<p>&#x5728;&#x7ECF;&#x8FC7;&#x662F;&#x5426;&#x9700;&#x8981;&#x66B4;&#x9732;&#x65E9;&#x671F;&#x5F15;&#x7528;&#x7684;&#x5224;&#x65AD;&#x4E4B;&#x540E;&#xFF0C;&#x4F1A;&#x5C06;&#x6301;&#x6709;&#x8BE5;&#x65B9;&#x6CD5;&#x7684;ObjectFactory&#x4F5C;&#x4E3A;value&#x6CE8;&#x518C;&#x5230;&#x7F13;&#x5B58;&#x4E2D;&#x3002;</p>
+<p>&#x5177;&#x4F53;&#x6D41;&#x7A0B;&#x8868;&#x5982;&#x4E0B;&#xFF1A;</p>
+<p> <img src="../../../../pic/image-20200514231143750.png" alt="image-20200514231143750"></p>
+<p> &#x4E0D;&#x96BE;&#x53D1;&#x73B0;&#x5728;singletonFactories&#x7F13;&#x5B58;&#x4E2D;&#x6CE8;&#x518C;&#x7684;&#x5C31;&#x662F;getEarlyBeanReference&#x65B9;&#x6CD5;&#x3002;</p>
+<p>&#x800C;getEarlyBeanReference&#x7684;&#x5177;&#x4F53;&#x903B;&#x8F91;&#x5982;&#x4E0B;&#xFF1A;</p>
+<p> <img src="../../../../pic/image-20200514231040069.png" alt="image-20200514231040069"></p>
+<p>&#x6700;&#x7EC8;&#x662F;&#x5FAA;&#x73AF;&#x8C03;&#x7528;&#x4E86;&#x6240;&#x6709;&#x7684;SmartInstantiationAwareBeanPostProcessor#getEarlyBeanReference&#x65B9;&#x6CD5;&#x3002;</p>
+<h2 id="mergedbeandefinitionpostprocessor"><a name="mergedbeandefinitionpostprocessor" class="anchor-navigation-ex-anchor" href="#mergedbeandefinitionpostprocessor"><i class="fa fa-link" aria-hidden="true"></i></a>MergedBeanDefinitionPostProcessor</h2>
+<p>&#x8BE5;&#x7C7B;&#x6269;&#x5C55;&#x4E86;<strong>&#x5BF9;MergedBeanDefinition&#x5728;&#x5B9E;&#x4F8B;&#x5316;&#x4E4B;&#x540E;&#x7684;&#x6269;&#x5C55;</strong>&#x3002;</p>
+<p> <img src="../../../../pic/image-20200514222442064.png" alt="image-20200514222442064"></p>
+<p>postProcessMergedBeanDefinition&#x5728;Bean&#x5B9E;&#x4F8B;&#x5316;&#x5B8C;&#x6210;&#x4E4B;&#x540E;&#x88AB;&#x8C03;&#x7528;&#x3002;</p>
+<p>&#x4E0B;&#x56FE;&#x662F;createBean -&gt; doCreateBean&#x7684;&#x7247;&#x6BB5;&#xFF1A;</p>
+<p><img src="../../../../pic/image-20200514222416349.png" alt="image-20200514222416349"> </p>
+<p>&#x8C03;&#x7528;&#x8BE5;&#x65B9;&#x6CD5;&#x4E4B;&#x524D;&#xFF0C;Bean&#x5DF2;&#x7ECF;&#x901A;&#x8FC7;createBeanInstance&#x65B9;&#x6CD5;&#x4F7F;&#x7528;Spring&#x63D0;&#x4F9B;&#x7684;&#x65B9;&#x6CD5;&#x8FDB;&#x884C;&#x5B9E;&#x4F8B;&#x5316;&#x3002;</p>
+<h2 id="destructionawarebeanpostprocessor"><a name="destructionawarebeanpostprocessor" class="anchor-navigation-ex-anchor" href="#destructionawarebeanpostprocessor"><i class="fa fa-link" aria-hidden="true"></i></a>DestructionAwareBeanPostProcessor</h2>
+<p> <img src="../../../../pic/image-20200514213211160.png" alt="image-20200514213211160"></p>
+<p>&#x6539;&#x63A5;&#x53E3;&#x6269;&#x5C55;&#x4E86;&#x5728;&#x9500;&#x6BC1;&#x65F6;&#x5BF9;Bean&#x5BF9;&#x5E94;&#x7684;&#x8D44;&#x6E90;&#x7684;&#x81EA;&#x5B9A;&#x4E49;&#x56DE;&#x6536;&#x3002;</p>
+<p>&#x5728;postProcessBeforeDestruction&#x65B9;&#x6CD5;&#x4E2D;&#x53EF;&#x4EE5;&#x5B9A;&#x4E49;&#x5BF9;&#x8D44;&#x6E90;&#x7684;&#x81EA;&#x5B9A;&#x4E49;&#x56DE;&#x6536;&#x903B;&#x8F91;&#x3002;</p>
+<p>requiresDestruction&#x5219;&#x662F;&#x5224;&#x65AD;&#x662F;&#x5426;&#x9700;&#x8981;&#x6CE8;&#x518C;&#x4E0A;&#x8FF0;&#x65B9;&#x6CD5;&#x3002;</p>
+<p>&#x4EE5;&#x4E0B;&#x662F;Spring Boot&#x4E2D;Bean&#x5728;&#x521B;&#x5EFA;&#x65F6;&#xFF0C;doCreateBean&#x65B9;&#x6CD5;&#x7684;&#x6700;&#x540E;&#x4E00;&#x6B65;&#x3002;</p>
+<p> <img src="../../../../pic/image-20200514213511886.png" alt="image-20200514213511886"></p>
+<p> <img src="../../../../pic/image-20200514214529877.png" alt="image-20200514214529877"></p>
+<p>&#x5728;&#x5224;&#x65AD;&#x4E3A;&#x975E;&#x539F;&#x578B;&#x6A21;&#x5F0F;&#x4E14;&#x9700;&#x8981;&#x9500;&#x6BC1;&#x65F6;&#xFF0C;&#x4F1A;&#x5305;&#x88C5;&#x4E00;&#x4E2A;DiposableBeanAdapter&#x6CE8;&#x518C;&#x5230;BeanFactory&#x4E2D;&#x3002;</p>
+<p>&#x6CE8;&#x518C;&#x7684;&#x5F62;&#x5F0F;&#x5C31;&#x662F;disposableBeans&#x7684;&#x7F13;&#x5B58;&#x3002;</p>
+<p>&#x4EE5;&#x4E0B;&#x662F;DisposableBeanAdapter&#x7684;&#x6784;&#x9020;&#x65B9;&#x6CD5;&#x4E2D;&#x7684;&#x6700;&#x540E;&#x4E00;&#x884C;&#xFF0C;&#x65B9;&#x6CD5;&#x4EE5;&#x53CA;&#x5BF9;&#x5E94;&#x7684;&#x5B9E;&#x73B0;&#x3002;</p>
+<p> <img src="../../../../pic/image-20200514214212184.png" alt="image-20200514214212184"></p>
+<p><img src="../../../../pic/image-20200514214235724.png" alt="image-20200514214235724"></p>
+<p>&#x53EF;&#x4EE5;&#x770B;&#x5230;&#x5728;&#x521D;&#x59CB;&#x5316;&#x7684;&#x65F6;&#x5019;&#x901A;&#x8FC7;getBeanPostProcessors()&#x65B9;&#x6CD5;&#x83B7;&#x53D6;&#x7684;BeanPostProcessor&#x96C6;&#x5408;&#x7ECF;&#x8FC7;&#x7B5B;&#x9009;&#x540E;&#x88AB;&#x8D4B;&#x503C;&#x7ED9;DisposableBeanAdapter&#x4E2D;&#x7684;beanPostProcessors&#x6210;&#x5458;&#x53D8;&#x91CF;&#x3002;</p>
+<h2 id="&#x5185;&#x7F6E;&#x7684;-beanpostprocessor"><a name="&#x5185;&#x7F6E;&#x7684;-beanpostprocessor" class="anchor-navigation-ex-anchor" href="#&#x5185;&#x7F6E;&#x7684;-beanpostprocessor"><i class="fa fa-link" aria-hidden="true"></i></a>&#x5185;&#x7F6E;&#x7684; BeanPostProcessor</h2>
+<blockquote>
+<p>&#x6574;&#x7406; Spring &#x6C47;&#x603B;&#x5185;&#x7F6E;&#x7684; BeanPostProcessor&#xFF0C;&#x4EE5;&#x53CA;&#x5176;&#x4F5C;&#x7528;&#xFF0C;&#x4E0D;&#x505A;&#x539F;&#x7406;&#x7684;&#x6DF1;&#x5165;&#x89E3;&#x6790;&#x3002;</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>&#x7C7B;&#x540D;&#x79F0;</th>
+<th>&#x5B9E;&#x73B0;&#x65B9;&#x6CD5;</th>
+<th>&#x5177;&#x4F53;&#x4F5C;&#x7528;</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>InitDestroyAnnotationBeanPostProcessor</td>
+<td></td>
+<td>&#x89E3;&#x6790; InitializingBean &#x4EE5;&#x53CA; DisposableBean&#x3002;</td>
+</tr>
+<tr>
+<td>CommonAnnotationBeanPostProcessor</td>
+<td></td>
+<td>&#x89E3;&#x6790; @PostConstruct &#x4EE5;&#x53CA; @PreDestroy&#xFF0C;&#x8FD8;&#x6709; @Resource</td>
+</tr>
+<tr>
+<td>AutowiredAnnotationBeanPostProcessor</td>
+<td></td>
+<td>&#x89E3;&#x6790; @Autowired &#x548C; @Value&#xFF0C;&#x9644;&#x5E26;&#x7684;&#x8FD8;&#x6709; @Inject &#x548C; @Lookup</td>
+</tr>
+<tr>
+<td>AsyncAnnotationBeanPostProcessor</td>
+<td></td>
+<td>&#x89E3;&#x6790; @Async &#x6CE8;&#x89E3;&#xFF0C;&#x5185;&#x90E8;&#x521B;&#x5EFA; AsyncAnnotationAdvisor &#x7C7B;</td>
+</tr>
+<tr>
+<td>AnnotationAwareAspectJAutoProxyCreator</td>
+<td></td>
+<td>&#x89E3;&#x6790; @AspectJ &#x7B49; AOP &#x76F8;&#x5173;&#x6CE8;&#x89E3;</td>
+</tr>
+</tbody>
+</table>
+
+<script>console.log("plugin-popup....");document.onclick = function(e){ e.target.tagName === "IMG" && window.open(e.target.src,e.target.src)}</script><style>img{cursor:pointer}</style>
+                                
+                                </section>
+                            
+    </div>
+    <div class="search-results">
+        <div class="has-results">
+            
+            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+            <ul class="search-results-list"></ul>
+            
+        </div>
+        <div class="no-results">
+            
+            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+            
+        </div>
+    </div>
+</div>
+
+                        </div>
+                    </div>
+                
+            </div>
+
+            
+                
+                <a href="../Resouce和Autowired.html" class="navigation navigation-prev " aria-label="Previous page: Resouce和Autowired">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+                
+                
+                <a href="../../aop/aop 概念.md" class="navigation navigation-next " aria-label="Next page: AOP相关概念">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+                
+            
+        
+    </div>
+
+    <script>
+        var gitbook = gitbook || [];
+        gitbook.push(function() {
+            gitbook.page.hasChanged({"page":{"title":"BeanPostProcessor 类族","level":"1.4.1.4","depth":3,"next":{"title":"AOP相关概念","level":"1.4.1.5","depth":3,"path":"spring/spring-core/aop/aop 概念.md","ref":"spring/spring-core/aop/aop 概念.md","articles":[]},"previous":{"title":"Resouce和Autowired","level":"1.4.1.3","depth":3,"path":"spring/spring-core/ioc/Resouce和Autowired.md","ref":"spring/spring-core/ioc/Resouce和Autowired.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":["intopic-toc","chapter-fold","splitter","expandable-chapters","back-to-top-button","popup","anchor-navigation-ex","livereload"],"pluginsConfig":{"chapter-fold":{},"intopic-toc":{"isCollapsed":true,"isScrollspyActive":true,"label":"Catalogue","maxDepth":6,"mode":"nested","selector":".markdown-section h1, .markdown-section h2, .markdown-section h3, .markdown-section h4, .markdown-section h5, .markdown-section h6","visible":true},"livereload":{},"splitter":{},"search":{},"popup":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"highlight":{},"anchor-navigation-ex":{"associatedWithSummary":true,"float":{"floatIcon":"fa fa-navicon","level1Icon":"","level2Icon":"","level3Icon":"","showLevelIcon":false},"mode":"float","multipleH1":true,"pageTop":{"level1Icon":"","level2Icon":"","level3Icon":"","showLevelIcon":false},"printLog":false,"showGoTop":false,"showLevel":false},"back-to-top-button":{},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false},"expandable-chapters":{}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"spring/spring-core/ioc/beanpostprocessor/BeanPostProcessor类族概述.md","mtime":"2021-10-08T14:05:30.624Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2021-10-07T13:39:58.281Z"},"basePath":"../../../..","book":{"language":""}});
+        });
+    </script>
+</div>
+
+        
+    <script src="../../../../gitbook/gitbook.js"></script>
+    <script src="../../../../gitbook/theme.js"></script>
+    
+        
+        <script src="../../../../gitbook/gitbook-plugin-intopic-toc/anchor.min.js"></script>
+        
+    
+        
+        <script src="../../../../gitbook/gitbook-plugin-intopic-toc/gumshoe.polyfills.min.js"></script>
+        
+    
+        
+        <script src="../../../../gitbook/gitbook-plugin-intopic-toc/plugin.js"></script>
+        
+    
+        
+        <script src="../../../../gitbook/gitbook-plugin-chapter-fold/chapter-fold.js"></script>
+        
+    
+        
+        <script src="../../../../gitbook/gitbook-plugin-splitter/splitter.js"></script>
+        
+    
+        
+        <script src="../../../../gitbook/gitbook-plugin-expandable-chapters/expandable-chapters.js"></script>
+        
+    
+        
+        <script src="../../../../gitbook/gitbook-plugin-back-to-top-button/plugin.js"></script>
+        
+    
+        
+        <script src="../../../../gitbook/gitbook-plugin-livereload/plugin.js"></script>
+        
+    
+        
+        <script src="../../../../gitbook/gitbook-plugin-search/search-engine.js"></script>
+        
+    
+        
+        <script src="../../../../gitbook/gitbook-plugin-search/search.js"></script>
+        
+    
+        
+        <script src="../../../../gitbook/gitbook-plugin-lunr/lunr.min.js"></script>
+        
+    
+        
+        <script src="../../../../gitbook/gitbook-plugin-lunr/search-lunr.js"></script>
+        
+    
+        
+        <script src="../../../../gitbook/gitbook-plugin-sharing/buttons.js"></script>
+        
+    
+        
+        <script src="../../../../gitbook/gitbook-plugin-fontsettings/fontsettings.js"></script>
+        
+    
+
+    </body>
+</html>
+
