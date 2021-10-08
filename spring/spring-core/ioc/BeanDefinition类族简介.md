@@ -26,13 +26,13 @@ Spring中的Bean信息都会BeanDefinition的对象的形式保存，一个BeanD
 
 BeanDefinition的类注释如下：
 
- ![image-20200502154706500](../../../../pic/image-20200502154706500.png)
+ ![image-20200502154706500](../../../pic/image-20200502154706500.png)
 
 翻译如下：一个BeanDefinition对象描述了Bean的实例，属性值，构造的参数值，或者进一步提供
 
 以下是所有BeanDefinition的方法和变量图：
 
- ![image-20200502154853260](../../../../pic/image-20200502154853260.png)
+ ![image-20200502154853260](../../../pic/image-20200502154853260.png)
 
 可以看到BeanDefinition同时继承了AttributeAccessor和BeanMetadataElement接口。
 
@@ -66,7 +66,7 @@ AnnotatedBeanDefinition是BeanDefinition的扩展，直接继承了BeanDefinitio
 
 也是BeanDefinition接口的子类，实现了一个基本的方法，并添加了包括Qualifier在内的一些属性配置，和工具方法。
 
- ![image-20200502172749304](../../../../pic/image-20200502172749304.png)
+ ![image-20200502172749304](../../../pic/image-20200502172749304.png)
 
 
 

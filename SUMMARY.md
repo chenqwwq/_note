@@ -36,7 +36,6 @@
   * [Guava 源码分析]()
     * [EventBus 相关源码解析](java/guava/EventBus.md)
     * [RateLimiter 源码分析](java/guava/RateLimiter.md)
-  
 * [Netty]()
   * [EventLoop 的初始化流程](netty/netty逻辑流程/EventLoop的初始化.md)
   * [NIO服务端启动流程](netty/netty逻辑流程/NIO服务端启动流程.md)
@@ -50,9 +49,12 @@
   * [FastThreadLocal 源码分析](netty/util/FastThreadLocal.md)
   * [ChannelPool 相关分析](netty/util/ChannelPool.md)
   * [ChannelOption 整理](netty/ChannelOption整理.md)
-
 * [Spring]()
   * Spring Core
+    * [Bean对象的获取和创建流程（究极简述](spring/spring-core/ioc/Bean对象的获取和创建流程.md)
+    * [Spring 循环依赖问题](spring/spring-core/ioc/Spring循环依赖问题.md)
+    * [Resouce和Autowired](spring/spring-core/ioc/Resouce和Autowired.md)
+    * [BeanPostProcessor 类族](spring/spring-core/ioc/beanpostprocessor/BeanPostProcessor类族概述.md)
     * [AOP相关概念](spring/spring-core/aop/aop 概念.md)
     * [ProxyFactory](spring/spring-core/aop/ProxyFactory.md)
     * [Aop 实现的不同方式](spring/spring-core/aop/Aop实现的不同方式.md)
@@ -65,7 +67,13 @@
     * [consul 简述](spring/spring-cloud/consul.md) 
     * [feign 简述](spring/spring-cloud/feign.md)
     * [zuul 简述](spring/spring-cloud/zuul.md)
-  
+* 数据库
+  * [数据库的事务](数据库/mysql/数据库的事务.md)
+  * [MySQL]()
+    * [MySQL 的整体架构](数据库/mysql/MySQL 的整体架构.md)
+    * [MySQL 日志相关](数据库/mysql/日志相关.md)
+    * [MySQL 中的索引](数据库/mysql/索引相关.md)
+    * [InnoDB 中的锁](数据库/mysql/锁相关.md)
 * 设计模式
   * [Gof 的设计模式](系统设计/Gof设计模式.md)
 * 中间件

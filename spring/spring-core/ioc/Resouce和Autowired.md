@@ -1,8 +1,4 @@
-# Spring 相关知识点
-
-
-
-## Resource 和 Autowired 的区别
+# Resource 和 Autowired 的区别
 
 ### Autowired
 
