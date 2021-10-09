@@ -14,6 +14,8 @@ Sentinel 中**使用 Node 类（具体是 StatisticNode）保存所有运行时�
 
 （OCCUPIED_PASS 的逻辑还没看。
 
+> Sentinel 以窗口形式同个统计每个时间片的数据，每个窗口都是一个数组，根据以上  MetricEvent 枚举类的 ordinal 确定各类数据在数组中的下标。
+
 
 
 ## StatisticNode 
