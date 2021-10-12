@@ -41,8 +41,8 @@ SpringFactoriesLoader 就是 Spring 工厂加载机制的核心工具类，但�
 public static final String FACTORIES_RESOURCE_LOCATION = "META-INF/spring.factories";
 // 日志
 private static final Log logger = LogFactory.getLog(SpringFactoriesLoader.class);
-// 缓存，第一遍读取配置文件时，所有的k/v对都会放在cache中，不需要重复读文件。
-// 以ClassLoader为key，value最终是LinkedMultiValueMap结构
+// 缓存，第一遍读取配置文件时，所有的 k/v 对都会放在 cache 中，不需要重复读文件。
+// 以 ClassLoader 为 key，value 最终是 LinkedMultiValueMap 结构
 private static final Map<ClassLoader, MultiValueMap<String, String>> cache = new ConcurrentReferenceHashMap<>();
 ```
 

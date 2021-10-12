@@ -62,7 +62,7 @@ public SpringApplication(ResourceLoader resourceLoader, Class<?>... primarySourc
 
 initialize(C applicationContext) 方法就初始化方法，参数为正在创建的 ApplicationContext。
 
-> 对于 SpringCloud，此时还会有 **PropertySourceBootstrapConfiguration** 类，该类用于获取配置中心的数据。
+> 对于 SpringCloud，此时还会有 **PropertySourceBootstrapConfiguration** 类，该类用于获取远程配置中心的数据。
 
 <br>
 
@@ -77,6 +77,8 @@ initialize(C applicationContext) 方法就初始化方法，参数为正在创�
 ApplicationListener 继承与 JDK 的 EventListener 类，监听某个 ApplicationEvent。
 
 > **在容器初始化的各个阶段都会发布不同类型的事件，借助监听器可以在特定的事件执行自定义操作。**
+>
+> SpringBoot 中的事件分为两种：SpringApplicationEvent（以 SpringApplication 为事件源） 和 ApplicationContextEvent（以 ApplicationContext 为事件源）。
 
 
 
@@ -118,9 +120,9 @@ run 方法是启动的核心方法，包含了环境准备，监听事件的发�
         // Headless相关配置
 		configureHeadlessProperty();
         // 工厂加载机制获取SpringApplicationRunListener，并封装为一个对象
-        // SpringApplicationRunListener是应用启动前期的广播器.
+        // SpringApplicationRunListener 是应用启动前期的广播器.
 		SpringApplicationRunListeners listeners = getRunListeners(args)；
-         // 触发ApplicationStartingEvent
+         // 触发 ApplicationStartingEvent
 		listeners.starting();
 		try {
                 // 对main方法的入参进行包装
@@ -232,7 +234,7 @@ private SpringApplicationRunListeners getRunListeners(String[] args) {
 
 这里获取的监听器和之前构造函数中的不同，这里获取的是 **SpringApplicationRunListener** 的实现类，并包装为 SpringApplicationRunListeners。
 
-> SpringApplicationRunListener 是专门的对容器启动时各个阶段的监听，从接口上就定义了启动的各个阶段。
+> SpringApplicationRunListener 是专门的对容器启动时各个阶段的监听，一定程度上来说也定义了启动的各个阶段。
 
 ![image-20200518230122762](../../pic/image-20200518230122762.png)
 
@@ -251,19 +253,17 @@ public EventPublishingRunListener(SpringApplication application, String[] args) 
 }
 ```
 
-> **EventPublishingRunListener 会获取 SpringApplication 中已有的监听器。**
+**EventPublishingRunListener 会获取 SpringApplication 中已有的监听器。**
 
 EventPublishingRunListener 是应用启动初期的监听者，也是借助于 SimpleApplicationEventMulticaster 广播事件，实现如下图：
 
 <img src="/home/chen/_note/pic/image-20210302000737616.png" alt="image-20210302000737616" style="zoom:67%;" />
 
-> 另外值得注意的是，**在 contextLoaded 事件之后事件的发布又是使用 ApplicationContext 来完成的**，因为 ApplicationContext 的基本初始化已经完成了。
+> 另外值得注意的是，**在 contextLoaded 事件之后事件的发布又是使用 ApplicationContext 来完成的**，因为 ApplicationContext 中的事件发布器已经完成初始化了了。
 
 ![EventPublishingRunListener的部分方法](assets/image-20210813175138196.png)
 
-#### 小结
-
-SpringBoot 的启动阶段，各类监听器起了非常关键的角色，包括配置文件的加载都是通过监听器完成的。
+SpringBoot 的启动阶段，各类监听器起了非常关键的角色，包括**配置文件的加载都是通过监听器完成的**。
 
 ApplicationContext 本身就是一个事件广播器，但是在 SpringBoot 的启动阶段，ApplicationContext 还没有初始化好的时候就需要广播部分事件。
 
@@ -375,7 +375,7 @@ exceptionReporters = getSpringFactoriesInstances(SpringBootExceptionReporter.cla
 ### 9. 准备上下文
 
 ```java
-// SpringApplication@prepareContext
+// SpringApplication# prepareContext
 private void prepareContext(ConfigurableApplicationContext context, ConfigurableEnvironment environment,SpringApplicationRunListeners listeners, ApplicationArguments applicationArguments, Banner printedBanner) {
     // 配置 Environment 到应用上下文
     context.setEnvironment(environment);
@@ -414,7 +414,7 @@ private void prepareContext(ConfigurableApplicationContext context, Configurable
 
 该方法首先配置了环境，而后调用所有的所有的 ApplicationContextInitializer 实现类，重点的实现如下：
 
-- **BootstrapApplicationListener#AncestorInitializer** 作用是将 SpringCloud 的 bootstrap 上下文设置为当前的父上下文，AncestorInitializer** 会进一步创建 ParentContextApplicationContextInitializer 进行初始化。
+- **BootstrapApplicationListener#AncestorInitializer** 作用是将 SpringCloud 的 bootstrap 上下文设置为当前的父上下文，AncestorInitializer 会进一步创建 ParentContextApplicationContextInitializer 进行初始化。
 
 - **PropertySourceBootstrapConfiguration** 作用是加载远程的配置。
 - **DelegatingApplicationContextInitializer** 会进一步执行 context.initializer.classes 配置下的 ApplicationContextInitializer 实现类。
@@ -577,7 +577,7 @@ public void refresh() throws BeansException, IllegalStateException {
 
 
 
-### 1. 计时结束
+### 11. 计时结束
 
 ```java
 // SpringApplication

@@ -4,7 +4,7 @@
 
 ## 概述
 
- Sentinel 中的各类统计信息都保存在 Node 中，并且使用不同的 Node 链表表示不同的调用链路。\
+ Sentinel 中的各类统计信息都保存在 Node 中，并且使用不同的 Node 链表表示不同的调用链路。
 
 Sentinel 一共有以下三种 Node，都继承于 StatisticNode：
 
