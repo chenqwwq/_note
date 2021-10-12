@@ -10,7 +10,7 @@
 
 Sentinel 中**使用 Node 类（具体是 StatisticNode）保存所有运行时的相关数据**，简单包括如下几项：
 
-![image-20211008234306138](assets/image-20211008234306138.png)
+![image-20211008234306138](assets/image-20211008234306138.png)![图像](https://pbs.twimg.com/media/FBVuTULVQAYZS3t?format=jpg&name=medium)
 
 （OCCUPIED_PASS 的逻辑还没看。
 
