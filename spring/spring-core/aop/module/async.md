@@ -1,4 +1,4 @@
-# Async
+#  Async
 
 ---
 
@@ -11,16 +11,18 @@
 Async 是 Spring 中的异步注解，标注该注解就可以将方法以异步任务的形式执行。
 
 > Async 使用的还是动态代理的机制，所以同方法内以 this 调用会失效。
+>
+> 如果需要内部调用的可以使用 expose-proxy 参数，经过 AopContext.getProxy()
 
 Async 的使用很简单，在你想要异步的方法上标注 @Async 就好。
 
-<img src="../../../pic/image-20210307191506002.png" alt="image-20210307191506002" style="zoom:67%;" />
+<img src="../../../../pic/image-20210307191506002.png" alt="image-20210307191506002" style="zoom:67%;" />
 
 
 
 ## Async 的注解原理
 
-> Async 自定义了一个 BeanPostProcessor，拦截初始化过程，返回自定义的类。
+> **Async 自定义了一个 BeanPostProcessor，拦截初始化过程，返回自定义的类。**
 
 ### Async 的自动装配
 
@@ -30,13 +32,13 @@ AsyncConfigurationSelector 源码如下：
 
 > Import 会在 ConfigurationClassPostProcessor 中处理，ConfigurationClassPostProcessor 是 BeanFactoryPostProcessor 的实现类，所以会在刷新容器的前期引入该配置类。
 
-<img src="../../../pic/image-20210307191839484.png" alt="image-20210307191839484" style="zoom:67%;" />
+<img src="../../../../pic/image-20210307191839484.png" alt="image-20210307191839484" style="zoom:67%;" />
 
 **根据代理模式的不同会引入不同的配置类**，默认是 **PROXY**，引入的就是 ProxyAsyncConfiguration 类。
 
 以下为 ProxyAsyncConfiguration 源码：
 
-<img src="../../../pic/image-20210307192042700.png" alt="image-20210307192042700" style="zoom:67%;" />
+<img src="../../../../pic/image-20210307192042700.png" alt="image-20210307192042700" style="zoom:67%;" />
 
 配置类中引入了一个 **AsyncAnnotationBeanPostProcessor**。
 
@@ -50,7 +52,7 @@ AsyncConfigurationSelector 源码如下：
 
 以下是 AsyncAnnotationBeanPostProcessor 的类图:
 
-<img src="../../../pic/image-20210307194029697.png" alt="image-20210307194029697" style="zoom:67%;" />
+<img src="../../../../pic/image-20210307194029697.png" alt="image-20210307194029697" style="zoom:67%;" />
 
 **AsyncAnnotationBeanPostProcessor 实现了 BeanPostProcessor。**
 
@@ -62,7 +64,7 @@ AbstractAdvisingBeanPostProcessor 就是包含 Advisor 对象的 BeanPostProcess
 
 忽略其他，先看作为 BeanPostProcessor 的两个方法，先是 Before：
 
-<img src="../../../pic/image-20210307192902439.png" alt="image-20210307192902439" style="zoom:67%;" />
+<img src="../../../../pic/image-20210307192902439.png" alt="image-20210307192902439" style="zoom:67%;" />
 
 **AsyncAnnotationBeanPostProcessor 直接忽略了前置钩子**，再是 After：
 
@@ -124,13 +126,13 @@ Advisor 对象是在 setBeanFactory 方法被调用的时候实现。
 
 > AbstractBeanFactoryAwareAdvisingPostProcessor 集成了 BeanFactoryAware 接口，所以在初始化 Bean 的最初阶段就会调用 setBeanFactory 方法注入 BeanFactory 对象。
 
-<img src="../../../pic/image-20210307195145587.png" alt="image-20210307195145587" style="zoom:67%;" />
+<img src="../../../../pic/image-20210307195145587.png" alt="image-20210307195145587" style="zoom:67%;" />
 
 AsyncAnnotationBeanPostProcessor 中的方法实现入上图，也就是在初始化 Bean 对象的初期就会创建 AsyncAnnotationAdvisor，带上执行器，异常处理等配置。
 
 以下为 AsyncAnnotationAdvisor 的构造方法：
 
-<img src="../../../pic/image-20210307195735974.png" alt="image-20210307195735974" style="zoom:67%;" />
+<img src="../../../../pic/image-20210307195735974.png" alt="image-20210307195735974" style="zoom:67%;" />
 
 设置了默认支持的注解 Async，就是说 @EnableAsync 中就算指定了别的注解，Async 也是有效的。
 
@@ -142,13 +144,13 @@ AsyncAnnotationBeanPostProcessor 中的方法实现入上图，也就是在初�
 
 以下为 buildPointcut 的源码:
 
-![image-20210307203720545](../../../../github/_note/pic/image-20210307203720545.png)
+![image-20210307203720545](../../../../pic/image-20210307203720545.png)
 
 就是将列表的 asyncAnnotationTypes 都添加到筛选的方法中。
 
 以下为 buildAdvice 的方法源码：
 
-<img src="../../../pic/image-20210307222645271.png" alt="image-20210307222645271" style="zoom:67%;" />
+<img src="../../../../pic/image-20210307222645271.png" alt="image-20210307222645271" style="zoom:67%;" />
 
 创建的 Advice 就是 AnnotationAsyncExecutionIntercepter。
 
@@ -160,7 +162,7 @@ AsyncAnnotationBeanPostProcessor 中的方法实现入上图，也就是在初�
 
 ### 判断是否需要创建代理
 
-<img src="../../../pic/image-20210307194557035.png" alt="image-20210307194557035" style="zoom:67%;" />
+<img src="../../../../pic/image-20210307194557035.png" alt="image-20210307194557035" style="zoom:67%;" />
 
 从上图可知是否需要代理直接是通过 AopUtils#canApply 方法判断的，主要还是 Advisor 的逻辑，
 
@@ -188,7 +190,7 @@ Async 所需要的 Advisor - **AsyncAnnotationAdvisor** 也是在 AsyncAnnotatio
 
 以下为 AnnotationAsyncExecutionInterceptor 的类图：
 
-<img src="../../../pic/image-20210307223513713.png" alt="image-20210307223513713" style="zoom:67%;" />
+<img src="../../../../pic/image-20210307223513713.png" alt="image-20210307223513713" style="zoom:67%;" />
 
 
 
@@ -283,11 +285,11 @@ protected AsyncTaskExecutor determineAsyncExecutor(Method method) {
 
 默认的执行器是在 AsyncExecutionAspectSupport 初始化的时候创建的。
 
-<img src="../../../pic/image-20210307224813939.png" alt="image-20210307224813939" style="zoom:67%;" />
+<img src="../../../../pic/image-20210307224813939.png" alt="image-20210307224813939" style="zoom:67%;" />
 
 中间逻辑很简单就是获取 BeanFactory 中的 TaskExecutor 类型的 Bean 对象，源码如下：
 
-![image-20210307231106471](../../../../github/_note/pic/image-20210307231106471.png)
+![image-20210307231106471](../../../../../github/_note/pic/image-20210307231106471.png)
 
 这里就很清楚了，为什么不用 ScheduleExecutorService 作为执行器的底层类型在 BeanFactory 中搜索，因为定义不够清晰，而 TaskExecutor 基本上就是专门为了 Async 声明的接口。
 
@@ -303,7 +305,7 @@ protected AsyncTaskExecutor determineAsyncExecutor(Method method) {
 
 以下是 AsyncExecutionAspectSupport#doSubmit 的方法源码，也就是任务提交的方法：
 
-<img src="../../../pic/image-20210307231832840.png" alt="image-20210307231832840" style="zoom:67%;" />
+<img src="../../../../pic/image-20210307231832840.png" alt="image-20210307231832840" style="zoom:67%;" />
 
 异步的任务有四种执行方式，根据返回值类型的不同:
 

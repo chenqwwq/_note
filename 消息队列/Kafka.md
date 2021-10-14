@@ -17,7 +17,6 @@
 
 1. Controller 的选举
 2. Leader Partition 的选举
-3. 
 
 
 

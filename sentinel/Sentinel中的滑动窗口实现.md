@@ -4,7 +4,7 @@
 
 ## 概述
 
-Sentinel 中的统计使用滑动窗口来保证其平滑，最基础的实现就是 LeapArray（以分析 LeapArray 的实现实现为主。
+Sentinel 中的统计使用滑动窗口来保证其平滑，最基础的实现就是 LeapArray（本文以分析 LeapArray 的实现实现为主。
 
 
 
