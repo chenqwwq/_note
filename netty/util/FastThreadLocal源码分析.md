@@ -22,11 +22,11 @@ ThreadLocal 解决内存泄漏的方式很暴力，就是增加检查次数，�
 
 <br>
 
-FastThreadLcoal是对ThreadLocal的另一种实现方式，但是它也兼容ThreadLocal的使用方法。
+FastThreadLcoal 是对 ThreadLocal 的优化，也兼容 ThreadLocal 的使用方法。
 
-ThreadLocal需要和ThreadLocalMap以及Thread对象搭配使用。
+ThreadLocal 需要和 ThreadLocalMap 以及 Thread 对象搭配使用。
 
-FastThreadLocal也需要和FastThreadLocalThread以及InternalThreadLocalMap搭配使用才能达到最大的优化效果。
+FastThreadLocal 也需要和 FastThreadLocalThread 以及 InternalThreadLocalMap 搭配使用才能达到最大的优化效果。
 
 
 
