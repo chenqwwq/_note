@@ -6,7 +6,8 @@
     "expandable-chapters",
     "back-to-top-button",
     "popup",
-    "anchor-navigation-ex"
+    "anchor-navigation-ex",
+    "mermaid-gb3"
   ],
   "pluginsConfig": {
     "intopic-toc": {
