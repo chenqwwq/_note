@@ -20,9 +20,7 @@ ConcurrentSkipListMap 是 JUC 中提供的对**跳表**的并发安全的实现�
 
 
 
-## 源码实现
-
-
+## 查询
 
 ```java
 // ConcurrentSkipListMap#findPredecessor
