@@ -14,49 +14,51 @@
 
 Netty 针对于对象池有一个轻量级的实现 ObejctPool，其基本实现就是 Recycler。
 
+> 除了 Netty，Apache Common Pool2 也是一种常用的对象池实现。
+
 基本使用如下：
 
 ```java
-	public class Main {
+public class Main {
+    static class Obj {
+        static AtomicInteger idGen = new AtomicInteger();
+        int id;
+        ObjectPool.Handle<Obj> handle;
 
-	static class Obj {
-		static AtomicInteger idGen = new AtomicInteger();
-		int id;
-		ObjectPool.Handle<Obj> handle;
+        public Obj(ObjectPool.Handle<Obj> handle) {
+            this.id = Obj.idGen.incrementAndGet();
+            this.handle = handle;
+        }
 
-		public Obj(ObjectPool.Handle<Obj> handle) {
-			this.id = Obj.idGen.incrementAndGet();
-			this.handle = handle;
-		}
+        @Override
+        public String toString() {
+            return "Obj{" +
+                "id=" + id +
+                '}';
+        }
 
-		@Override
-		public String toString() {
-			return "Obj{" +
-					"id=" + id +
-					'}';
-		}
-		
         // 这个方法实现有点膈应
-		public void recycle() {
-			handle.recycle(this);
-		}
-	}
+        // 需要通过 handle 来让对象重新回到池子中
+        public void recycle() {
+            handle.recycle(this);
+        }
+    }
 
-	public static void main(String[] args) {
-		ObjectPool<Obj> objPool = ObjectPool.newPool(new ObjectPool.ObjectCreator<Obj>() {
-			@Override
-			public Obj newObject(ObjectPool.Handle<Obj> handle) {
-				return new Obj(handle);
-			}
-		});
+    public static void main(String[] args) {
+        ObjectPool<Obj> objPool = ObjectPool.newPool(new ObjectPool.ObjectCreator<Obj>() {
+            @Override
+            public Obj newObject(ObjectPool.Handle<Obj> handle) {
+                return new Obj(handle);
+            }
+        });
 
-		final Obj o1 = objPool.get();
-		o1.recycle();
-		final Obj o2 = objPool.get();
-		System.out.println(o1);
-		System.out.println(o2);
-		System.out.println(o1 == o2);
-	}
+        final Obj o1 = objPool.get();
+        o1.recycle();
+        final Obj o2 = objPool.get();
+        System.out.println(o1);
+        System.out.println(o2);
+        System.out.println(o1 == o2);
+    }
 }
 
 // 输出如下:
@@ -67,13 +69,29 @@ Netty 针对于对象池有一个轻量级的实现 ObejctPool，其基本实现
 
 使用的时候不推荐直接实现 Recycler，而是采用 ObjectPool.newPool() 去创建。
 
+> 对象的回收方法需要通过 Handle。
+
+
+
+### 对于对象池的简单思考
+
+对象池和线程池一样，由**池**这个概念持有全部的对象，对象池持有所有的对象，线程池持有所有的线程，在使用时从池子中获取，使用完毕归还给池子。（所以对于对象池的接口，甚至可以只有简单的 Get / Put 方法。
+
+除了获取和归还的方法之外，还有**对象何时创建以及多线程并发的问题。**
+
+对于何时创建，一般来说是在获取不到的时候，或者创建池子的时候先初始化 n 个对象供急用（例如线程池可以实现创建 coreSize 个线程，所以对于对象池也有一个最大容量的上限，或者在增加一个核心容量。
+
+多线程并发的问题，简单一点可以使用 synchronized 直接保证，线程池中使用了 BlockQueue，底层相当于是使用 AQS 保证的并发安全性。
+
+对于池中的对象来说，没有必要标记它属于哪个池子，获取之后应该删除所有池子对于该对象的引用，如果不归还对象，则由 GC 带走。（对于已经被获取的对象，池子不应该对其生命周期做任何限制。
+
 ## ObjectPool 
 
-ObjectPool 中定义了如下三种对象：
+Netty 实现的 ObjectPool 中定义了如下三种对象：
 
 1. ObjectPool - 最上层的对象池，负责持有所有对象并对获取方法进行调度
 2. ObjectCreator - 对象创建
-3. Handle - 对对象进行回收
+3. Handle - 持有对象的引用，也负责对对象进行回收
 
 ![image-20211022143954289](assets/image-20211022143954289.png)
 
@@ -82,6 +100,286 @@ ObjectPool 中定义了如下三种对象：
 ![image-20211022144031115](assets/image-20211022144031115.png)
 
 RecyclerObjectPool 直接创建了 Recycle 作为其基础实现，构造函数中传入一个 ObjectCreator 就可以创建一个对象池。
+
+
+
+以下从获取和归还两个角度分析 Recycler 的具体实现。
+
+
+
+## Recycler#get 获取对象
+
+以下是 Recycler#get 的方法源码：
+
+```javascript
+@SuppressWarnings("unchecked")
+public final T get() {
+    // 配置是否为空池
+    if (maxCapacityPerThread == 0) {
+        return newObject((Handle<T>) NOOP_HANDLE);
+    }
+    // 由 FastThreadLocal 持有 Stack 对象
+    // 每个线程一个 Stack，直接快进到 initValue 方法
+    Stack<T> stack = threadLocal.get();
+    // 从中弹出一个对象
+    DefaultHandle<T> handle = stack.pop();
+    // 没有返回一个对象
+    if (handle == null) {
+        // 重新创建
+        handle = stack.newHandle();
+        handle.value = newObject(handle);
+    }
+    // Handle 好像是为了持有该值
+    return (T) handle.value;
+}
+
+```
+
+对象的保存并不是在一个统一的集合里面，而是通过 FastThreadLocal 使每个线程都持有自己的对象。
+
+> ThreadLocal 就是空间换时间，减少锁的消耗。
+
+Stack 并不是 JDK 中的实现，而是 Recycler 中通过数组模拟的。
+
+获取到 Stack 之后，就尝试弹出（获取）对象，获取失败则创建。
+
+<br>
+
+### Stack#pop 弹出对象
+
+```java
+DefaultHandle<T> pop() {
+   // size 表示当前池子中对象的个数
+    int size = this.size;
+    // 当前并没有对象未被使用
+    if (size == 0) {
+        // 尝试回收对象
+        if (!scavenge()) {
+            return null;
+        }
+        size = this.size;
+        // 尝试回收之后仍然小于0，表示实在没有对象了
+        if (size <= 0) {
+            // double check, avoid races
+            return null;
+        }
+    }
+    // 分配空余对象
+    // 这里必须先 size --
+    // size -- 就已经占据了一个对象，如果先获取对象，那么对象可能会被多次获取
+    size--;
+    // 分配最后一个对象
+    DefaultHandle ret = elements[size];
+    elements[size] = null;
+    // 修改当前对象数目
+    this.size = size;
+    
+    // lastRecycledId 表示归属
+    if (ret.lastRecycledId != ret.recycleId) {
+        throw new IllegalStateException("recycled multiple times");
+    }
+    ret.recycleId = 0;
+    ret.lastRecycledId = 0;
+    return ret;
+}
+```
+
+弹出对象就是从底层数组中获取对象，在获取之前如果发现没有对象，尝试从 WeakOrderQueue 中回收一波。
+
+<br>
+
+### Stack#scavengeSome 收集对象
+
+**Recycler 的无锁化设计重点之一就是和 Stack 所绑定线程不同的线程归还对象时，并不能直接添加到底层的数组，而是添加到 Stack 的 WeakOrderQueue 链表中（下文会说到，剧透下。**
+
+以下是 Stack#scavengeSome 的源码实现：
+
+```java
+/**
+* 从 {@link WeakOrderQueue} 中回收部分数据
+*/
+private boolean scavengeSome() {
+    WeakOrderQueue prev;
+    // 设置当前游标
+    WeakOrderQueue cursor = this.cursor;
+    if (cursor == null) {
+        prev = null;
+        cursor = head;
+        if (cursor == null) {
+            return false;
+        }
+    } else {
+        prev = this.prev;
+    }
+
+    boolean success = false;
+    do {
+        if (cursor.transfer(this)) {
+            success = true;
+            break;
+        }
+        WeakOrderQueue next = cursor.getNext();
+        if (cursor.get() == null) {
+            // If the thread associated with the queue is gone, unlink it, after
+            // performing a volatile read to confirm there is no data left to collect.
+            // We never unlink the first queue, as we don't want to synchronize on updating the head.
+            if (cursor.hasFinalData()) {
+                for (; ; ) {
+                    if (cursor.transfer(this)) {
+                        success = true;
+                    } else {
+                        break;
+                    }
+                }
+            }
+
+            if (prev != null) {
+                // Ensure we reclaim all space before dropping the WeakOrderQueue to be GC'ed.
+                cursor.reclaimAllSpaceAndUnlink();
+                prev.setNext(next);
+            }
+        } else {
+            prev = cursor;
+        }
+
+        cursor = next;
+
+    } while (cursor != null && !success);
+
+    this.prev = prev;
+    this.cursor = cursor;
+    return success;
+}
+```
+
+
+
+
+
+
+
+## 归还对象
+
+归还对象是需要区分对象绑定的 Stack 是否由当前线程负责。
+
+以下是 DefaultHandle#recycle 的源码实现:
+
+```java
+/**
+* 释放对象使用
+*/
+@Override
+public void recycle(Object object) {
+    if (object != value) {
+        throw new IllegalArgumentException("object does not belong to handle");
+    }
+    // 
+    // 获取对象从属的 Stack
+    Stack<?> stack = this.stack;
+    if (lastRecycledId != recycleId || stack == null) {
+        throw new IllegalStateException("recycled already");
+    }
+    // 将对象重新塞入 Stack
+    stack.push(this);
+}
+```
+
+从 Handle 中取出绑定的 Stack，之后就是通过 push 归还对象，以下是 Stack#push 的实现:
+
+```java
+void push(DefaultHandle<?> item) {
+    // 获取当前线程
+    Thread currentThread = Thread.currentThread();
+    // 判断是否是当前线程
+    // important: 可以存在一个线程取出之后给别的线程使用的情况
+    if (threadRef.get() == currentThread) {
+        // The current Thread is the thread that belongs to the Stack, we can try to push the object now.
+        pushNow(item);
+    } else {
+        // The current Thread is not the one that belongs to the Stack
+        // (or the Thread that belonged to the Stack was collected already), we need to signal that the push
+        // happens later.
+        pushLater(item, currentThread);
+    }
+}
+```
+
+**根据是否为当前线程绑定的 Stack，区分立即归还和延迟归还。**
+
+立即归还的实现如下:
+
+```java
+private void pushNow(DefaultHandle<?> item) {
+    if ((item.recycleId | item.lastRecycledId) != 0) {
+        throw new IllegalStateException("recycled already");
+    }
+
+    // 配置归属的线程Id
+    item.recycleId = item.lastRecycledId = OWN_THREAD_ID;
+
+    int size = this.size;
+    // 对象池满了
+    // 在 size 小于 maxCapacity 的时候，尝试 dropHandle
+    if (size >= maxCapacity || dropHandle(item)) {
+        // Hit the maximum capacity or should drop - drop the possibly youngest object.
+        return;
+    }
+    // 到这里之后,size 肯定小于 maxCapacity
+    // 存放对象的数组满了,就扩容
+    if (size == elements.length) {
+        size <<= 1;
+        if (size > maxCapacity) {
+            elements = Arrays.copyOf(elements, min(size << 1, maxCapacity));
+        }
+    }
+    // 放入数组
+    elements[size] = item;
+    this.size = size + 1;
+}
+```
+
+如果池子满了直接淘汰对象，如果池子没满则将对象塞入底层数组。
+
+再来是延迟归还的情况：
+
+```java
+private void pushLater(DefaultHandle<?> item, Thread thread) {
+    if (maxDelayedQueues == 0) {
+        // We don't support recycling across threads and should just drop the item on the floor.
+        return;
+    }
+
+    // we don't want to have a ref to the queue as the value in our weak map
+    // so we null it out; to ensure there are no races with restoring it later
+    // we impose a memory ordering here (no-op on x86)
+    // 每个线程还绑定了一个 Stack -> WeakOrderQueue 的映射
+    // 每个线程独立的 Map
+    Map<Stack<?>, WeakOrderQueue> delayedRecycled = DELAYED_RECYCLED.get();
+    // 每个线程往同一个 Stack 延迟归还的时候，都是放到不同的 WeakOrderQueue 中。
+    WeakOrderQueue queue = delayedRecycled.get(this);
+    if (queue == null) {
+        if (delayedRecycled.size() >= maxDelayedQueues) {
+            // Add a dummy queue so we know we should drop the object
+            // 在下面就可以看到 如果是 DUMMY 队列的话会直接抛弃
+            delayedRecycled.put(this, WeakOrderQueue.DUMMY);
+            return;
+        }
+        // Check if we already reached the maximum number of delayed queues and if we can allocate at all.
+        if ((queue = newWeakOrderQueue(thread)) == null) {
+            // drop object
+            return;
+        }
+        delayedRecycled.put(this, queue);
+    } else if (queue == WeakOrderQueue.DUMMY) {
+        // drop object
+        return;
+    }
+
+    queue.add(item);
+}
+```
+
+
 
 
 
