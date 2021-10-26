@@ -33,5 +33,5 @@
 ## Hang
 
 - [ChannelPool 源码分析](netty/util/ChannelPool.md)
-
 - [RateLimiter 源码分析](java/guava/RateLimiter.md)
+- [Netty 的内存管理](netty/Netty的内存管理.md)
