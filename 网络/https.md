@@ -41,6 +41,10 @@
 
 
 
+
+
+
+
 ## Q & A 总结
 
 > CA 的作用？
@@ -58,8 +62,14 @@ CA（认证中心）会向服务器颁发数字证书，数字证书中主要就
 
 
 
+> RSA 加密算法的协商过程
+
+RSA 的协商过程包含三个随机数，客户端随机数，服务端随机数以及在证书验证后客户端创建的 Pre-Master 随机数。
+
 
 
 ## 参考
 
-[Https 建立安全连接的过程（SSL原理）](https://blog.csdn.net/xiaopang_yan/article/details/78709574)
+- [Https 建立安全连接的过程（SSL原理）](https://blog.csdn.net/xiaopang_yan/article/details/78709574)
+
+- [网络协议之 HTTPS](https://juejin.cn/post/6948634510485356557#heading-21)
