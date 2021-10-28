@@ -19,7 +19,7 @@ Snetinel 的作用：
 
 
 
-
+![image-20211028150648106](assets/image-20211028150648106.png) 
 
 Sentinel 中会对各类调用建立一个完整的调用链，根节点为 Constants.ROOT，作为所有调用链的最初。
 
@@ -45,11 +45,25 @@ Sentinel 中会对各类调用建立一个完整的调用链，根节点为 Cons
 
 接下来是 **ClusterBuilderSlot**，这个 Slot 使用静态 Map 保存了资源名称和 DefaultNode 的映射关系，**完成对同一个资源下的指标统计**。
 
-之后是 LogSlot，在接下来是 StatisticSlot，
+之后是 LogSlot，在接下来是 StatisticSlot，StatisticSlot 会直接跳过当前的 Slot 转而执行后面的例如 DegradeSlot 等，正常返回之后开始统计信息。
+
+StatisticSlot 之后是 AuthoritySlot，是黑白名单的检测。
+
+黑白名单规则的主要类是 AuthorityRule，该类存在黑名单和白名单两种模式，主要的配置属性是 resource，limitApp 两个。
+
+resource 表示限制的资源名称，limitApp 表示的是受限制的 origin，多个使使用**','**分割。 
+
+> 对没有 origin 的资源申请，黑白名单是完全失效的。
+
+AuthoritySlot 之后是 SystemSlot，
 
 
 
-CtSph 会根据 ResourceWrapper 选择对应的处理链（ProcessorSlotChain）。
+
+
+
+
+**CtSph 会根据 ResourceWrapper 选择对应的处理链（ProcessorSlotChain）。**
 
 > 这里就可以说一个请求具体走哪条执行链都是用 ResourceWrapper 决定的。
 >
