@@ -9,6 +9,8 @@ Autowired 是 Spring 官方提供的注入形式，默认使用 byType 模式注
 - **@Qualifier - 改为 byName 的注入形式**
 - **@Primary - 多个符合条件的 Bean，可以优先挑选 Primary 的**
 
+<br>
+
 另外 Autowired 可以作用于以下情况：
 
 - 构造器
