@@ -15,6 +15,8 @@
 Netty 针对于对象池有一个轻量级的实现 ObejctPool，其基本实现就是 Recycler。
 
 > 除了 Netty，Apache Common Pool2 也是一种常用的对象池实现。
+>
+> 和 Recycler 不同，Apache 的对象池采用的是阻塞队列来保证并发安全（底层还是 AQS 那一套。
 
 基本使用如下：
 
@@ -79,11 +81,13 @@ public class Main {
 
 除了获取和归还的方法之外，还有**对象何时创建以及多线程并发的问题。**
 
-对于何时创建，一般来说是在获取不到的时候，或者创建池子的时候先初始化 n 个对象供急用（例如线程池可以实现创建 coreSize 个线程，所以对于对象池也有一个最大容量的上限，或者在增加一个核心容量。
+对于何时创建，一般来说是在获取不到的时候，或者创建池子的时候先初始化 n 个对象供急用（例如线程池可以实现创建 coreSize 个线程）。
 
-多线程并发的问题，简单一点可以使用 synchronized 直接保证，线程池中使用了 BlockQueue，底层相当于是使用 AQS 保证的并发安全性。
+和线程池类似，对象池也有一个最大容量的上限，或者在增加一个核心容量。
 
-对于池中的对象来说，没有必要标记它属于哪个池子，获取之后应该删除所有池子对于该对象的引用，如果不归还对象，则由 GC 带走。（对于已经被获取的对象，池子不应该对其生命周期做任何限制。
+多线程并发的问题，简单一点可以使用 synchronized 直接保证，线程池中使用了 BlockQueue，底层相当于是使用 AQS 保证的并发安全。
+
+对于池中的对象来说，没有必要标记它属于哪个池子，获取之后应该删除所有池子对于该对象的引用，如果不归还对象，则由 GC 带走。（**个人感觉，对于已经被获取的对象，池子不应该对其生命周期做任何限制。**
 
 ## ObjectPool 
 
@@ -95,17 +99,17 @@ Netty 实现的 ObjectPool 中定义了如下三种对象：
 
 ![image-20211022143954289](assets/image-20211022143954289.png)
 
-并且默认使用 Recycler 作为基础实现：
+并且默认使用 Recycler 作为基础实现的 RecyclerObjectPool 类：
 
 ![image-20211022144031115](assets/image-20211022144031115.png)
 
-RecyclerObjectPool 直接创建了 Recycle 作为其基础实现，构造函数中传入一个 ObjectCreator 就可以创建一个对象池。
+RecyclerObjectPool 直接创建了 Recycle 作为其内部工具，构造函数中传入一个 ObjectCreator 就可以创建一个对象池。
 
-
+<br>
 
 以下从获取和归还两个角度分析 Recycler 的具体实现。
 
-
+<br>
 
 ## Recycler#get 获取对象
 
@@ -139,9 +143,7 @@ public final T get() {
 
 > ThreadLocal 就是空间换时间，减少锁的消耗。
 
-Stack 并不是 JDK 中的实现，而是 Recycler 中通过数组模拟的。
-
-获取到 Stack 之后，就尝试弹出（获取）对象，获取失败则创建。
+Stack 并不是 JDK 中的实现，而是 Recycler 中通过数组模拟的，获取到 Stack 之后，就尝试弹出（获取）对象，获取失败则创建。
 
 <br>
 
@@ -252,15 +254,15 @@ private boolean scavengeSome() {
 }
 ```
 
-
-
-
+就是从 WeakOrderQueue 组成的链表中回收对象。
 
 
 
 ## 归还对象
 
-归还对象是需要区分对象绑定的 Stack 是否由当前线程负责。
+**归还对象是需要区分对象绑定的 Stack 是否由当前线程负责。**
+
+<br>
 
 以下是 DefaultHandle#recycle 的源码实现:
 
@@ -338,7 +340,9 @@ private void pushNow(DefaultHandle<?> item) {
 }
 ```
 
-如果池子满了直接淘汰对象，如果池子没满则将对象塞入底层数组。
+如果池子满了直接淘汰对象，如果池子没满则将对象塞入底层数组，数组长度不够则进行扩容。
+
+**其中 dropHandle 方法是用来确定对象回收的比例，在 Netty 的实现中并不是所有的对象都会被重复使用，会通过一定的比例淘汰掉一部分的对象。**
 
 再来是延迟归还的情况：
 
@@ -379,7 +383,9 @@ private void pushLater(DefaultHandle<?> item, Thread thread) {
 }
 ```
 
+> 延迟归还发生在归还线程并不是对象归属线程的时候。
 
+此时并不是存放到线程对应的 Stack 中，而是当前线程的 WeakOrderQueue 中（使用目标线程的 Stack 绑定。
 
 
 

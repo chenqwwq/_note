@@ -43,6 +43,8 @@ Sentinel 中会对各类调用建立一个完整的调用链，根节点为 Cons
 >
 > 所以在第二层的节点需要以**上下文名称**作为 Key，来保存 EntranceNode。
 
+**另外在 ProcessorSlotChain 中传递的 Node 就是在 NodeSelectorSlot 中获取的 EntranceNode。**
+
 接下来是 **ClusterBuilderSlot**，这个 Slot 使用静态 Map 保存了资源名称和 DefaultNode 的映射关系，**完成对同一个资源下的指标统计**。
 
 之后是 LogSlot，在接下来是 StatisticSlot，StatisticSlot 会直接跳过当前的 Slot 转而执行后面的例如 DegradeSlot 等，正常返回之后开始统计信息。
