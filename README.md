@@ -10,12 +10,14 @@
 - [EventBus 源码解析](java/guava/EventBus.md) - 2021/10/07
 - [HashedWheelTimer 源码分析](netty/util/HashedWheelTimer源码分析.md)  - 2021/10/10 
 - [ZAB 协议简单整理](分布式/zab/ZAB基础理解.md) - 2021/10/18
+- [Recycler 源码实现](netty/util/Recycler源码实现.md) - 2021/10/25
+- [Bean 对象的获取流程](spring/spring-core/ioc/Bean对象的获取流程.md) - 2021/11/02
 
 
 
 ## Ing
 
-[Recycler 源码实现](netty/util/Recycler源码实现.md)
+[Bean 对象的创建流程](spring/spring-core/ioc/Bean对象的创建流程.md)
 
 ## Todo
 

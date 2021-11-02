@@ -54,6 +54,7 @@
 * [Spring]()
   * Spring Core
     * [Bean 对象的获取和创建流程（究极简述](spring/spring-core/ioc/Bean对象的获取和创建流程.md)
+    * [Bean 对象的获取流程](spring/spring-core/ioc/Bean对象的获取流程.md)
     * [Spring 循环依赖问题](spring/spring-core/ioc/Spring循环依赖问题.md)
     * [Resouce 和 Autowired](spring/spring-core/ioc/Resouce和Autowired.md)
     * [BeanPostProcessor 类族](spring/spring-core/ioc/beanpostprocessor/BeanPostProcessor类族概述.md)
