@@ -173,7 +173,7 @@ private int threshold; // Default to 0 构造方法
 
 以下为 Entry 对象的声明形式：
 
- ![ThreadLocalMap$Entry](../../../pic/image-20210221154222208.png)
+ ![ThreadLocalMap$Entry](../../pic/image-20210221154222208.png)
 
 > **WeakReference 声明了 Entry 对象中对于对于 ThreadLocal 对象的引用是弱引用。**
 >

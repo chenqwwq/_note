@@ -283,13 +283,13 @@ FastThreadLocal中每次Set元素都会将对应的FastThreadLocal对象添加�
 
 FastThreadLocal好像并没有提供太好的可以帮助开发者解决内存泄露问题的方法，所以这个问题只能靠良好的编程习惯解决。
 
-**就是在使用完之后remove一下，其他我也不知道咋办了**
+**就是在使用完之后 remove 一下，其他我也不知道咋办了**
 
 
 
 ## 总结
 
-在我的理解中，FastThreadLocal对原生的ThreadLocal的优化可能就在于以下几点:
+在我的理解中，FastThreadLocal 对原生的ThreadLocal的优化可能就在于以下几点:
 
 1. **最大优化可能就在于取值方法。**
 
