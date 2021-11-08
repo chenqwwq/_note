@@ -1,20 +1,20 @@
 ## 为什么说Netty是异步的
 
-首先，Netty主要还是基于NIO的，NIO就是一个同步非阻塞的网络模型，那么为什么还说Netty是异步的呢？
+首先，Netty 主要还是基于 NIO 的，NIO 就是一个同步非阻塞的网络模型，那么为什么还说 Netty 是异步的呢？
 
-其实这里的异步准确说是异步事件驱动，异步的不是底层的NIO这个网络模型，而是Reactor这种编程模型，Netty底层的IO操作还是同步的，比如read和write等还是在EventLoop的主线程中执行的。
+其实这里的异步准确说是异步事件驱动，异步的不是底层的NIO这个网络模型，而是 Reactor 这种编程模型，Netty 底层的 IO 操作还是同步的，比如 read 和 write 等还是在 EventLoop 的主线程中执行的。
 
-Reactor将底层的同步IO抽象成事件，然后通过事件的分发器发给处理器进行处理，可以有效提高执行效率，除了Netty，Redis也使用的该类模型。
+Reactor 将底层的同步 IO 抽象成事件，然后通过事件的分发器发给处理器进行处理，可以有效提高执行效率，除了 Netty，Redis 也使用的该类模型。
 
 
 
-Netty中分为前端的bossGroup，以及后端的workerGroup，实现上都是EventLoopGroup。
+Netty 中分为前端的 bossGroup，以及后端的 workerGroup，实现上都是 EventLoopGroup。
 
-通常来说bossGroup只包含一个线程，而workerGroup包含多个，每个线程就对应的一个EventLoop也就是事件轮询器。
+通常来说 bossGroup 只包含一个线程，而 workerGroup 包含多个，每个线程就对应的一个 EventLoop 也就是事件轮询器。
 
-上述的EventLoop每个还会持有一个Selector对象。
+上述的 EventLoop 每个还会持有一个 Selector 对象。
 
-将NioServerSocketChannel注册到bossGroup的EventLoop就相当于注册到其上的Selector对象，负责监听OP_ACCEPT事件。
+将 NioServerSocketChannel 注册到 bossGroup 的 EventLoop 就相当于注册到其上的 Selector 对象，负责监听OP_ACCEPT事件。
 
 EventLoop响应OP_ACCEPT事件生成对应的SocketChannel并注册到IO线程池，并各自处理IO事件。
 
