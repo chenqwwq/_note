@@ -10,9 +10,13 @@
 
 ## 概述
 
-Spring 的事务本质上是对底层数据库的重封装，涉及到事务的开启和关闭以及回滚操作。
+Spring 的事务本质上是对底层数据库的重新封装，涉及到事务的开启和关闭以及回滚操作。
 
-不同于数据库中的单事务，程序在方法调用期间可能会涉及到多个事务的情况，因此 Spring 的实现增加了**隔离级别**的概念。
+<br>
+
+不同于数据库中的单事务，程序在方法调用期间可能会涉及到多个事务的情况，因此 Spring 的实现增加了**传播级别**的概念。
+
+> 当然也包含了原本的隔离级别。
 
 <br>
 
@@ -35,6 +39,8 @@ Spring 的事务本质上是对底层数据库的重封装，涉及到事务的�
 | getTransaction(@Nullable TransactionDefinition definition) | 获取当前事务 |
 |              commit(TransactionStatus status)              |   提交事务   |
 |             rollback(TransactionStatus status)             |   回滚事务   |
+
+<br>
 
 每种不同的数据访问实现，都可以定义自己的事务管理器，例如使用 Hibernate 访问数据库，则新建的是 HibernateTransactionManager，也就有了自己的一套创建，提交和回滚逻辑。
 
