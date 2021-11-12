@@ -46,6 +46,8 @@ HandlerMapping 在 DispatcherServlet 中初始化，从入参的 ApplicationCont
 
 AbstractHandlerMapping 是 HandlerMapping 最直接的实现，实现了基本的 HandlerExecutionChain 封装逻辑。
 
+> AbstractHandlerMapping 中同时保存了拦截器的集合。
+
 ```java
 public final HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception {
     // 子类实现具体的获取方法
@@ -77,19 +79,29 @@ public final HandlerExecutionChain getHandler(HttpServletRequest request) throws
 }
 ```
 
-AbstractUrlHandlerMapping 是根据 UrlPath 搜索 Handler 的实现。
+AbstractUrlHandlerMapping 是根据 UrlPath 搜索 Handler 的实现，例如早期的 XML 时代，需要指定匹配的路径，类中使用 Map 保存了 Url 到 Handler 的映射关系。（Handler 一般就是 Controller 接口的实现。
+
+常用的实现有 SimpleUrlHandlerMapping 以及 BeanNameUrlHandlerMapping。
+
+另外就是 AbstractHandlerMethodMapping，该类使用 MappingRegistry 保存具体的映射关系，获取的就是 HandlerMethod 对象，泛型的 Key。
+
+常用的比如 RequestMappingHandlerMapping，使用 RequestMappingInfo 作为 Key，保存了 @RequestMapping 的各类参数。
 
 
 
 ### HandlerAdapter
 
-处理器执行器。
-
-各类的执行器会组成类似责任链模式的逻辑，遍历判断是否可以处理 Handler（supports 方法），可以的话进一步处理（handler 方法）。
+处理器执行器，各类的执行器会组成类似责任链模式的逻辑，遍历判断是否可以处理 Handler（supports 方法），可以的话进一步处理（handler 方法）。
 
 ![image-20211014135346042](assets/image-20211014135346042.png)
 
+HandlerAdapter 就是针对各类的 Handler 的适配，如果你实现了自定义的 Handler，就一定需要自定义的 HandlerAdapter 去执行。
 
+**实现的责任链模式中，使用 supports 方法判断当前类是否可以处理 Handler（入参），可以则进一步调用 handler 执行。**
+
+## 参数解析
+
+### 
 
 ## HandlerInterceptor
 
@@ -116,4 +128,16 @@ AbstractUrlHandlerMapping 是根据 UrlPath 搜索 Handler 的实现。
 ![/home/chen/Desktop/RequestLifecycle.png](/home/chen/Desktop/RequestLifecycle.png)
 
 
+
+
+
+## 总结
+
+Spring MVC 的实现中最明显的特色就是责任链模式，在以下场景中都使用到了该模式：
+
+1. Handler 的执行，会在 HandlerAdapter 的链中逐个查找
+2. HandlerInterceptor，拦截器的实现整个就是一个链吧
+3. 参数的解析，例如 HandlerMethodArgumentResolver，对于接口入参的解析
+
+责任链模式的优点还是在于真实对象和处理的解耦，将一个对象扔进链中就好，不必关心真实的处理逻辑。
 
