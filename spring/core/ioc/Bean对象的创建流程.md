@@ -17,7 +17,7 @@ Spring 将 Bean 对象的创建分为了两大块内容:
 
 在以上两个步骤中再穿插着各类 BeanPostProcessor 的调用，就组成了 Bean 对象基本的创建流程。
 
-> 再细化的化还有属性填充，不过此处也可以归为 Bean 的初始化。
+> 再细化的话还有属性填充，不过此处也可以归为 Bean 的初始化。
 
 
 
@@ -79,6 +79,8 @@ protected Object createBean(String beanName, RootBeanDefinition mbd, @Nullable O
 
 ### 执行前置实例化方法
 
+> 这里是 Spring 提供的 Callback 方法，用于用户实现自定义的 Bean 创建。
+
 前置化实例方法就是 InstantiationAwareBeanPostProcessor#postProcessBeforeInstantiation 是 Spring 框架中提供的一种钩子方法，供用户实现自定义的 Bean 实例化过程。 
 
 ![image-20211102154603867](assets/image-20211102154603867.png)
@@ -122,7 +124,7 @@ protected Object createBean(String beanName, RootBeanDefinition mbd, @Nullable O
 
 
 
-之后就是框架提供了创建逻辑。
+之后就是框架提供了创建逻辑（框架会更具 BeanDefinition 来决定具体的创建和初始化方式。
 
 ### doCreateBean - Spring 的 Bean 创建逻辑
 
@@ -216,34 +218,27 @@ protected Object doCreateBean(String beanName, RootBeanDefinition mbd, @Nullable
 
 
 
-
-
 #### 实例化 Bean 对象
 
 ```java
 // AbstractAutowireCapableBeanFactory#createBeanInstance
 protected BeanWrapper createBeanInstance(String beanName, RootBeanDefinition mbd, @Nullable Object[] args) {
-    // 重新获取 Class 对象
-    // 确保已经解析出可用的 Class 类
+    // 重新获取 Class 对象，确保已经解析出可用的 Class 类
     Class<?> beanClass = resolveBeanClass(mbd, beanName);
-
     if (beanClass != null && !Modifier.isPublic(beanClass.getModifiers()) && !mbd.isNonPublicAccessAllowed()) {
-        // Bean 不能为空 || 类可修改 || 类允许访问非 public 的构造方法
+    // Bean 不能为空 || 类可修改 || 类允许访问非 public 的构造方法
     }
-
-    // 使用 Supplier 接口实例化
+    // 1. 使用 Supplier 接口实例化
     Supplier<?> instanceSupplier = mbd.getInstanceSupplier();
     if (instanceSupplier != null) {
         return obtainFromSupplier(instanceSupplier, beanName);
     }
-
-    // 使用工厂方法实例化（ FactoryMethod
+    // 2. 使用工厂方法实例化（ FactoryMethod
     if (mbd.getFactoryMethodName() != null) {
         return instantiateUsingFactoryMethod(beanName, mbd, args);
     }
-
     // Shortcut when re-creating the same bean...
-    // 短路策略，使用缓存尝试跳过实例化流程
+    // 短路策略，使用缓存尝试跳过实例化之前的解析流程流程
     boolean resolved = false;
     boolean autowireNecessary = false;
     if (args == null) {
@@ -254,6 +249,7 @@ protected BeanWrapper createBeanInstance(String beanName, RootBeanDefinition mbd
             }
         }
     }
+    // 确定解析过该对象，则直接走实例化流程
     if (resolved) {
         if (autowireNecessary) {
             return autowireConstructor(beanName, mbd, null, null);
@@ -262,9 +258,10 @@ protected BeanWrapper createBeanInstance(String beanName, RootBeanDefinition mbd
         }
     }
     // 走到这里就是无缓存可用的场景了，需要当场创建
-
     // Candidate constructors for autowiring?
     // 使用 SmartInstantiationAwareBeanPostProcessor#determineCandidateConstructors 推断预备的构造函数
+    // Spring 默认提供的主要是 AutowiredAnnotationBeanPostProcessor，
+    // 会选择 Primary 或者 Autowired 标注的构造函数，如果仅仅只有一个构造函数也就直接选择
     Constructor<?>[] ctors = determineConstructorsFromBeanPostProcessors(beanClass, beanName);
     if (ctors != null || mbd.getResolvedAutowireMode() == AUTOWIRE_CONSTRUCTOR ||
         mbd.hasConstructorArgumentValues() || !ObjectUtils.isEmpty(args)) {
@@ -284,44 +281,14 @@ protected BeanWrapper createBeanInstance(String beanName, RootBeanDefinition mbd
 }
 ```
 
-官方提供的实例化方法如下：
+官方提供的实例化方法有如下几种：
 
 1. Supplier 接口
 2. FactoryMethod 方法
-3. 自定义构造器
-4. 首选构造器
-5. 无参构造器
+3. 含参构造函数
+5. 无参构造函数
 
 
 
-##### Supplier 实例化
+[AutowiredAnnotationBeanPostProcessor - 构造函数的选择](beanpostprocessor/AutowiredAnnotationBeanPostProcessor源码分析.md)
 
-```java
-// AbstractAutowireCapableBeanFactory# obtainFromSupplier
-protected BeanWrapper obtainFromSupplier(Supplier<?> instanceSupplier, String beanName) {
-    Object instance;
-    // currentlyCreatedBean 是一个 ThreadLocal 类
-    // 保存当前正在创建的 Bean 实例
-    String outerBean = this.currentlyCreatedBean.get();
-    this.currentlyCreatedBean.set(beanName);
-    try {
-        instance = instanceSupplier.get();
-    }  finally {
-        if (outerBean != null) {
-            this.currentlyCreatedBean.set(outerBean);
-        }  else {
-            this.currentlyCreatedBean.remove();
-        }
-    }
-    if (instance == null) {
-        instance = new NullBean();
-    }
-    // 使用 BeanWrapper 装饰
-    BeanWrapper bw = new BeanWrapperImpl(instance);
-    // 初始化 BeanWrapper
-    initBeanWrapper(bw);
-    return bw;
-}
-```
-
-方法的主要逻辑就是通过自定义的 Supplier 接口实现获取类。
