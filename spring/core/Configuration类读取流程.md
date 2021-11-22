@@ -24,7 +24,7 @@
 
 以下即为ConfigurationClassPostProcessor的类签名：
 
- ![image-20200502230721431](../../pic/image-20200502230721431.png)
+ ![image-20200502230721431](assets/image-20200502230721431.png)
 
 图中可以看到，ConfigurationClassPostProcessor实现了BeanDefinitionRegistryPostProcessor接口，另外还有PriorityOrdered，以及一串的XXXXAware接口。
 
@@ -40,7 +40,7 @@ BeanDefinitionRegistryPostProcessor接口子类会在刷新阶段统一被调用
 
 另外需要注意的是：
 
- ![image-20200502232439693](../../pic/image-20200502232439693.png)
+ ![image-20200502232439693](assets/image-20200502232439693.png)
 
 根据PriorityOrdered的重载方法。
 
@@ -62,7 +62,7 @@ ConfigurationClassPostProcessor也实现了BeanFactoryPostProcessor的postProces
 
 类的直接调用方法，上下文刷新时整体流程就是从这里切入的。
 
- ![image-20200505163350757](../../pic/image-20200505163350757.png)
+ ![image-20200505163350757](assets/image-20200505163350757.png)
 
 注释中就能看出，该方法的作用就是从Registry的Configuration类中往外衍生，获取更多的BeanDefinition。
 
@@ -387,7 +387,7 @@ public static boolean isConfigurationCandidate(AnnotationMetadata metadata) {
 
 对source class的简单包装。
 
- ![image-20200504082326843](../../pic/image-20200504082326843.png)
+ ![image-20200504082326843](assets/image-20200504082326843.png)
 
 如类注释中所说，主要是为了以统一的方式处理这些Source Class，而忽略他们的加载过程。
 
@@ -395,7 +395,7 @@ public static boolean isConfigurationCandidate(AnnotationMetadata metadata) {
 
 ### 成员变量
 
- ![image-20200504082501161](../../pic/image-20200504082501161.png)
+ ![image-20200504082501161](assets/image-20200504082501161.png)
 
 类中只有如上两个成员变量
 

@@ -336,7 +336,27 @@ InitDestroyAnnotationBeanPostProcessor 解析的则是类中生命周期相关�
 
 ### 三、暴露早期引用
 
+![image-20211122161556900](assets/image-20211122161556900.png)
 
+暴露早期引用就是将实例化完毕但是未初始化的对象通过 ObejectFactory 的形式添加到缓存 singletonFactories 中。
+
+在 doGetBean() 的时候，该缓存属于第三级缓存，调用 getObejct() 获取的方法会直接塞到 earlySingletonObjects 缓存中。
+
+![image-20211122161736570](assets/image-20211122161736570.png)
+
+**暴露早期引用的问题是为了解决循环依赖的问题。**
+
+> 在此之前的循环依赖都无法解决，例如在实例化时，构造函数的参数中包含循环依赖的对象。
+
+暴露早期引用，之后 Bean 对象继续进行后续的创建，如果有别的对象实例化或者填充属性时需要获取该对象，则直接从缓存中获取。
+
+这里就涉及到代理的问题，**此时保存到对象为真实对象没有代理层包裹，和最终的对象可能不同**，这就是 getEarlyBeanReference() 方法需要处理的问题。
+
+![image-20211122162721437](assets/image-20211122162721437.png)
+
+getEarlyBeanReference() 方法中就是遍历调用所有的 SmartInstantiationAwareBeanPostProcessor#getEarlyBeanReference() 方法。
+
+**如果是需要代理的实例对象，在该方法中就该返回代理对象。**
 
 ### 四、属性填充
 
@@ -357,40 +377,55 @@ protected void populateBean(String beanName, RootBeanDefinition mbd, @Nullable B
             }
         }
     }
-
-    PropertyValues pvs = (mbd.hasPropertyValues() ? mbd.getPropertyValues() : null);
-
+    // PropertyValues 持有一个或者多个 PropertyValue
+    // （属性的来源待确认！
+    PropertyValues  pvs = (mbd.hasPropertyValues() ? mbd.getPropertyValues() : null);
+    // 自动注入的模式
+    // 在声明为 Bean 对象的时候可以指定，例如 @Bean 的 autowired 属性
+    // 该种方法基本已经过时
     int resolvedAutowireMode = mbd.getResolvedAutowireMode();
+    // 根据解析的注入模式，遍历 PropertyValues，分别使用 name 和 type 两种形式查找依赖对象
     if (resolvedAutowireMode == AUTOWIRE_BY_NAME || resolvedAutowireMode == AUTOWIRE_BY_TYPE) {
         MutablePropertyValues newPvs = new MutablePropertyValues(pvs);
-        // Add property values based on autowire by name if applicable.
+        // byName
         if (resolvedAutowireMode == AUTOWIRE_BY_NAME) {
             autowireByName(beanName, mbd, bw, newPvs);
         }
-        // Add property values based on autowire by type if applicable.
+        // byType
         if (resolvedAutowireMode == AUTOWIRE_BY_TYPE) {
             autowireByType(beanName, mbd, bw, newPvs);
         }
         pvs = newPvs;
     }
-
+    // 以下是使用 BeanPostProcessor 完成的注入形式
+    // 主要参考的还是 AutowiredAnnotationBeanPostProcessor 和 CommonAnnotationBeanPostProcessor
     boolean hasInstAwareBpps = hasInstantiationAwareBeanPostProcessors();
+    // 是否需要检查依赖
     boolean needsDepCheck = (mbd.getDependencyCheck() != AbstractBeanDefinition.DEPENDENCY_CHECK_NONE);
-
     PropertyDescriptor[] filteredPds = null;
     if (hasInstAwareBpps) {
+        // 重新获取一遍，pvs 保存的是已经解析的依赖
         if (pvs == null) {
             pvs = mbd.getPropertyValues();
         }
+        // 遍历执行各类钩子方法
+        // 1、InstantiationAwareBeanPostProcessor#postProcessProperties
+        // 2、InstantiationAwareBeanPostProcessor#postProcessPropertyValues
         for (BeanPostProcessor bp : getBeanPostProcessors()) {
             if (bp instanceof InstantiationAwareBeanPostProcessor) {
                 InstantiationAwareBeanPostProcessor ibp = (InstantiationAwareBeanPostProcessor) bp;
+                // 调用 InstantiationAwareBeanPostProcessor#postProcessProperties 
                 PropertyValues pvsToUse = ibp.postProcessProperties(pvs, bw.getWrappedInstance(), beanName);
+                // 为空，表示没有获取到具体的依赖
                 if (pvsToUse == null) {
                     if (filteredPds == null) {
+                        // 从 BeanWrapper 中获取依赖，已经过滤可以忽略的依赖
                         filteredPds = filterPropertyDescriptorsForDependencyCheck(bw, mbd.allowCaching);
                     }
+                    // 执行 InstantiationAwareBeanPostProcessor#postProcessPropertyValues
+                    // 不包含依赖
                     pvsToUse = ibp.postProcessPropertyValues(pvs, filteredPds, bw.getWrappedInstance(), beanName);
+                    // 不需要注入则直接诶返回
                     if (pvsToUse == null) {
                         return;
                     }
@@ -401,6 +436,7 @@ protected void populateBean(String beanName, RootBeanDefinition mbd, @Nullable B
     }
     if (needsDepCheck) {
         if (filteredPds == null) {
+            // 从 BeanWrapper 中获取依赖，已经过滤可以忽略的依赖
             filteredPds = filterPropertyDescriptorsForDependencyCheck(bw, mbd.allowCaching);
         }
         checkDependencies(beanName, mbd, filteredPds, pvs);
@@ -412,7 +448,15 @@ protected void populateBean(String beanName, RootBeanDefinition mbd, @Nullable B
 }
 ```
 
+该方法大类的逻辑如下：
 
+1. 执行实例化后置的钩子方法
+2. 执行指定的自动注入模式，解析依赖（解析之后存入 PropertyValues
+3. 调用属性配置等相关钩子方法（解析出来的依赖对象同样存入 PropertyValues 
+4. 检查依赖
+5. 填充属性值（这里具体应用 PropertyValues
+
+<br>
 
 属性填充的第一步就是调用实例化的后置钩子方法。
 
@@ -422,5 +466,8 @@ protected void populateBean(String beanName, RootBeanDefinition mbd, @Nullable B
 >
 > 当前方法以 Bean 对象为主要入参，用于在实例化之后对对象进行修改，而 Merged 则是以 BeanDefinition 作为主要入参，修改的也是 BeanDefinition。
 
-该方法没有默认的实现。
+**该方法没有默认的实现（基础的 Spring core 部分咩由。**
 
+<br>
+
+然后是根据
