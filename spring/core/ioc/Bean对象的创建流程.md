@@ -218,7 +218,7 @@ protected Object doCreateBean(String beanName, RootBeanDefinition mbd, @Nullable
 
 
 
-#### 实例化 Bean 对象
+#### 一、实例化 Bean 对象
 
 ```java
 // AbstractAutowireCapableBeanFactory#createBeanInstance
@@ -291,4 +291,136 @@ protected BeanWrapper createBeanInstance(String beanName, RootBeanDefinition mbd
 
 
 [AutowiredAnnotationBeanPostProcessor - 构造函数的选择](beanpostprocessor/AutowiredAnnotationBeanPostProcessor源码分析.md)
+
+> 基本的构造选择逻辑如下：
+
+**优先选择 Supplier，然后是 FactoryMethod，如果不存在则使用构造函数创建。**
+
+**构造函数的选择上，如果只有一个构造函数就不用选，如果存在多个优先选择 @Autowired(required=true) 标注的，之后选择 @Autowired(required=false) 的，存在多个非必要的构造函数则选择能满足其参数依赖的。**
+
+@Autowired(required=true) 和 @Autowired(required=false) 不能同时存在。
+
+
+
+
+
+#### 二、 执行 postProcessMergedBeanDefinition 方法
+
+**该方法在实例化之后，填充数据和初始化之前的执行。**
+
+![image-20211121224440196](assets/image-20211121224440196.png)
+
+方法入参中包含 BeanDefinition 以及 Class 对象和名称，**不包含实例化之后的 Bean 对象**，所以该方法仅仅是对 BeanDefinition 的后置处理，而非 Bean。
+
+实现该方法的有如下几个类：
+
+- AutowiredAnnotationBeanPostProcessor
+- InitDestroyAnnotationBeanPostProcessor
+- CommonAnnotationBeanPostProcessor（该类继承了 InitDestroyAnnotationBeanPostProcessor
+
+<br>
+
+[AutowiredAnnotationBeanPostProcessor - 构造函数的选择](beanpostprocessor/AutowiredAnnotationBeanPostProcessor源码分析.md)
+
+AutowiredAnnotationBeanPostProcessor 的调用就是查找所有自动注入的属性或者方法，已备后续使用。
+
+CommonAnnotationBeanPostProcessor 和 AutowiredAnnotationBeanPostProcessor 就是解析的注解的不同，前者解析的 @Resource，后者解析的 @Autowired  等。
+
+解析出来的 InjectionMetadata 会在当前类中留有缓存。
+
+InitDestroyAnnotationBeanPostProcessor 解析的则是类中生命周期相关的注解，默认是 @PostConstruct 和 @PreDestroy，最终的解析结果保存为 LifecycleMetadata。
+
+
+
+
+
+### 三、暴露早期引用
+
+
+
+### 四、属性填充
+
+```java
+protected void populateBean(String beanName, RootBeanDefinition mbd, @Nullable BeanWrapper bw) {
+    if (bw == null) {
+       return;
+    }
+    // 执行实例化后置的狗子方法
+    // InstantiationAwareBeanPostProcessor#postProcessAfterInstantiation
+    if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
+        for (BeanPostProcessor bp : getBeanPostProcessors()) {
+            if (bp instanceof InstantiationAwareBeanPostProcessor) {
+                InstantiationAwareBeanPostProcessor ibp = (InstantiationAwareBeanPostProcessor) bp;
+                if (!ibp.postProcessAfterInstantiation(bw.getWrappedInstance(), beanName)) {
+                    return;
+                }
+            }
+        }
+    }
+
+    PropertyValues pvs = (mbd.hasPropertyValues() ? mbd.getPropertyValues() : null);
+
+    int resolvedAutowireMode = mbd.getResolvedAutowireMode();
+    if (resolvedAutowireMode == AUTOWIRE_BY_NAME || resolvedAutowireMode == AUTOWIRE_BY_TYPE) {
+        MutablePropertyValues newPvs = new MutablePropertyValues(pvs);
+        // Add property values based on autowire by name if applicable.
+        if (resolvedAutowireMode == AUTOWIRE_BY_NAME) {
+            autowireByName(beanName, mbd, bw, newPvs);
+        }
+        // Add property values based on autowire by type if applicable.
+        if (resolvedAutowireMode == AUTOWIRE_BY_TYPE) {
+            autowireByType(beanName, mbd, bw, newPvs);
+        }
+        pvs = newPvs;
+    }
+
+    boolean hasInstAwareBpps = hasInstantiationAwareBeanPostProcessors();
+    boolean needsDepCheck = (mbd.getDependencyCheck() != AbstractBeanDefinition.DEPENDENCY_CHECK_NONE);
+
+    PropertyDescriptor[] filteredPds = null;
+    if (hasInstAwareBpps) {
+        if (pvs == null) {
+            pvs = mbd.getPropertyValues();
+        }
+        for (BeanPostProcessor bp : getBeanPostProcessors()) {
+            if (bp instanceof InstantiationAwareBeanPostProcessor) {
+                InstantiationAwareBeanPostProcessor ibp = (InstantiationAwareBeanPostProcessor) bp;
+                PropertyValues pvsToUse = ibp.postProcessProperties(pvs, bw.getWrappedInstance(), beanName);
+                if (pvsToUse == null) {
+                    if (filteredPds == null) {
+                        filteredPds = filterPropertyDescriptorsForDependencyCheck(bw, mbd.allowCaching);
+                    }
+                    pvsToUse = ibp.postProcessPropertyValues(pvs, filteredPds, bw.getWrappedInstance(), beanName);
+                    if (pvsToUse == null) {
+                        return;
+                    }
+                }
+                pvs = pvsToUse;
+            }
+        }
+    }
+    if (needsDepCheck) {
+        if (filteredPds == null) {
+            filteredPds = filterPropertyDescriptorsForDependencyCheck(bw, mbd.allowCaching);
+        }
+        checkDependencies(beanName, mbd, filteredPds, pvs);
+    }
+
+    if (pvs != null) {
+        applyPropertyValues(beanName, mbd, bw, pvs);
+    }
+}
+```
+
+
+
+属性填充的第一步就是调用实例化的后置钩子方法。
+
+![image-20211121235047446](assets/image-20211121235047446.png)
+
+> 该方法的调用时机和 MergedBeanDefinitionPostProcessor#postProcessMergedBeanDefinition 基本一致，**区别就在于入参**。
+>
+> 当前方法以 Bean 对象为主要入参，用于在实例化之后对对象进行修改，而 Merged 则是以 BeanDefinition 作为主要入参，修改的也是 BeanDefinition。
+
+该方法没有默认的实现。
 

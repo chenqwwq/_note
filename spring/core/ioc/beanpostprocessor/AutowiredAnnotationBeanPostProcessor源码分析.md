@@ -199,3 +199,105 @@ AutowiredAnnotationBeanPostProcessor 中包含了对应的缓存，可以跳过�
 选择的时候，如果存在必要函数就返回该函数（因为如果存在别的函数就抛异常了。
 
 如果没有自动注入函数，并且存在唯一含参构造函数就选它，另外的还有主要和默认两种构造函数。
+
+
+
+
+
+## 查找并构建自动注入元数据
+
+![image-20211121225654165](assets/image-20211121225654165.png)
+
+这是 findAutowiringMetadata() 方法首次调用的时机，实现的是 MergedBeanDefinitionPostProcessor#postProcessMergedBeanDefinition。
+
+**具体的调用实际在 Bean 实例化成功后，并且未填充属性和初始化之前。**
+
+![image-20211121225833512](assets/image-20211121225833512.png)
+
+findAutowiringMetadata() 方法就是在真实的 InjectionMetadata 创建的方法上增加了一层缓存。
+
+（直接来看 buildAutowiringMetadata() 方法吧。
+
+```java
+// MergedBeanDefinitionPostProcessor#buildAutowiringMetadata
+// 仅仅使用 Class 对象作为入参
+private InjectionMetadata buildAutowiringMetadata(final Class<?> clazz) {
+    // 该类是否包含 autowiredAnnotationTypes 中表示的注解
+    // 默认包含 @Authwired 和 @Value 以及 @Inject 三类注解
+   if (!AnnotationUtils.isCandidateClass(clazz, this.autowiredAnnotationTypes)) {
+      return InjectionMetadata.EMPTY;
+   }
+   List<InjectionMetadata.InjectedElement> elements = new ArrayList<>();
+   Class<?> targetClass = clazz;
+   do {
+      final List<InjectionMetadata.InjectedElement> currElements = new ArrayList<>();
+       // 遍历所有的本地属性
+      ReflectionUtils.doWithLocalFields(targetClass, field -> {
+          // 找到包含的 AutowiredAnnotation（就是 @Authwired 或者 @Value
+         MergedAnnotation<?> ann = findAutowiredAnnotation(field);
+         if (ann != null) {
+             // ！！！静态方法不包含
+            if (Modifier.isStatic(field.getModifiers())) {
+               return;
+            }
+             // 是否必要，此处解析的是注解的 required 属性
+            boolean required = determineRequiredStatus(ann);
+             // 保存，使用 AutowiredFieldElement 描述一个本地变量的自动注入元数据
+            currElements.add(new AutowiredFieldElement(field, required));
+         }
+      });
+      // 遍历本地方法
+      ReflectionUtils.doWithLocalMethods(targetClass, method -> {
+          // 解析方法 （bridged 好像是一种 JVM 的修改手段 
+         Method bridgedMethod  = BridgeMethodResolver.findBridgedMethod(method);
+         if (!BridgeMethodResolver.isVisibilityBridgeMethodPair(method, bridgedMethod)) {
+            return;
+         }
+          // 继续查找 AutowiredAnnotation
+         MergedAnnotation<?> ann = findAutowiredAnnotation(bridgedMethod);
+         if (ann != null && method.equals(ClassUtils.getMostSpecificMethod(method, clazz))) {
+             // 静态方法同样不适用自动注入
+            if (Modifier.isStatic(method.getModifiers())) {
+               return;
+            }
+             // 方法没有参数也会被添加
+            if (method.getParameterCount() == 0) {}
+             // 是否必要
+            boolean required = determineRequiredStatus(ann);
+             // 找到方法对应的 PropertyDescriptor 
+             // ？ 这里代码很多，好像是会整个类一起解析
+            PropertyDescriptor pd = BeanUtils.findPropertyForMethod(bridgedMethod, clazz);
+             // 以 AutowiredMethodElement 保存结果
+            currElements.add(new AutowiredMethodElement(method, required, pd));
+         }
+      });
+
+      elements.addAll(0, currElements);
+      // 继续往父类找 
+      targetClass = targetClass.getSuperclass();
+   }while (targetClass != null && targetClass != Object.class);
+
+   return InjectionMetadata.forElements(elements, clazz);
+}
+```
+
+该方法的主要作用就是找到所有被相关注解（自动注入注解，默认为 @Autowired，@Value，@Inject）标识的变量或者方法。
+
+**解析结果使用 AutowiredFieldElement 类保存**，并且会向上查找父类。
+
+最终将类和解析结果保存在 InjectionMetadata 中，并返回。
+
+<br>
+
+**静态变量和静态方法无法使用属性的自动注入。**
+
+> 判断是否是静态使用的是 Method 或者 Filed 的 getModifiers() 方法，用于获取方法或变量的相关属性。
+>
+> 返回值具体代表什么可以在 Modifier 类的静态变量中找到。
+
+<br> 总的来说，该方法就是在类实例化成功之后，在初始化之前查找所有自动注入相关的变量和方法。
+
+> buildAutowiringMetadata() 方法不仅仅在 postProcessMergedBeanDefinition() 方法中调用，还有别的调用途径。
+>
+> 但是在 postProcessMergedBeanDefinition() 调用后会留有缓存，实例化之后即将开始填充属性和初始化了，所以这个检查时机非常合理。
+
