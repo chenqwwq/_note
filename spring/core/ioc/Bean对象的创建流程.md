@@ -288,7 +288,27 @@ protected BeanWrapper createBeanInstance(String beanName, RootBeanDefinition mbd
 3. 含参构造函数
 5. 无参构造函数
 
+<br>
 
+Supplier 接口的形式好像已经过时了。
+
+<br>
+
+FactoryMethod 的方式最常见的就是 @Bean 注解用于方法时，类似如下的声明：
+
+```java
+@Configuration
+public class ConfigClass{
+    @Bean
+    public String name(){
+        return "chenqwwq";
+    }
+}
+```
+
+以上的形式解析之后方法是以 FactoryMethod 的形式保存在 BeanDefinition 中的，并且如果方法中带有参数会自动装配。
+
+<br>
 
 [AutowiredAnnotationBeanPostProcessor - 构造函数的选择](beanpostprocessor/AutowiredAnnotationBeanPostProcessor源码分析.md)
 
@@ -302,7 +322,7 @@ protected BeanWrapper createBeanInstance(String beanName, RootBeanDefinition mbd
 
 
 
-
+<br>
 
 #### 二、 执行 postProcessMergedBeanDefinition 方法
 
@@ -330,7 +350,7 @@ CommonAnnotationBeanPostProcessor 和 AutowiredAnnotationBeanPostProcessor 就�
 
 InitDestroyAnnotationBeanPostProcessor 解析的则是类中生命周期相关的注解，默认是 @PostConstruct 和 @PreDestroy，最终的解析结果保存为 LifecycleMetadata。
 
-
+<br>
 
 
 
@@ -378,7 +398,7 @@ protected void populateBean(String beanName, RootBeanDefinition mbd, @Nullable B
         }
     }
     // PropertyValues 持有一个或者多个 PropertyValue
-    // （属性的来源待确认！
+    // BeanDefinition 里面的 PropertyValues 指的是已经解析出来的属性，后续的属性填充会从里面获取数据
     PropertyValues  pvs = (mbd.hasPropertyValues() ? mbd.getPropertyValues() : null);
     // 自动注入的模式
     // 在声明为 Bean 对象的时候可以指定，例如 @Bean 的 autowired 属性
@@ -450,11 +470,15 @@ protected void populateBean(String beanName, RootBeanDefinition mbd, @Nullable B
 
 该方法大类的逻辑如下：
 
-1. 执行实例化后置的钩子方法
-2. 执行指定的自动注入模式，解析依赖（解析之后存入 PropertyValues
-3. 调用属性配置等相关钩子方法（解析出来的依赖对象同样存入 PropertyValues 
-4. 检查依赖
-5. 填充属性值（这里具体应用 PropertyValues
+1. 执行实例化后置的钩子方法（不同于 MergedBeanDefinition 的那个方法，该方法主要针对于 Bean 对象
+2. 根据指定的自动注入模式，解析依赖（这里是 Spring 官方提供的注入模式，就是 byName / byType 从容器中捞对象
+3. 调用属性配置等相关钩子方法（调用的是 BeanPostProcessor 的相关方法，相对扩展的注入模式，和上者一样解析的结果存入 pvs
+4. 检查依赖（不满足就退出，不啰嗦
+5. 填充属性值（将 PropertyValues 中的属性应用到 Bean 对象中
+
+> 属性注入和 Bean 的创建一样有允许使用者自定义的部分。
+>
+> Bean 的创建可以通过 实例化前置钩子方法，也可以通过 FactoryBean，而属性注入则是通过钩子方法。
 
 <br>
 
@@ -470,4 +494,56 @@ protected void populateBean(String beanName, RootBeanDefinition mbd, @Nullable B
 
 <br>
 
-然后是根据
+然后是根据 Bean 的定义进行筛查。
+
+（不确定这里 Bean 的 autowired 属性什么时候修改的，如果是使用 @Bean 定义的，则是在 @Bean(autowire=) 中指定，默认是 Autowire.NO。
+
+按照名称注入的实现如下（类型的也差不多。
+
+```java
+protected void autowireByName(String beanName, AbstractBeanDefinition mbd, BeanWrapper bw, MutablePropertyValues pvs) {
+    // 查找所有未满足的 Property
+    // 就是在 PropertyValues 中不存在的属性，根据属性的名称来
+    String[] propertyNames = unsatisfiedNonSimpleProperties(mbd, bw);
+    // 按照名称遍历获取
+    for (String propertyName : propertyNames) {
+        // 是否包含该 Bean（当前类就是 BeanFactory，直接判断当前容器是否包含
+        if (containsBean(propertyName)) {
+            // 有就获取
+            Object bean = getBean(propertyName);
+            // 添加到 PropertyValues 对象中
+            pvs.add(propertyName, bean);
+        }  else {// log }
+    }
+}
+```
+
+查找到的对象添加到 外层传入的 pvs 参数（做一个收集，后续还会有自定义的解析，结果也会存入该对象。
+
+
+
+> 妈的，真的太多了，先暂停一下吧。（20211123
+>
+> [Bean 获取和创建的简单总结](./Bean对象的获取和创建流程.md)
+
+
+
+
+
+## 总结
+
+对象的创建可以细分为实例化，属性填充，初始化三个流程。
+
+实例化的方法有如下几种：
+
+1. Supplier 
+2. FactoryMethod
+3. 构造函数（用户可以通过 BeanPostProcessor 决定使用的构造函数
+
+属性填充的流程有如下几种方式：
+
+1. 根据 Property 直接从容器中捞取
+2. 通过 BeanPostProcessor 自定义获取途径（官方也有 Autowired 等默认的实现，不过这里也是一个扩展点。
+
+
+
