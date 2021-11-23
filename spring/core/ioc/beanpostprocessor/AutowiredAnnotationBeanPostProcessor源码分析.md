@@ -204,7 +204,11 @@ AutowiredAnnotationBeanPostProcessor 中包含了对应的缓存，可以跳过�
 
 
 
-## 查找并构建自动注入元数据
+## 构建依赖注入元数据
+
+以下方法继承于 MergedBeanDefinitionPostProcessor#postProcessMergedBeanDefinition，在 Bean 实例化之后，填充依赖之前调用。
+
+> 如果走实例化前置钩子不会走到这一步。
 
 ![image-20211121225654165](assets/image-20211121225654165.png)
 
@@ -301,3 +305,12 @@ private InjectionMetadata buildAutowiringMetadata(final Class<?> clazz) {
 >
 > 但是在 postProcessMergedBeanDefinition() 调用后会留有缓存，实例化之后即将开始填充属性和初始化了，所以这个检查时机非常合理。
 
+
+
+
+
+
+
+## 查找所有依赖项目（依赖注入
+
+s
