@@ -204,7 +204,7 @@ AutowiredAnnotationBeanPostProcessor 中包含了对应的缓存，可以跳过�
 
 
 
-## 构建依赖注入元数据
+## 构建依赖注入元数据  - postProcessMergedBeanDefinition
 
 以下方法继承于 MergedBeanDefinitionPostProcessor#postProcessMergedBeanDefinition，在 Bean 实例化之后，填充依赖之前调用。
 
@@ -311,6 +311,78 @@ private InjectionMetadata buildAutowiringMetadata(final Class<?> clazz) {
 
 
 
-## 查找所有依赖项目（依赖注入
+## 依赖注入 - postProcessProperties / postProcessPropertyValues
 
-s
+postProcessProperties 是 AutowiredAnnotationBeanPostProcessor 依赖注入的主要方法（postProcessPropertyValues 已经被标注为 Deprecated。
+
+![image-20211125095816338](assets/image-20211125095816338.png)
+
+方法实现上就是找到 InjectionMetadata，并执行其注入方法。
+
+InjectionMetadata 保存了当前类中所有符合条件的待注入属性，如果执行过 postProcessMegedBeanDefinition 则此时已经保存在缓存中。
+
+![image-20211125095958100](assets/image-20211125095958100.png)
+
+InjectionMetadata 的注入就是遍历其中的 InjectedElement，并调用其注入方法（InjectedElement 就是标注了 @Autowired 或 @Inject 的方法或属性。
+
+**AutowiredAnnotationBeanPostProcessor 中继承了 InjectedElemnt，将方法和属性分为 AutowiredFieldElement 和 AutowiredMethodElement，各自实现其注入的功能。**
+
+AutowiredFieldElement 的注入实现如下：
+
+```java
+// AutowiredFieldElement#inject
+@Override
+protected void inject(Object bean, @Nullable String beanName, @Nullable PropertyValues pvs) throws Throwable {
+    Field field = (Field) this.member;
+    Object value;
+    // 是否有缓存，用于重复创建对象时的功能注入。
+    // !!! cached 表示的是是否有缓存，而不是是否需要缓存
+    // this.cachedFieldValue 就是缓存的注入值
+    if (this.cached) {
+        value = resolvedCachedArgument(beanName, this.cachedFieldValue);
+    }else {
+        DependencyDescriptor desc = new DependencyDescriptor(field, this.required);
+        desc.setContainingClass(bean.getClass());
+        Set<String> autowiredBeanNames = new LinkedHashSet<>(1);
+        // TypeConverter 主要是对数组和列表的转换
+        TypeConverter typeConverter = beanFactory.getTypeConverter();
+        try {
+            // 和 populateBean 中的方式一样，使用的是 resolveDependecy 来实现依赖查找问题
+            // 参数包括依赖描述对象，BeanName，类型转换
+            value = beanFactory.resolveDependency(desc, beanName, autowiredBeanNames, typeConverter);
+        }catch (BeansException ex) {  }
+        // 缓存解析的对象
+        synchronized (this) {
+            if (!this.cached) {
+                // 解析成功 或者 必要属性
+                if (value != null || this.required) {
+                    // 填充缓存
+                    this.cachedFieldValue = desc;
+                    registerDependentBeans(beanName, autowiredBeanNames);
+                    if (autowiredBeanNames.size() == 1) {
+                        String autowiredBeanName = autowiredBeanNames.iterator().next();
+                        if (beanFactory.containsBean(autowiredBeanName) &&
+                            beanFactory.isTypeMatch(autowiredBeanName, field.getType())) {
+                            this.cachedFieldValue = new ShortcutDependencyDescriptor(desc, autowiredBeanName, field.getType());
+                        }
+                    }
+                }  else {
+                    this.cachedFieldValue = null;
+                }
+                // 标志已经缓存
+                this.cached = true;
+            }
+        }
+    }
+    if (value != null) {
+        // 用反射的 Field#set 注入属性
+        ReflectionUtils.makeAccessible(field);
+        field.set(bean, value);
+    }
+}
+}
+```
+
+在 populateBean 方法中正常的流程是将解析出来的依赖项目保存到 PropertyValues 对象中，先检查依赖是否必要再注入到对象，**但是 AutowiredAnnotationBeanPostProcessor 是选择的直接注入。**
+
+> **基本的依赖都是使用 beanFactory.resolveDependency 处理。**

@@ -12,6 +12,8 @@
 - [ZAB 协议简单整理](分布式/zab/ZAB基础理解.md) - 2021/10/18
 - [Recycler 源码实现](netty/util/Recycler源码实现.md) - 2021/10/25
 - [Bean 对象的获取流程](spring/spring-core/ioc/Bean对象的获取流程.md) - 2021/11/02
+- [AutowiredAnnotationBeanPostProcessor 实现分析](spring/core/ioc/beanpostprocessor/AutowiredAnnotationBeanPostProcessor源码分析.md) - 2021/11
+- [Bean对象的获取和创建流程(简单整理)](spring/core/ioc/Bean对象的获取和创建流程.md) - 2021/11（IOC 涉及的概念太多了，临时看看 AOP 先把
 
 
 

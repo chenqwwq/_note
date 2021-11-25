@@ -52,7 +52,7 @@
     - **如果 Bean 实现了InitializingBean 会调用 InitializingBean#afterPropertiesSet**
     - 调用自定义的钩子方法（可以再 Init-Method 中指定，XML 和 @Bean 中都有
 15. 执行 **BeanPostProcessor#postProcessAfterInitialization(Object bean, String beanName)** 初始化之后对 Bean 的自定义改动
-16. 注册 DisposableBean，包含了 Bean 对象的销毁逻辑（基础的例如 @PreDestroy 注解
+16. 注册 DisposableBean，包含了 Bean 对象的销毁逻辑（基础的例如 @PreDestroy 注解，调用的是 **DestructionAwareBeanPostProcessor#postProcessBeforeDestruction(Object bean, String beanName)** 钩子
 
 （流程有点长，Mermaid 画起来就有点不能看了。
 
