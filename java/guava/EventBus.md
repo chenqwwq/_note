@@ -75,7 +75,7 @@ public class Main {
 
 <br>
 
-所有的注册和事件发布都是通过 EventBus 调用实现，所以 EventBus 可以使用单例实现，提供一个全局的访问点，方便调用。
+所有的注册和事件发布都是通过 EventBus 调用实现，所以 **EventBus 可以使用单例实现，提供一个全局的访问点，方便调用**。
 
 <br>
 
@@ -83,17 +83,25 @@ public class Main {
 
 <br>
 
-EventBus 是核心中的核心，注册、取消注册、事件发布等操作都通过其调用实现（类似 SpringBoot 的 ApplicationContext，所以下文基本都是 EventBus 的源码。
+EventBus 是核心中的核心，**注册、取消注册、事件发布**等操作都通过其调用实现（类似 SpringBoot 的 ApplicationContext，所以下文基本都是 EventBus 的源码。
 
 
 
 ### 监听器注册流程
 
+监听器的注册主要目的是解析出每个监听器以及对应的监听事件，并将事件和监听器类型的映射保存到 EventBus。
+
+> **EventBus 使用 Class 作为具体的事件，以方法为单位对事件进行监听（一个类中可能包含多个监听器。**
+
+<br>
+
+EventBus 的监听器注册**以 Object 为入参**，进行解析。
+
 以下是 EventBus#register 的整个流程：
 
 ![image-20210905164115573](assets/image-20210905164115573.png)
 
-首先通过 HandlerFindingStrategy#findAllHandlers 查找出类中所有 EventHandler，HandlerFindingStrategy 默认是 **AnnotatedHandlerFinder**，解析的就是 @Subscribe 注解。
+**首先通过 HandlerFindingStrategy#findAllHandlers 查找出类中所有 EventHandler**，HandlerFindingStrategy 默认是 **AnnotatedHandlerFinder**（也就是 源码中的 finder 对象，解析的就是 @Subscribe 注解。
 
 ![image-20210905165117645](assets/image-20210905165117645.png)
 
@@ -103,13 +111,17 @@ EventBus 是核心中的核心，注册、取消注册、事件发布等操作�
 
 ![image-20210905164606163](assets/image-20210905164606163.png)
 
-通过 AnnotatedHandlerFinder#getAnnotatedMethods 方法找到所有的被 Subscribe 标记的方法，中间会通过 LoadingCache 作为缓存。
+通过 AnnotatedHandlerFinder#getAnnotatedMethods 方法找到所有的被 Subscribe 标记的方法（中间会通过 LoadingCache 作为缓存。
+
+> 最终是通过反射来实现的方法签名遍历。
 
 ![image-20210905165313792](assets/image-20210905165313792.png)
 
-LoadingCache 中如果缓存不存在，则调用内部的 AnnotatedHandlerFinder#getAnnotatedMethodsInternal 方法获取 Method 列表，该方法就是扫描类的每个方法判断是否标记了 @Subscribe。
+LoadingCache 中如果缓存不存在，则调用内部的 AnnotatedHandlerFinder#getAnnotatedMethodsInternal 方法获取 Method 列表。
 
-获取到所有的方法之后，开始遍历每个 Method，**并将方法的第一个参数作为事件类型，**通过 makeHandler 创建 EventHandler。
+（该方法就是扫描类的每个方法判断是否标记了 @Subscribe。
+
+获取到所有的监听器方法之后，开始遍历每个 Method，**并将方法的第一个参数作为事件类型，**通过 makeHandler 创建 EventHandler。
 
 ![image-20210905165704462](assets/image-20210905165704462.png)
 
@@ -155,7 +167,7 @@ SynchronizedEventHandler 直接继承了 EventHandler，并标记 handleEvent �
 
 （TypeToken 是 Gooogle reflect 包下的，而不是 Gson 的包。）
 
-例如最开始的示例，通过 Event 获取到的所有 Class，包括 Event，EventObject，Serializable，Object 四个类，也就是 Event 及其全部的父类（包括接口。
+例如最开始的示例，通过 Event 获取到的所有 Class，包括 Event，EventObject，Serializable，Object 四个类（也就是 Event 及其全部的父类，包括接口。
 
 之后就是遍历所有的  Class 对象，获取所有的监听的 EventHandler。
 
@@ -281,3 +293,12 @@ DeadEvent 的作用在类注释中有部分解释：
 
 isDispatching 状态我是真不知道为啥维护。
 
+
+
+
+
+> 个人感觉需要注意的点
+
+EventBus 注册监听器的时候会以 Event 的最底层类型作为目标事件，而事件发送的时候匹配 EventHandler 的时候会使用 Event 整个类族去匹配。
+
+例如，单独注册的 Object 的监听器，会被所有的事件触发，利用该性质可以通过类的继承关系来做特殊功能的监听。
