@@ -48,3 +48,27 @@ wait()
 > ```
 >
 > 子线程无法等待父线程结束。
+
+
+
+
+
+## gdb 调试配置
+
+配置 `{HOME}/.gdbinit` 增加配置项
+
+```
+add-auto-load-safe-path /Users/chenbingxin/stu/xv6-labs-2021/.gdbinit // 添加调试目录为安全目录
+```
+
+左窗口打开 `make qemu-gdb`，右窗口打开 `riscv64-unknown-elf-gdb`。
+
+file user/_ls
+
+break "ls.c:22"
+
+break main
+
+step - 下一步
+
+c - 下个断点

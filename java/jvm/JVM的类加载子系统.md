@@ -69,7 +69,7 @@ F --> H[初始化]
 
 - 准备
 
-准备过程是给类变量分配空间的过程，并且回给类变量赋系统初值。
+准备过程是给类变量分配空间的过程，并且回会给类变量赋系统初值。
 
 系统初值是指 JVM 默认的值，例如 boolean 类型默认会为 false 等。
 
@@ -89,7 +89,7 @@ Class 文件常量池中就包含了一部分的符号引用。
 
 `<cinit>`  就是从类文件中收集的包括静态初始化快，字面量初始化等等的语句。
 
-> 有一个注意点是静态初始化块是从上到下顺序加载并执行的，并且先于构造函数的 <init> 执行。
+> 有一个注意点是静态初始化块是从上到下顺序加载并执行的，并且先于构造函数的 ` <init> `执行。
 
 <br>
 
@@ -97,20 +97,20 @@ Class 文件常量池中就包含了一部分的符号引用。
 
 ### Class 加载和卸载
 
-- 加载的时机
+> 加载的时机
 
 1. 创建类实例对象的时候，通过 new，reflect 等途径 
 2. 调用类的静态方法或者访问类的静态变量的时候
 3. 初始化子类时发现父类未加载，会先加载父类
 
-> 不全，代补充。
+不全，代补充。。。。
 
 <br>
 
-- 卸载的时机
+> 卸载的时机
 
 1. 该类所有的实例都已被回收
-2. 该类的 ClassLoader 已经被回收
+2. 该类的 ClassLoader 已经被回收（元空间中每个 ClassLoader 会有自己独立的一片空间保存各自加载的类。
 3. 该类的 Class 对象没有在任何地方被引用
 
 <br>
@@ -141,13 +141,17 @@ B --> C[Application ClassLoader]
 
 并且出于安全考虑，该加载器只会加载 java，javax，sun 开头的类。
 
+在 ClassLoader#loadClass 实现中，如果当前类没有 parent 则直接使用 Bootstrap 尝试加载类。
+
+> 只要不打破双亲加载机制，Bootstrap 会参与所有类的加载（没有再交给子了类。
+
 <br>
 
 - Extension ClassLoader
 
 扩展的类加载器，使用 Java 语言编写，具体实现为 sun.misc.Launcher$ExtClassLoader。
 
-用于加载 /jre/lib/ext 下的类库，以 Bootstrap ClassLoader 为其父类
+用于加载 /jre/lib/ext 下的类库，以 Bootstrap ClassLoader 为其父类。
 
 <br>
 
@@ -159,11 +163,9 @@ B --> C[Application ClassLoader]
 
 <br>
 
-> Bootstrap 和 Extension 两个加载器扫描的类的目录已经被限定死了，这是后续 SPI 等实现必须要通过 TCCL 的原因之一。
-
-<br>
-
-> 还有一点重要的，Java 中判断两个 Class 是否相等，除了其本身还需要判断对应的类加载器是否一致，同个 Class 文件被不同的 ClassLoader 装载就是不同的 Class 对象。
+> Bootstrap 和 Extension 两个加载器扫描的类的目录已经被限定死了，这是后续 SPI 等实现必须要通过 TCCL（线程上下文加载器） 的原因之一。
+>
+> 还有一点重要的，Java 中判断两个 Class 是否相等，除了其本身还需要判断对应的类加载器是否一致（同个 Class 文件被不同的 ClassLoader 装载就是不同的 Class 对象。
 
 <br>
 
@@ -187,7 +189,7 @@ ExtClassLoader 和 AppClassLoader 都定义在 sun.misc.Launcher 中的，Launch
 
 - 创建 ExtClassLoader
 - 以 ExtClassLoader 为参数，创建 AppClassLoader
-- **设置当前线程上下文加载器为 AppClassLoader**
+- **设置当前线程上下文加载器为 AppClassLoader**（默认的线程上下文加载器就是 AppClassLoader
 
 <br>
 
@@ -210,11 +212,11 @@ ClassLoader 中分别有以下几种重点方法：
 
 #### #loadClass(String)
 
-该方法是 ClassLoader 中最主要的方法，**双亲委派机制** 就是在该方法中实现的，`ClassLoader.loadClass` 也是常用的用于加载某个类的常用方法。
+该方法是 ClassLoader 中最主要的方法，**双亲委派机制** 就是在该方法中实现的，`ClassLoader#loadClass` 也是常用的用于加载某个类的常用方法。
 
 > 有个容易忽略的点是**，该方法可以获得 Class 类，但是并不会触发 Class 类的初始化**，也就是类加载的最后一步。
 >
-> 而 Class.forName 会触发类的初始化，
+> 区别于此，Class#forName 会触发类的初始化，
 
 <br>
 
@@ -260,8 +262,12 @@ protected Class<?> loadClass(String name, boolean resolve)
 从上面的代码可以大概的看出类加载的逻辑:
 
 1. **尝试从缓存中获取 Class**
+
 2. **通过 父类 或者 Bootstrap 获取 Class**
+
 3. **通过 findClass 方法获取 Class**
+
+   
 
 以上三种就是 Class 对象的主要获取方式，之后根据参数会判断是否需要调用 resolveClass 方法进行解析。
 
@@ -331,17 +337,19 @@ Tomcat 作为一个 Web Servlet 容器，肯定需要装载多个 Web 应用，�
 
 另外 Tomcat 还提供了 Jsp 的热加载功能，动态的卸载和加载 Jsp 类。
 
-> JSP 最后会被转化为 Class 然后执行输出。
+> JSP 最后会被转化为 Class 然后进行渲染。
 
 ```mermaid
 graph TD
 A[Bootstrap ClassLoader] --> B[Extension ClassLoader] 
 B --> C[Application ClassLoader]
 C --> D[Common ClassLoader]
+subgraph tomcat
 D --> E[Catalina ClassLoader]
 D --> F[Shared ClassLoader]
 F --> G[WebApp ClassLoader]
 G --> H[Jsp ClassLoader]
+end
 ```
 
 所以 Tomcat 设计了如上的一套类加载体系。
@@ -357,6 +365,8 @@ WebApp 负责加载当应用的类库，一个应用就对应这一个 WebApp �
 Jsp 比较特别，它是每一个类一个类加载器，用于在 Jsp 文件修改之后做热更新。
 
 > Common，Catalina 以及 Shared 都有指定的目录，不过不是本文的重点就不说了。
+>
+> 从 Tomcat 的类加载体系来看，**ClassLoader 的主要作用体现在隔离，每个 Web 应用独立类库，而 Tomcat 本身也和 Web 应用隔离。** 
 
 
 
@@ -364,7 +374,7 @@ Jsp 比较特别，它是每一个类一个类加载器，用于在 Jsp 文件�
 
 **通过以上的体系，Tomcat 实现了类之间隔离和共享的关系区分。**
 
-实现上 Catalina 和 Common 以及 Shared 都是 URLClassLoader，还是遵从的双亲委派机制的。
+实现上 Catalina 和 Common 以及 Shared 都是 URLClassLoader，还是遵从双亲委派机制的。
 
 但是 WebApp 是单独实现的，继承了 URLClassLoader，并重写了 loadClass 方法，在查找了当前的 ClassLoader 的缓存之后，并没有直接使用父类加载器加载，而是继续在本地查找，找不到再去父类查找。
 
@@ -374,7 +384,9 @@ Jsp 比较特别，它是每一个类一个类加载器，用于在 Jsp 文件�
 
 JDBC 的核心类定义在 Java 的核心库，由 Bootstrap 加载，但是三方的实现却是在 ClassPath 里，需要使用 Application 来加载。
 
-在 Java 的核心类加载三方实现的时候默认就是从  Application 加载，此时就会出现 ClassNotFound。
+在 Java 的核心类加载三方实现的时候默认就是从  Bootstrap 加载，此时就会出现 ClassNotFound。
+
+> 具体的例子可以看 DriverManager，
 
 <br>
 
