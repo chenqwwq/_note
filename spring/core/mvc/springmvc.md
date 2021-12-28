@@ -101,7 +101,7 @@ HandlerAdapter 就是针对各类的 Handler 的适配，如果你实现了自�
 
 ## 参数解析
 
-### 
+### s
 
 ## HandlerInterceptor
 
@@ -115,7 +115,7 @@ HandlerAdapter 就是针对各类的 Handler 的适配，如果你实现了自�
 
 在 DispactherServlet 的中调用实现逻辑如下：
 
-![](../../../../Desktop/HandlerInterceptor%E7%9A%84%E6%89%A7%E8%A1%8C%E6%97%B6%E6%9C%BA.png)
+![](assets/HandlerInterceptor的执行时机.png)
 
 （后面三个都是对 AfterCompletion 的调用。
 
@@ -125,7 +125,7 @@ HandlerAdapter 就是针对各类的 Handler 的适配，如果你实现了自�
 
 ## Spring MVC 的处理流程
 
-![/home/chen/Desktop/RequestLifecycle.png](/home/chen/Desktop/RequestLifecycle.png)
+![/Users/chenbingxin/Desktop/chenqwwq/pic/RequestLifecycle.png](assets/RequestLifecycle.png)
 
 
 

@@ -1,6 +1,6 @@
 # EventBus
 
-> - 2021/09/28 
+> - 2021/09/28  - （基于 Guava 15.0，真他妈老啊，有空看看新的 EventBus 吧。
 
 
 
@@ -302,3 +302,166 @@ isDispatching 状态我是真不知道为啥维护。
 EventBus 注册监听器的时候会以 Event 的最底层类型作为目标事件，而事件发送的时候匹配 EventHandler 的时候会使用 Event 整个类族去匹配。
 
 例如，单独注册的 Object 的监听器，会被所有的事件触发，利用该性质可以通过类的继承关系来做特殊功能的监听。
+
+
+
+
+
+
+
+## 高版本的 EventBus
+
+> 之前也不知道在哪里看的 15.0 版本的 Guava 代码（尴尬，最近公司将本都事件发布的方式从 EventBus 更换为 ApplicationContext，抓紧也看一波。
+>
+> ---- 2021-12-22
+
+
+
+### 监听器注册/取消注册
+
+![image-20211222232116891](assets/image-20211222232116891.png)
+
+新的 EventBus 抽取了监听器（Subscriber）的概念，**使用 SubscriberRegistry 作为事件和监听器映射的持有者**（15.0 的实现中是直接使用 EventBus 持有的。
+
+Subscriber 中包含了归属的 EventBus，监听类，以及单个的监听方法，也包括执行器（Executor），是对监听所需对象的整合。
+
+另外就是修改了线程安全策略，直接**使用 CopyOnWriteArraySet 来保存单个事物的不同监听器**（如果对应的监听器过多还是会有坑。
+
+其他的依旧未变，同样使用方法的第一个参数作为事件并注册，在使用 COW 之后不需要额外的上锁。
+
+
+
+### 事件发布流程
+
+和注册流程类似，新版本的事件发布流程抽取出了调度者（Dispatcher ）的概念，使用 Dispatcher 进行不同形式的调度。
+
+默认的提供了以下三种：
+
+1. ImmediateDispatcher
+2. LegacyAsyncDispatcher
+3. PerThreadQueuedDispatcher（默认）
+
+<br>
+
+具体的发布流程还是从 EventBus#post 开始，先从 Subscriber 中获取到对应的 Subscriber，之后就是将 Event 和 Subscriber 交由 Dispatcher 调度。
+
+（可以认为 Dispatcher 决定了事件的执行方式。
+
+接下来就是以上三种调度器的执行方式上的区别：
+
+<br>
+
+#### ImmerdiateDispatcher - 即时调度
+
+```java
+@Override
+void dispatch(Object event, Iterator<Subscriber> subscribers) {
+  checkNotNull(event);
+  while (subscribers.hasNext()) {
+    subscribers.next().dispatchEvent(event);
+  }
+}
+```
+
+该调度器的逻辑等于没有，就是直接执行（并不是完全同步，异步的逻辑包含在 Subscriber 里面。
+
+对于该调度器来说，同步执行的时候，如果调度的事件嵌套（执行调度事件的时候又触发了另外一个事件），此时会先执行完后触发的事件。
+
+对于异步执行来说，因为不影响后续的执行所以基本上没什么区别。
+
+
+
+####  LegacyAsyncDispatcher - （异步调度？
+
+```java
+// 对于 EventBus 来说全局唯一的队列（不同线程都可以访问的到
+private final ConcurrentLinkedQueue<EventWithSubscriber> queue =
+  Queues.newConcurrentLinkedQueue();
+
+@Override
+void dispatch(Object event, Iterator<Subscriber> subscribers) {
+  checkNotNull(event);
+  // 直接将 Subscriber 和 Event 打包添加到队列
+  while (subscribers.hasNext()) {
+    queue.add(new EventWithSubscriber(event, subscribers.next()));
+  }
+
+  EventWithSubscriber e;
+  // 循环从队列中获取待调度的任务
+  while ((e = queue.poll()) != null) {
+    e.subscriber.dispatchEvent(e.event);
+  }
+}
+```
+
+该调度器应该**仅仅适合用于异步线程的调度。**
+
+使用全局的并发队列来保存待调度的任务，并且使用 queue.poll 获取任务并调度，此种方式可能使当前线程调度到别的任务。
+
+如果以同步的形式执行的话，当前线程执行完之后可能立即去处理别的线程提交的任务（例如 Tomcat 的 Worker 线程，处理完当前请求触发的事件之后还要去处理别的请求任务？闹呢
+
+
+
+#### PerThreadQueuedDispatcher - 单线程队列的调度器
+
+```java
+private static final class PerThreadQueuedDispatcher extends Dispatcher {
+  // 使用 ThreadLocal 保存队列，队列又进一步保存了 Event
+  private final ThreadLocal<Queue<Event>> queue =
+    new ThreadLocal<Queue<Event>>() {
+    @Override
+    protected Queue<Event> initialValue() {
+      return Queues.newArrayDeque();
+    }
+  };
+	// 当前是否处于调度的状态。
+  private final ThreadLocal<Boolean> dispatching =
+    new ThreadLocal<Boolean>() {
+    @Override
+    protected Boolean initialValue() {
+      return false;
+    }
+  };
+
+  @Override
+  void dispatch(Object event, Iterator<Subscriber> subscribers) {
+    checkNotNull(event);
+    checkNotNull(subscribers);
+    // 获取或者初始化任务队列
+    Queue<Event> queueForThread = queue.get();
+    // 将任务添加到队列中，因为队列和线程绑定所以不担心线程问题
+    queueForThread.offer(new Event(event, subscribers));
+
+    // 开始事件调度 （1
+    if (!dispatching.get()) {
+      dispatching.set(true);
+      try {
+        Event nextEvent;
+        // 也是从队列中获取任务并且逐个调度
+        while ((nextEvent = queueForThread.poll()) != null) {
+          while (nextEvent.subscribers.hasNext()) {
+            nextEvent.subscribers.next().dispatchEvent(nextEvent.event);
+          }
+        }
+      } finally {
+        dispatching.remove();
+        queue.remove();
+      }
+    }
+  }
+```
+
+该调度器的作用就是对于嵌套的事件而言，它可以保证**顺序调度。**
+
+以同步事件来说，当执行某个事件A的时候如果触发了另外一个事件B，不会即时就开始执行该事件B，而是将其添加到线程本地的队列中，在（1 处就结束了。
+
+而后在事件A执行完毕之后会开始事件B的执行。
+
+对于异步事件也是，总是在事件A完全调度完之后才会进行事件B的调度。
+
+
+
+### 异步事件调度的执行
+
+区别于原来异步的实现，高版本直接将 Executor 包含进了 Subscriber 里面，并且在初始化的时候直接饮用s的 EventBus 中的队列。
+

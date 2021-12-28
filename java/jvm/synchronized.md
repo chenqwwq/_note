@@ -12,6 +12,17 @@
 
 ![Synchronized 脑图](assets/Synchronized%E8%84%91%E5%9B%BE.png)
 
+
+
+## 锁相关
+
+锁的特性：
+
+1. 公平性
+2. 重如
+
+
+
 ## 概述
 
 synchronized 是 Java 提供的同步原语，背后是 Java虚拟机(JVM) 提供的 Monitor 机制。

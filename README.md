@@ -1,6 +1,4 @@
-> 
->
-> yexingy个人笔记，就是胡咧咧。
+> 个人笔记，就是胡咧咧。
 
 
 
@@ -14,6 +12,9 @@
 - [Bean 对象的获取流程](spring/spring-core/ioc/Bean对象的获取流程.md) - 2021/11/02
 - [AutowiredAnnotationBeanPostProcessor 实现分析](spring/core/ioc/beanpostprocessor/AutowiredAnnotationBeanPostProcessor源码分析.md) - 2021/11
 - [Bean对象的获取和创建流程(简单整理)](spring/core/ioc/Bean对象的获取和创建流程.md) - 2021/11（IOC 涉及的概念太多了，临时看看 AOP 先把
+- （555。。Spring 又忘了一半了，11月～12月乱七八糟的看了些东西，又懈怠了
+- [ZAB 基础理解](分布式/zab/ZAB基础理解.md)
+- [Spring Redis Lock](spring/utils/RedisLock.md)
 
 
 

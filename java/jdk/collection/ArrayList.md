@@ -12,7 +12,7 @@
 
 -  `ArrayList` 是最常用的一个集合类，提供随机访问的特性。
 -  `ArrayList` 的底层结构是`数组`，初始化大小为**10**，每次扩容为原来的1.5倍。
-   -  具体的算术代码为：`newCapacity = oldCapacity + (oldCapacity >> 1)`。
+   -  具体的代码为：`newCapacity = oldCapacity + (oldCapacity >> 1)`。
 -  `ArrayList`是**非线程安全，且允许空值**。
 
 

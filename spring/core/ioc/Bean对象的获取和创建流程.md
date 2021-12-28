@@ -3,7 +3,7 @@
 ## Bean（单例）的获取流程
 
 1. AbstractBeanFactory#doGetBean
-2. 解析 Bean 名称（去除$等）
+2. 解析 Bean 名称（去除$和别名转换）
 3. 从缓存中获取目标 Bean，singletonObjects / earlySingletonObjects / singletonFactories （singletonFactories 是在 Bean 实例化成功之后塞进去的 ObjectFactory 对象，用于早期引用的暴露。
 4. 获取成功之后根据 Bean 的类型解析，如果是 FactoryBean 则调用 getObject 方法，不是则直接返回
 5. 当前容器没有该对象，尝试从父容器获取 
@@ -25,7 +25,7 @@
 
 1. AbstractAutowiredCapableBeanFactory#createBean（起手式
 2. 获取 Class 对象（基本就是 Class.forName 方法
-3. 处理 Ovriride 方法（类似 Lookup 注解，最终解析的就是 LookupOverride，还有 ReplaceOverride
+3. 处理 Ovriride 方法（类似 @Lookup 注解，最终解析的就是 LookupOverride，还有 ReplaceOverride，使用该类替换方法执行
 4. **InstantiationAwareBeanPostProcessor#postProcessBeforeInstantiation(Class<?> beanClass, String beanName)** （可以自定义实现对象的创建流程
    - 创建成功，继续执行 **BeanPostProcessor#applyBeanPostProcessorsAfterInitialization(Object existingBean, String beanName)**（**然后就直接退出了**，所以该方法算是兜底
 5. AbstractAutowiredCapableBeanFactory#doCreateBean （灭有自己的创建流程就走官方提供的。
