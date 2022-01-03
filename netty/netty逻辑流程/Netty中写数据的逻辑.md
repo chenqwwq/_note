@@ -19,5 +19,11 @@ Netty 中的写事件由两个流程组成：
 
 
 
-## 
+
+
+## ChannelOutboundBuffer - 出数据缓存
+
+
+
+
 

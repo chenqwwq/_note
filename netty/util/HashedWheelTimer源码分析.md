@@ -113,7 +113,7 @@ Worker 线程中有一个非常关键的变量：
 
 **unprocessedTimeouts 用来存储在关闭 HashedWheelTimer 时来不及执行的任务。**
 
-**tick 是一个逻辑时钟周期，每次经过 tickDuration 的时间 tick + 1，时间轮就是根据这个变量确定当前应该从哪个 Bucket 中获取任务。**
+**tick 是一个逻辑时钟周期，每次经过 tickDuration 的时间 tick 会 +1，时间轮就是根据这个变量确定当前应该从哪个 Bucket 中获取任务。**
 
 > tick 非常重要，时间轮的一个轮次只能表示一定的时间，比如 tickDuration = 1000，并且有60个桶时，一个轮次只代表一分钟，所以10分钟之后的任务的 tick = 当前的 tick + 10。 
 
@@ -219,38 +219,38 @@ remove 的方法实现如下：
 ### 往时间轮中插入任务
 
 ```java
-        /**
+/**
          * 将timeouts中的任务移动到桶中,最多移动 1000000 个
          */
-        private void transferTimeoutsToBuckets() {
-                for (int i = 0; i < 100000; i++) {
-                        HashedWheelTimeout timeout = timeouts.poll();
-                        // 没有任务了
-                        if (timeout == null) {
-                            break;
-                        }
-                        // 任务被取消了
-                        if (timeout.state() == HashedWheelTimeout.ST_CANCELLED) {
-                            continue;
-                        }
-                        // 任务的 deadline 是任务真实的执行时间和 startTime 对齐的时间
-                        // tickDuration 表示的是一个槽位的时间
-                        // 所以 calculated 表示的是任务执行的逻辑时钟
-                        long calculated = timeout.deadline / tickDuration;
-                        // tick 表示当前的逻辑时钟周期
-                        // remainingRounds 表示的是时间轮的完整轮次
-                        // 当前是第一次，每次转到之后 remainingRounds 减1，到0的时候表明时间到了
-                        timeout.remainingRounds = (calculated - tick) / wheel.length;
-                        // 如果tick大说明任务执行时间已经过了,所以当前轮次就需要执行
-                        // 如果任务的时钟周期比当前的短，则直接在当前的时钟执行
-                        final long ticks = Math.max(calculated, tick); // Ensure we don't schedule for past.
-                        // 计算插入的桶的下标
-                        int stopIndex = (int) (ticks & mask);
-                        // 插入到桶中
-                        HashedWheelBucket bucket = wheel[stopIndex];
-                        bucket.addTimeout(timeout);
-                }
-        }
+private void transferTimeoutsToBuckets() {
+  for (int i = 0; i < 100000; i++) {
+    HashedWheelTimeout timeout = timeouts.poll();
+    // 没有任务了
+    if (timeout == null) {
+      break;
+    }
+    // 任务被取消了
+    if (timeout.state() == HashedWheelTimeout.ST_CANCELLED) {
+      continue;
+    }
+    // 任务的 deadline 是任务真实的执行时间和 startTime 对齐的时间
+    // tickDuration 表示的是一个槽位的时间
+    // 所以 calculated 表示的是任务执行的逻辑时钟
+    long calculated = timeout.deadline / tickDuration;
+    // tick 表示当前的逻辑时钟周期
+    // remainingRounds 表示的是时间轮的完整轮次
+    // 当前是第一次，每次转到之后 remainingRounds 减1，到0的时候表明时间到了
+    timeout.remainingRounds = (calculated - tick) / wheel.length;
+    // 如果tick大说明任务执行时间已经过了,所以当前轮次就需要执行
+    // 如果任务的时钟周期比当前的短，则直接在当前的时钟执行
+    final long ticks = Math.max(calculated, tick); // Ensure we don't schedule for past.
+    // 计算插入的桶的下标
+    int stopIndex = (int) (ticks & mask);
+    // 插入到桶中
+    HashedWheelBucket bucket = wheel[stopIndex];
+    bucket.addTimeout(timeout);
+  }
+}
 ```
 
 插入任务时需要确定两个参数，**任务对应的桶的下标以及剩余需要等待的轮次。**
@@ -312,32 +312,32 @@ public void expireTimeouts(long deadline) {
 ```java
 @Override
 public Timeout newTimeout(TimerTask task, long delay, TimeUnit unit) {
-        // 前置的参数检查
-        ObjectUtil.checkNotNull(task, "task");
-        ObjectUtil.checkNotNull(unit, "unit");
-    	// 当前等待的任务数+1
-        long pendingTimeoutsCount = pendingTimeouts.incrementAndGet();
-    	// maxPendingTimeouts 默认为-1，表示无上限
-        if (maxPendingTimeouts > 0 && pendingTimeoutsCount > maxPendingTimeouts) {
-            pendingTimeouts.decrementAndGet();
-            throw new RejectedExecutionException("Number of pending timeouts ("
-                                                 + pendingTimeoutsCount + ") is greater than or equal to maximum allowed pending "
-                                                 + "timeouts (" + maxPendingTimeouts + ")");
-        }
-		// 开启时间轮
-        start();
-    	// 任务执行的时间
-        // 不是真实的时间，需要于 startTime 对齐 
-        long deadline = System.nanoTime() + unit.toNanos(delay) - startTime;
-        // Guard against overflow.
-        if (delay > 0 && deadline < 0) {
-            deadline = Long.MAX_VALUE;
-        }
-    	// 包装为 HashedWheelTimeout
-        HashedWheelTimeout timeout = new HashedWheelTimeout(this, task, deadline);
-        // 保存到 timeouts
-        timeouts.add(timeout);
-        return timeout;
+  // 前置的参数检查
+  ObjectUtil.checkNotNull(task, "task");
+  ObjectUtil.checkNotNull(unit, "unit");
+  // 当前等待的任务数+1
+  long pendingTimeoutsCount = pendingTimeouts.incrementAndGet();
+  // maxPendingTimeouts 默认为-1，表示无上限
+  if (maxPendingTimeouts > 0 && pendingTimeoutsCount > maxPendingTimeouts) {
+    pendingTimeouts.decrementAndGet();
+    throw new RejectedExecutionException("Number of pending timeouts ("
+                                         + pendingTimeoutsCount + ") is greater than or equal to maximum allowed pending "
+                                         + "timeouts (" + maxPendingTimeouts + ")");
+  }
+  // 开启时间轮
+  start();
+  // 任务执行的时间
+  // 不是真实的时间，需要于 startTime 对齐 
+  long deadline = System.nanoTime() + unit.toNanos(delay) - startTime;
+  // Guard against overflow.
+  if (delay > 0 && deadline < 0) {
+    deadline = Long.MAX_VALUE;
+  }
+  // 包装为 HashedWheelTimeout
+  HashedWheelTimeout timeout = new HashedWheelTimeout(this, task, deadline);
+  // 保存到 timeouts
+  timeouts.add(timeout);
+  return timeout;
 }
 ```
 
@@ -379,13 +379,33 @@ CAS 替换任务状态并且将任务添加到 cancelledTimeouts 的队列中，
 
 ## 总结
 
+> 时间轮的基本实现
+
+时间轮使用一个环形数组存储定时任务，每个 Bucket 表示一段时间，在由单线程负责从 Bucket 获取到期的任务并执行（执行可以使用线程池。
+
+因此时间轮存在以下几个明显的问题：
+
+1. 定时时间不够精细（基本上由 Bucket 表示的时间单位决定
+2. 代表的时间范围有限（环形数组长度 * Bucket Time Unit
+3. 任务量少时，存在频繁空轮询的问题。
+
+在时间范围有限的问题上，可以使用多级时间轮或者类似 Netty 的 tick 表示具体轮次来解决。
+
+空轮询的问题，可以使用 DelayQueue 来调度最近任务时间。
+
+
+
+
+
 > HsahedWheelTimer 的实现：
 
-HashedWheelTimer 使用 Bucket 表示一小段事件，整个时间轮表示大段的事件，超出的部分使用 tick（轮次）表示。
+HashedWheelTimer 使用 Bucket 表示一小段事件，整个时间轮表示大段的事件，超出的部分使用 tick（轮次）表示（表示的间隔有限是时间轮最明显的缺点。
 
-通过工作线程（Worker）定时对数组以及其上的链表的遍历获取到期的任务。
+通过工作线程（Worker）定时对数组以及其上的链表的遍历获取到期的任务并执行，时间到了之后会将桶的任务迁移到中间数组中，后续遍历执行。
 
-添加和删除任务都是多线程入队列，由工作线程单线程遍历缓冲队列，在插入或移除出时间轮。
+添加和删除任务都是多线程入队列（入缓冲队列，由工作线程单线程遍历缓冲队列，在插入或移除出时间轮。
+
+（直观来看，Netty 的实现感觉上更像是 EventLoop 的形式。
 
 
 
@@ -399,3 +419,7 @@ ScheduledThreadPoolExecutor **使用堆来保存队列，获取的事件复杂�
 
 <br>
 
+> Netty 中单层时间轮的缺点：
+
+1. 在任务量少的时候存在空轮询的情况（这个完全可以避免
+2. 任务量多的时候，单个 Bucket 可能保存过多的任务，遍历效率低下。

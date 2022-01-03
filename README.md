@@ -15,6 +15,7 @@
 - （555。。Spring 又忘了一半了，11月～12月乱七八糟的看了些东西，又懈怠了
 - [ZAB 基础理解](分布式/zab/ZAB基础理解.md)
 - [Spring Redis Lock](spring/utils/RedisLock.md)
+- 更新了一下 EventBus 和 HashedWheeltimer。
 
 
 
@@ -40,5 +41,5 @@
 ## Hang
 
 - [ChannelPool 源码分析](netty/util/ChannelPool.md)
-- [RateLimiter 源码分析](java/guava/RateLimiter.md)
-- [Netty 的内存管理](netty/Netty的内存管理.md)
+- [RateLimiter 源码分析](java/guava/RateLimiter.md)（也有点乱，有点特殊的算法
+- [Netty 的内存管理](netty/Netty的内存管理.md)（新版本从 jemelloc3 改成 jemelloc4，实在是看不懂啊，天
