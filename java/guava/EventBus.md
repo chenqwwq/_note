@@ -91,7 +91,7 @@ EventBus 是核心中的核心，**注册、取消注册、事件发布**等操�
 
 监听器的注册主要目的是解析出每个监听器以及对应的监听事件，并将事件和监听器类型的映射保存到 EventBus。
 
-> **EventBus 使用 Class 作为具体的事件，以方法为单位对事件进行监听（一个类中可能包含多个监听器。**
+> **EventBus 使用 Class 作为具体的事件，以方法为单位对事件进行监听（一个类中可能包含多个监听器，并且使用方法的第一个参数作为监听的 Event 类型**
 
 <br>
 
@@ -99,23 +99,31 @@ EventBus 的监听器注册**以 Object 为入参**，进行解析。
 
 以下是 EventBus#register 的整个流程：
 
-![image-20210905164115573](assets/image-20210905164115573.png)
+<img src="assets/image-20210905164115573.png" alt="EventBus#register" style="zoom:67%;" />
+
+
 
 **首先通过 HandlerFindingStrategy#findAllHandlers 查找出类中所有 EventHandler**，HandlerFindingStrategy 默认是 **AnnotatedHandlerFinder**（也就是 源码中的 finder 对象，解析的就是 @Subscribe 注解。
 
-![image-20210905165117645](assets/image-20210905165117645.png)
+<img src="assets/image-20210905165117645.png" alt="EventBus#Subscribe" style="zoom:67%;" />
+
+
 
 @Subscribe 就是一个标示性的注解，没有任何参数，并且只能标记在方法上，以下是 **AnnotatedHandlerFinder** 的实现代码：
 
 <br>
 
-![image-20210905164606163](assets/image-20210905164606163.png)
+<img src="assets/image-20210905164606163.png" alt="HandlerFindingStrategy#findAllHandlers" style="zoom:67%;" />
+
+
 
 通过 AnnotatedHandlerFinder#getAnnotatedMethods 方法找到所有的被 Subscribe 标记的方法（中间会通过 LoadingCache 作为缓存。
 
 > 最终是通过反射来实现的方法签名遍历。
 
-![image-20210905165313792](assets/image-20210905165313792.png)
+
+
+<img src="assets/image-20210905165313792.png" alt="LoadingCache" style="zoom:67%;" />
 
 LoadingCache 中如果缓存不存在，则调用内部的 AnnotatedHandlerFinder#getAnnotatedMethodsInternal 方法获取 Method 列表。
 
@@ -123,7 +131,7 @@ LoadingCache 中如果缓存不存在，则调用内部的 AnnotatedHandlerFinde
 
 获取到所有的监听器方法之后，开始遍历每个 Method，**并将方法的第一个参数作为事件类型，**通过 makeHandler 创建 EventHandler。
 
-![image-20210905165704462](assets/image-20210905165704462.png)
+<img src="assets/image-20210905165704462.png" alt="image-20210905165704462" style="zoom:67%;" />
 
 **通过是否标注 @AllowConcurrentEvents 表示方法是否允许并发执行**。（@AllowConcurrentEvents 也是一个标示性注解。
 
@@ -230,16 +238,14 @@ EventBus 新增了 DeadEvent（类比于 RabbitMQ 的死信？），在没有找
 
 > EventBus 对于观察者模式的优化
 
-观察者模式的要点就是被观察者持有观察者的饮用，并且在特定的时间调用，组织被观察者想要的参数并调用观察者。
+观察者模式的要点就是被观察者持有观察者的引用，并且在特定的时间调用，组织被观察者想要的参数并调用观察者。
 
-整个流程就有如下两个问题：
+整个流程就有被观察者和观察者高度耦合的问题，被观察者需要持有观察者的引用，并要在特定的时期调用
 
-1. 被观察者和观察者高度耦合，被观察者需要持有观察者的引用，并要在特定的时期调用
-2. 观察参数的修改
+简单总结 EventBus 对于观察者模式的优化：
 
-EventBus
-
-
+1. 将观察的参数抽象为 Event 事件
+2. 将观察者和被观察者解耦，更易于扩展
 
 
 
@@ -275,7 +281,7 @@ EventBus
 
 DeadEvent 的作用在类注释中有部分解释：
 
-![image-20210905233612747](assets/image-20210905233612747.png)
+<img src="assets/image-20210905233612747.png" alt="DeadEvent" style="zoom: 67%;" />
 
 是希望给系统一个二次处理的机会，如果事件没有被正确调度，那么通过 DeadEvent 也可以获取到该事件并处理。
 
@@ -313,13 +319,35 @@ EventBus 注册监听器的时候会以 Event 的最底层类型作为目标事�
 
 > 之前也不知道在哪里看的 15.0 版本的 Guava 代码（尴尬，最近公司将本都事件发布的方式从 EventBus 更换为 ApplicationContext，抓紧也看一波。
 >
+> **高版本是指 31.0.1-jre 版本。**
+>
 > ---- 2021-12-22
 
 
 
-### 监听器注册/取消注册
+### 高低版本的 EventBus 对比
 
-![image-20211222232116891](assets/image-20211222232116891.png)
+![EventBus 的成员变量](assets/image-20220121173510951.png)
+
+高版本的 EventBus 对整个模块进行了更细的抽象。
+
+**SubscriberRegistry 负责解析 @Subscriber 注解，并且持有了 Event 和 Subscriber 的映射（对 EventBus 来说，该类无法自定义。**
+
+**Dispatcher 负责事件的调度，继承该接口可以自定义调度逻辑。**
+
+Executor 是事件执行器（同步和异步的区别一大部分就在这了吧，同步的 Executor 实现如下（就是由调用线程执行任务。
+
+![EventBus-DirectExecutor](assets/image-20220121174307057.png)
+
+
+
+
+
+
+
+### SubscriberRegistry - 监听器注册/取消注册
+
+<img src="assets/image-20211222232116891.png" alt="SubscriberRegistry" style="zoom:67%;" />
 
 新的 EventBus 抽取了监听器（Subscriber）的概念，**使用 SubscriberRegistry 作为事件和监听器映射的持有者**（15.0 的实现中是直接使用 EventBus 持有的。
 
@@ -331,7 +359,7 @@ Subscriber 中包含了归属的 EventBus，监听类，以及单个的监听方
 
 
 
-### 事件发布流程
+### Dispatcher - 事件发布流程
 
 和注册流程类似，新版本的事件发布流程抽取出了调度者（Dispatcher ）的概念，使用 Dispatcher 进行不同形式的调度。
 
@@ -463,5 +491,5 @@ private static final class PerThreadQueuedDispatcher extends Dispatcher {
 
 ### 异步事件调度的执行
 
-区别于原来异步的实现，高版本直接将 Executor 包含进了 Subscriber 里面，并且在初始化的时候直接饮用s的 EventBus 中的队列。
+区别于原来异步的实现，高版本直接将 Executor 包含进了 Subscriber 里面，并且在初始化的时候直接获取的 EventBus 中的队列。
 

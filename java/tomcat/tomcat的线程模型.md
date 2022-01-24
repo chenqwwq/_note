@@ -34,7 +34,7 @@ Acceptor 建立的 Socket 会封装为 PollerEvent 并且放入 PololerEvent。
 
 Netty 算是更加正规的 Reactor 的实现，再将客户端连接绑定到 childGroup 之后，连接的所有 IO 都由 childGroup 处理。
 
-**在 Nertty 中，对于 Http 请求，整个的请求中包含请求行，请求头，请求体都是由 childGroup 读取，而 Tomcat 中 Pooler 线程组并不负责读取请求体（因此在判断为 Get 请求之后，有些实现可以直接忽略请求体。**
+**在 Netty 中，对于 Http 请求，整个的请求中包含请求行，请求头，请求体都是由 childGroup 读取，而 Tomcat 中 Pooler 线程组并不负责读取请求体（因此在判断为 Get 请求之后，有些实现可以直接忽略请求体。**
 
 （以上特点可以从 Servlet 中看出，HttpServletReqeust 中获取请求体方法返回的实际是 InputStream。
 

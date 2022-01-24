@@ -18,6 +18,8 @@ Netty 针对于对象池有一个轻量级的实现 ObejctPool，其基本实现
 >
 > 和 Recycler 不同，Apache 的对象池采用的是阻塞队列来保证并发安全（底层还是 AQS 那一套。
 
+<br>
+
 基本使用如下：
 
 ```java
