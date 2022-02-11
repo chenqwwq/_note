@@ -1,37 +1,46 @@
-# Sentinel中的滑动窗口实现
+# Sentinel 中的滑动窗口
 
 
 
 ## 概述
 
-Sentinel 中的统计使用滑动窗口来保证其平滑，最基础的实现就是 LeapArray（本文以分析 LeapArray 的实现实现为主。
+滑动窗口在实时数据统计时用于平滑过渡。
+
+> 例如在分钟的统计中，可以细分为 60 秒，以秒为单位进行窗口滑动，每秒废弃最远的一个窗口，而新建一个窗口。
+>
+> 以分钟为单位时，0.5 ~ 1.5 分的统计数据就会失去精度（过了最后一秒当前数据全清了，比如当前一分钟的数据全部集中在最后一秒，但是过了最后一秒之后数据重置了，此时又放进来一堆数据，0.5 ~ 1.5 的实际数据就会超出设定值。
 
 
 
+Sentinel 中的滑动窗口最基础的实现就是 LeapArray（本文以分析 LeapArray 的实现实现为主。
 
+LeapArray 作为基础的滑动窗口结构，而在其上有对应的统计接口 Metric（Metric 中指定了统计的指标数据。
 
 ## 窗口结构
 
-Sentinel 中实现的 LeapArray 作为滑动窗口的基本实现（保存单窗口数组。
+Sentinel 中实现的 LeapArray 作为滑动窗口的基本实现（保存窗口数组。
 
-![image-20211008235941152](assets/image-20211008235941152.png)<br>
+![LeapArray 的类注释](assets/image-20211008235941152.png)
 
-直接从初始化开始看，LeapArray 的构造函数如下：
+泛型 T 就是指保存的数据内容，直接从初始化开始看，LeapArray 的构造函数如下：
 
-![image-20211009001413559](assets/image-20211009001413559.png)
+![LeapArray 的构造函数](assets/image-20211009001413559.png)
 
 参数含义如下：
 
-| 参数             | 含义                        |
-| ---------------- | --------------------------- |
-| windowLengthInMs | 每个桶代表的时间            |
-| sampleCount      | 桶的数目                    |
-| intervalInMs     | 整个 LeapArray 代表时间跨度 |
-| array            | 整个窗口数组                |
+| 参数             | 含义                                    |
+| ---------------- | --------------------------------------- |
+| windowLengthInMs | 每个桶代表的时间                        |
+| sampleCount      | 桶的数目                                |
+| intervalInMs     | 整个 LeapArray 代表时间跨度（毫秒为单位 |
+| intervalInSecond | 整个 LeapArray 代表时间跨度（秒为单位   |
+| array            | 整个窗口数组                            |
 
 参数中指定了窗口数和整个数组代表的毫秒数，所以直接使用 intervalInMs / sampleCount 计算出了每个窗口的时间。
 
-另外 LeapArray 中的数组实现使用了 AtomicReferenceArray，并且以 WindowWrap 作为桶。
+LeapArray 中的数组实现使用了 AtomicReferenceArray，并且以 WindowWrap 作为桶。
+
+<br>
 
 以下是 WindowWrap 的变量定义：
 
