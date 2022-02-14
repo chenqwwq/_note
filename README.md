@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 > 个人笔记，就是胡咧咧。
+=======
+> yexingy个人笔记，就是胡咧咧。
+>>>>>>> cb6fe9b (sync)
 
 
 
@@ -29,15 +33,6 @@
 [Spring MVC 概述](spring/core/mvc/springmvc.md)
 
 ## Todo
-
-- Spring IOC Bean 创建流程
-  - 实例化过程
-  - 初始化过程
-  - 各类 BeanPostProcessor
-- Spring AOP
-  - 基于 Auto
-
-
 
 
 
