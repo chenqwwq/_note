@@ -22,7 +22,7 @@ ConcurrentHashMap 就是线程安全的 HashMap。
 
 ## 成员变量（关键的
 
-![ConcurrentHashMap#成员变量表](assets/image-20210911184252767.png)
+![ConcurrentHashMap#成员变量表](../assets/image-20210911184252767.png)
 
 以上是 ConcurrentHashMap 中大部分关键的成员列表，含义如下：
 
@@ -64,7 +64,7 @@ sizeCtl 表示的是 ConcurrentHashMap 的状态，可以分为如下情况：
 
 Node 表示一个 K/V 的数据对，并且也是桶中链表节点，具体源码如下：
 
-![image-20210911192655248](assets/image-20210911192655248.png)
+![image-20210911192655248](../assets/image-20210911192655248.png)
 
 常规的链表节点实现，但是它继承了 Map.Entry。
 
@@ -150,7 +150,7 @@ public V get(Object key) {
 
 首先就是**通过 spread 方法调整 Key 的 HashCode**，并获取。
 
-![image-20210911193130318](assets/image-20210911193130318.png)
+![image-20210911193130318](../assets/image-20210911193130318.png)
 
 将高低16位做并发，增加 HashCode 的随机性，减少 Hash 冲突的产生。
 

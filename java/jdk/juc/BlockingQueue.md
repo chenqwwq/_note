@@ -50,17 +50,17 @@ await/signal 和 wait/notify 的对比:
 
 **数组实现**的有界阻塞队列，新增和获取时都有可能被阻塞，**ArrayBlockingQueue 中采用单个重入锁，生成两个 Condition。**
 
-![ArrayBlockingQueue构造逆数](assets/image-20210302163949275.png)
+![ArrayBlockingQueue构造逆数](../assets/image-20210302163949275.png)
 
 ArrayBlockingQueue 的入队和出队基本都使用 enqueue 和 dequeue 方法来实现。
 
 在 put 方法上锁，然后线程安全的执行 enqueue 方法，以下显示 put 方法的源码:
 
-![ArrayBlockingQueue#put](assets/image-20210302170552537.png)
+![ArrayBlockingQueue#put](../assets/image-20210302170552537.png)
 
 上锁后开始判断容量，如果容量已满则使用 notFull 阻塞当前线程，等待唤醒，唤醒之后进入 enqueue 方法。
 
-![ArrayBlockingQueue#enqueue](assets/image-20210302164348387.png)
+![ArrayBlockingQueue#enqueue](../assets/image-20210302164348387.png)
 
 添加元素到原数组，然后通过 notEmpty 唤醒因为集合为空被阻塞的线程。
 
@@ -74,13 +74,13 @@ ArrayBlockingQueue 的入队和出队基本都使用 enqueue 和 dequeue 方法�
 
 LinkedBlockingQueue 就是**链表形式的阻塞队列**，以下为链表的 Node 节点:
 
-![LinkedBlockingQueue#Node](assets/image-20210302154637945.png)
+![LinkedBlockingQueue#Node](../assets/image-20210302154637945.png)
 
 **节点数据非常简单，线程的阻塞也是通过 Condition 实现的。**
 
 以下是实现阻塞的相关变量:
 
-![LinkedBlockingQueue的相关变量](assets/image-20210302154844242.png)
+![LinkedBlockingQueue的相关变量](../assets/image-20210302154844242.png)
 
 takeLock 和 putLock 是在新增和获取的时候的锁对象，而对应的 notEmpty 和 notFull 就是空和满两种状态的条件。
 
@@ -112,7 +112,7 @@ put 方法使用 putLock 上锁，使用 notFull 阻塞添加线程，并且使�
 
 以下是 PriorityBlockingQueue 的获取元素的过程：
 
-![PriorityBlockingQueue#dequeue](assets/image-20210818165028070.png)
+![PriorityBlockingQueue#dequeue](../assets/image-20210818165028070.png)
 
 **如果 dequeue 获取为空，则调用 notEmpty#await 阻塞调用进程。**
 
@@ -122,7 +122,7 @@ dequeue 方法的逻辑和正常的堆一样，从堆顶取元素，堆尾元素
 
 另外还有添加元素的过程：
 
-![PriorityBlockingQueue#offer](assets/image-20210818165626521.png)
+![PriorityBlockingQueue#offer](../assets/image-20210818165626521.png)
 
 添加元素的逻辑和堆一致，元素添加到堆尾并尝试上浮（siftUp），并且在添加成功之后唤醒 notEmpty 的条件阻塞。
 
@@ -196,7 +196,7 @@ private void tryGrow(Object[] array, int oldCap) {
 
 **DelayQueue 保存的元素必须要实现 Delayed 接口。**
 
-![image-20210818172043918](assets/image-20210818172043918.png)
+![image-20210818172043918](../assets/image-20210818172043918.png)
 
 Delayed 提供的是任务的比较以及任务剩余等待时间的获取（getDelay）。
 
@@ -259,7 +259,7 @@ DelayQueue 需要在任务到期的时候唤醒一个线程去获取，leader �
 
 以下是添加元素的方法，其中可以看到 leader 的作用：
 
-![DelayQueue#offer](assets/image-20210818173228775.png)
+![DelayQueue#offer](../assets/image-20210818173228775.png)
 
 添加任务的时候，如果当前的任务被放在堆顶，则会置空 leader 变量，因为 leader 等待的任务已经不是首个到期任务了。
 
@@ -273,7 +273,7 @@ DelayQueue 需要在任务到期的时候唤醒一个线程去获取，leader �
 
 同步队列（SynchronousQueue）是一个相对特殊的队列，以下是它的类注释：
 
-![SynchronousQueue类注释](assets/image-20210818142139118.png)
+![SynchronousQueue类注释](../assets/image-20210818142139118.png)
 
 **同步队列的插入动作必须等带对应的删除操作**，反之亦然（and vice versa）。
 

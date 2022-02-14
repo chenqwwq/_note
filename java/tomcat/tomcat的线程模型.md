@@ -1,4 +1,4 @@
-# Tomcat 的线程模型
+# xTomcat 的线程模型
 
 ---
 
@@ -20,7 +20,7 @@
 
 往往是单线程组成的线程组，负责持有服务端的 Socket / SocketChannel（BIO 就是单纯的 Socket，NIO 会抽象成为 SocketChannel，并对以上的 accpet 事件做响应，建立客户端的 Socket / Channel。
 
-Acceptor 建立的 Socket 会封装为 PollerEvent 并且放入 PololerEvent。
+Acceptor 建立的 Socket 会封装为 PollerEvent 并且放入 PollerEvent。
 
 该线程类似于 Multi Reactor 的 Main Reactor（参考 Netty 的 ParentGroup，主要都是负责连接的建立。
 
