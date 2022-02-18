@@ -1,6 +1,8 @@
 # Summary
 
 * [Introduction](README.md)
+* 知识脑图
+  - [Java 虚拟机相关](https://www.processon.com/view/link/6064961d6376891a06bbe35e)
 * [Java](./java/README.md)
   * [JDK 源码分析]()
     * JUC
@@ -33,6 +35,7 @@
     * [元空间和永久代](java/jvm/元空间和永久代.md)
     * [synchronized 关键字](java/jvm/synchronized.md)
     * [JVM 的类加载子系统](java/jvm/JVM的类加载子系统.md)
+    * [JVM 的内存管理](java/jvm/JVM的内存管理.md)
   * [Guava 源码分析]()
     * [EventBus 相关源码解析](java/guava/EventBus.md)
     * [RateLimiter 源码分析](java/guava/RateLimiter.md)
