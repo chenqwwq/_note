@@ -689,7 +689,7 @@ interface AbstractFactoryInterface {
 
 但是简单工厂模式有以下几个缺点：
 
-1. 不符合开闭原则，难以扩展。
+1. 不符合开闭原则，难以扩展，增加元素时只能靠修改原方法。
 2. 单工厂的逻辑过重，承载了太多的创建逻辑。
 
 单工厂的逻辑过重的问题会随着需要负责的类的增多而凸显，增加维护难度，很大程度上违背了单一职责，接口隔离原则。
@@ -1320,7 +1320,7 @@ class MyComputer extends Computer {
 类图如下：
 
 ```mermaid
-kclassDiagram
+classDiagram
 
 class FlyweightFactory
 FlyweightFactory: getFlyweight(key) Flyweight 

@@ -30,7 +30,7 @@
 1. 证书的颁发机构（Issuer）
 2. 证书的有效期（Valid From，Valid To）
 3. 服务器自身的公钥（Public Key）
-4. 证书的持有这（Subject）
+4. 证书的持有者（Subject）
 5. 签名算法（Signature algorithm）
 6. 指纹（Thumbprint）
 7. 指纹算法（Thumbprint algorithm）

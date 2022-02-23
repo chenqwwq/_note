@@ -210,7 +210,7 @@ protected <T> T doGetBean(String name, @Nullable Class<T> requiredType, @Nullabl
 
 ### BeanFactory 的三级缓存
 
-![image-20211101235738386](assets/image-20211101235738386.png)
+![BeanFactory#getSingleton](assets/image-20211101235738386.png)
 
 该方法中涉及的三级缓存如下：
 
@@ -287,7 +287,7 @@ protected Object getObjectForBeanInstance(
 
 该流程方法就是从 FactoryBean 中获取真实的对象。
 
-[FactoryBean](spring/spring-core/ioc/FactoryBean.md)
+[FactoryBean](./FactoryBean.md)
 
 ```java
 // FactoryBeanRegistrySupport#getObjectFromFactoryBean

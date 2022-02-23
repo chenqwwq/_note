@@ -493,3 +493,29 @@ private static final class PerThreadQueuedDispatcher extends Dispatcher {
 
 区别于原来异步的实现，高版本直接将 Executor 包含进了 Subscriber 里面，并且在初始化的时候直接获取的 EventBus 中的队列。
 
+
+
+
+
+
+
+## EventBus 和 Spring 的异同 
+
+EventBus 的抽象分为 Dispatcher，Evecutor，SubscriberRegistry，由 SubscriberRegistry 持有所有的监听器。
+
+Spring 并没有细分各类抽象，ApplicationContext 起到了类似于 EventBus 的作用，而 Dispatcher 和 SubscriberRegistry 由广播器（ApplicationEventMulticaster）来实现。
+
+<br>
+
+EventBus 中注册是单个方法，并且将方法第一个参数作为监听目标事件，Spring 注册的则是一整个实现类（通过模板方法模式+责任链模式的方式），监听的目标并没办法立即获得，而是通过 support 方法判断。
+
+<br>
+
+通过事件来查找对应的监听器的时候，EventBus 可以通过 Map 直接获取（需要遍历 Event 及其父类），而 Spring 中的查找需要遍历所有监听器的 support 方法并缓存其结果。
+
+<br>
+
+Spring 并咩有将事件调度过程抽象，调度方式是基本的 for 循环，而 EventBus 支持多种的调度形式，可能更加合理。
+
+<br>
+

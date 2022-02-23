@@ -2,11 +2,11 @@
 
 
 
-HTTP（超文本传输协议），意思就是可以传输文本之外的任何数据，包括图片，音视频等，属于最常见的 C/S 结构协议（C/S 协议就是客户端/服务端协议，有明显的请求和响应
+HTTP（超文本传输协议），意思就是可以传输文本之外的任何数据，包括图片，音视频等，属于最常见的 C/S 结构协议（C/S 协议就是客户端/服务端协议，有明显的请求和响应的区别。
 
 
 
-## Http 报文格式
+## HTTP 报文格式
 
 ### 请求报文格式
 
@@ -52,15 +52,15 @@ HTTP 中常见的请求只有 GET/POST，GET 表示获取某些数据，而 POST
 
 额外的还有 HEAD，只用于获取服务端的响应头信息，例如在下载前使用 HEAD 获取响应头，并根据返回判断是否可以分段下载（Accept-Ranges: bytes，表示可以根据 byte 为单位进行分段传输。
 
-另外还有 DELETE，PUT 等（不知道是不是基于 RESTFul 定义的，有些框架还是会默认按照 POST 去处理。
+另外还有 DELETE，PUT 等（不知道是不是基于 RESTFul 定义的，有些框架还是会默认按照 POST 去处理 DELETE 等请求类型。
 
 
 
-## Header
+## Header（头部信息）
 
 Header 分为请求头和响应头，分别对应了客户端和服务端的一些配置项。
 
-部分请求头如下：
+### 请求首部
 
 | 请求头名称    | 含义                                                         | 示例                                                         |
 | ------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
@@ -71,46 +71,41 @@ Header 分为请求头和响应头，分别对应了客户端和服务端的一�
 | If-Range      | 条件范围获取，满足对应条件则返回对应范围，和 Range 配合使用  | If-Range: <day-name>, <day> <month> <year> <hour>:<minute>:<second> GMT If-Range: <etag> |
 | Authorization | 用户的认证信息                                               | Authorization: <type> <credentials>                          |
 
-部分响应头如下：
-
-| 响应头名称       | 含义                                                         | 示例                                                   |
-| ---------------- | ------------------------------------------------------------ | ------------------------------------------------------ |
-| Content-Length   | 响应体内容长度                                               | Content-Length: 1024                                   |
-| Content-Range    | 消息范围                                                     | Content-Range: <unit> <range-start>-<range-end>/<size> |
-| Content-Type     | 响应体类型                                                   | Content-Type: application/json,text/html               |
-| Content-Encoding | 内容的编码格式                                               | Content-Encoding: gzip                                 |
-| Accept-Ranges    | 客户端是否支持范围传输，以及范围传输单位                     | Accept-Ranges: none<br />Accept-Ranges:  bytes         |
-| Cache-Control    | 设置请求的缓存策略，是否使用缓存，缓存的超时时间。           | Cache-Control: max-age=120                             |
-| ETag             | 当前数据的令牌或者摘要，再断点续传时用于判断对应的文件数据是否修改。 |                                                        |
-| last-modified    | 包含服务端内容最后的修改时间，相比 ETag 精确度低，所以值作为一个备用机制 ，配合 If-Modified-Since 或者 If-Unmodified-Since 使用 |                                                        |
 
 
+### 响应首部
+
+| 响应头名称        | 含义                                                         | 示例                                                   |
+| ----------------- | ------------------------------------------------------------ | ------------------------------------------------------ |
+| Content-Length    | 响应体内容长度                                               | Content-Length: 1024                                   |
+| Content-Range     | 消息范围                                                     | Content-Range: <unit> <range-start>-<range-end>/<size> |
+| Content-Type      | 响应体类型                                                   | Content-Type: application/json,text/html               |
+| Content-Encoding  | 内容的编码格式                                               | Content-Encoding: gzip                                 |
+| Accept-Ranges     | 客户端是否支持范围传输，以及范围传输单位                     | Accept-Ranges: none<br />Accept-Ranges:  bytes         |
+| Cache-Control     | 设置请求的缓存策略，是否使用缓存，缓存的超时时间。           | Cache-Control: max-age=120                             |
+| ETag              | 当前数据的令牌或者摘要，再断点续传时用于判断对应的文件数据是否修改。 |                                                        |
+| Last-Modified     | 包含服务端内容最后的修改时间，相比 ETag 精确度低，所以值作为一个备用机制 ，配合 If-Modified-Since 或者 If-Unmodified-Since 使用 |                                                        |
+| Transfer-Encoding | 表示传输的格式，基本只用于 chunked 传输                      |                                                        |
 
 
 
-## 条件请求
 
-条件式的请求就是指服务端会**根据特定的条件请求头判断条件是否成立（绝大部分都是判断资源版本是否匹配）而决定最终的返回结果**。
 
-可以用于缓存是否过期的判断，以及断点续传前对资源是否改变的判断。
+## 响应体大小
 
-<br>
+客户端在接收到响应数据之后如何才能判断响应体是否已经结束。
 
-针对不同的请求类型条件请求有不同的行为方式，如果是 GET 请求是在条件满足之后才会满足，如果是 POST 则是条件满足之后才会更新。
+HTTP 1.1 之后都会采用持久的 TCP 连接来发送请求并接收响应，对于 TCP 而言所有的数据都是以流的形式存在的，此时就需要 HTTP 客户端自行判断响应体大小（需要服务端配合。
 
-<br>
+响应头 Content-Length 就是用来告诉客户端当前的响应体大小的（单独指响应体，突然发现 TOMCAT 里面工作线程只读取到 Header 就先进行处理也是有道理的。
 
-判断条件基本就是资源是否已经改变，**判断资源是否改变的根据就是 ETag 或者 last-modified。**
+但是存在部分情况可能没办法第一时间获取 Content-Length，比如通过 JSP 渲染的页面，并不是一个确定的值，此时就只能使用 Transfer-Encoding 请求头来表示分块传输。
 
-相关请求头：
+分块传输使用 **的请求头为： Transfer-Encoding: chunked** ，**并且一个空的数据块作为结束标志。**
 
-| 请求头              | 含义                                                         |
-| ------------------- | ------------------------------------------------------------ |
-| If-Match            |                                                              |
-| If-None-Match       |                                                              |
-| If-Modified-Since   |                                                              |
-| If-Unmodified-Since |                                                              |
-| If-Range            | 适用于 ETag / last-modified，只有该头部满足后 Range 头部才会生效 |
+[HTTP Range - 分段下载](https://www.dalvik.work/2021/12/16/http-range/)
+
+
 
 
 
@@ -140,21 +135,37 @@ Accept-Range 表示服务端是否支持反范围请求，返回 Accept-Range: b
 
 在重新获取的时候需要判断之前的数据是否已经改变（**通过 If-Range 判断 ETag 或者 last-modified。**
 
-### 分块传输
 
-分块传输和分段下载功能类似，但是分段传输是客户端主动请求的（客户端可以通过 Content-Range 知道具体的内容大小。
 
-但是存在某一些数据无法知道具体的文件大小，此时就是用分快传输。
 
-**涉及到的请求头为： Transfer-Encoding: chunked**
 
-分块传输使用一个空的数据块作为结束标志。
+## 条件请求
 
-### reference
+条件式的请求就是指服务端会**根据特定的条件请求头判断条件是否成立（绝大部分都是判断资源版本是否匹配，通过  ETag 或者 last-modified）而决定最终的返回结果**。
 
-- [HTTP Range - 分段下载](https://www.dalvik.work/2021/12/16/http-range/)
+可以用于缓存是否过期的判断，以及断点续传前对资源是否改变的判断。
 
-- [HTTP 条件请求](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Conditional_requests)
+<br>
+
+针对不同的请求类型条件请求有不同的行为方式，如果是 GET 请求是在条件满足之后才会满足，如果是 POST 则是条件满足之后才会更新。
+
+<br>
+
+判断条件基本就是资源是否已经改变，**判断资源是否改变的根据就是 ETag 或者 last-modified。**
+
+相关请求头：
+
+| 请求头              | 含义                                                         |
+| ------------------- | ------------------------------------------------------------ |
+| If-Match            |                                                              |
+| If-None-Match       |                                                              |
+| If-Modified-Since   |                                                              |
+| If-Unmodified-Since |                                                              |
+| If-Range            | 适用于 ETag / last-modified，只有该头部满足后 Range 头部才会生效 |
+
+[HTTP 条件请求](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Conditional_requests)
+
+
 
 
 
@@ -186,13 +197,51 @@ Cache-Control: private｜public // 私有/公有缓存，是否允许中间代�
 
 管线化机制可以跳过等待响应的时候，直接发送后续的请求报文，从而减少总体的网络延时。
 
-但是问题在于管线化并没有解决响应乱序问题，请求相当于使用 FIFO 的队列保存，而响应却可能乱序，因此管线化只可用在幂等的请求方法中（GET）
+但是问题在于管线化并没有解决响应乱序问题，请求相当于使用 FIFO 的队列保存，客户端直接发送多个请求而希望服务端可以按照顺序回传响应。
 
-**管线化无法完全解决队头阻塞问题。**
-
-
+**管线化无法解决队头阻塞问题。**
 
 
+
+
+
+## HTTP 首部压缩（Header Compress）
+
+首部压缩是在 HTTP 2.0 中使用的新特性，因为在 HTTP 的 Request / Response 中往返存在很多相同的请求头。
+
+（比如，connection: keep-alive 这种每次请求都会传输，这就是带宽的损耗。
+
+HTTP 2.0 中首部只需要在首次请求时添加到请求中，之后仅仅在修改的时候才需要改变。
+
+<br>
+
+HTTP 的首部压缩是和二进制分帧同时推出的。
+
+
+
+
+
+## HTTP 二进制分帧
+
+（同样是 HTTP 2.0 中提出的新机制。
+
+HTTP 2.0 中数据内容改为了二进制传输（HTTP 2.0 之前都是以文本格式传输的（甚至明文），并新增了一层二进制分帧层，来实现从 1.x 版本的明文传输到二机制传输的过渡。
+
+<br>
+
+![http2_binary_framing_layer](https://st.imququ.com/i/webp/static/uploads/2015/05/http2_1.png.webp)
+
+
+
+HTTP 2.0 所有的请求都可以被称为消息，消息经过二进制分帧层之后被转化为 n 个帧（一个请求可能被分解为多个帧），帧结构又可以分为 Headers Frame 以及 Data Frame 两种，分别编码和传输。
+
+同一个请求分出来的帧以及其对应的响应帧在一个流中被处理（分帧的时候会打上流的标记，对应的处理回传的响应帧。
+
+流是对连接的进一步分解，一个 TCP 连接中可以分出多个流分别处理各自的请求和响应。
+
+
+
+[HTTP/2 与 WEB 性能优化（二）](https://imququ.com/post/http2-and-wpo-2.html)
 
 
 
@@ -233,6 +282,12 @@ Cache-Control: private｜public // 私有/公有缓存，是否允许中间代�
 ### HTTP 2.0
 
 HTTP 2.0 之后报文不在于文本形式明文传输，而改为二进制传输。
+
+
+
+## 其他
+
+在 rfc2616 中规定，一个浏览器针对一个域名最多只能发起两个 TCP 连接。
 
 
 

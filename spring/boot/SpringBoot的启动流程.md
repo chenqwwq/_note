@@ -257,7 +257,7 @@ public EventPublishingRunListener(SpringApplication application, String[] args) 
 
 EventPublishingRunListener 是应用启动初期的监听者，也是借助于 SimpleApplicationEventMulticaster 广播事件，实现如下图：
 
-<img src="/home/chen/_note/pic/image-20210302000737616.png" alt="image-20210302000737616" style="zoom:67%;" />
+<img src="../../pic/image-20210302000737616.png" alt="image-20210302000737616" style="zoom:67%;" />
 
 > 另外值得注意的是，**在 contextLoaded 事件之后事件的发布又是使用 ApplicationContext 来完成的**，因为 ApplicationContext 中的事件发布器已经完成初始化了了。
 
@@ -426,7 +426,7 @@ private void prepareContext(ConfigurableApplicationContext context, Configurable
 
 之后是调用 load 加载 BeanDefinition，如下图所示：
 
-<img src="/home/chen/_note/pic/image-20210303233808309.png" alt="image-20210303233808309" style="zoom: 50%;" />
+<img src="../../pic/image-20210303233808309.png" alt="image-20210303233808309" style="zoom: 50%;" />
 
 所有的 BeanDefinition 都是通过 BeanDefinitionLoader 获取的。
 
@@ -525,7 +525,7 @@ public void refresh() throws BeansException, IllegalStateException {
 
 1. 调用所有的 BeanFactoryPostProcessor
 
-> BeanFactoryPostProcessor 是堆 BeanFactory 的扩展点，暴露创建的 BeanFactory 对象，允许用户自定义修改 BeanDefinition。
+> BeanFactoryPostProcessor 是对 BeanFactory 的扩展点，暴露创建的 BeanFactory 对象，允许用户自定义修改 BeanDefinition。
 
 主要的 BeanFactoryPostProcessor 
 

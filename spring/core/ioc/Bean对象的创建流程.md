@@ -12,7 +12,7 @@
 
 Spring 将 Bean 对象的创建分为了两大块内容:
 
-1. 实例化 - 根据 BeanDefinition 创建具体的实例对象
+1. 实例化 - 根据 BeanDefinition 创建具体的实例对象（BeanDefinition 是 Java 在读取配置后为每个定义的 Bean 创建的。
 2. 初始化 - 对创建的实例对象进行一系列的配置
 
 在以上两个步骤中再穿插着各类 BeanPostProcessor 的调用，就组成了 Bean 对象基本的创建流程。
@@ -25,7 +25,7 @@ Spring 将 Bean 对象的创建分为了两大块内容:
 
 
 
-> 在 AbstractBeanFactory#getBean 的源码实现中，AbstractBeanFactory#createBean 被包装为 ObjectFactory ，作为核心的创建 Bean 实例的逻辑传入。
+> 在 AbstractBeanFactory#getBean 的源码实现中，AbstractBeanFactory#createBean 被包装为 ObjectFactory 接口实现 ，作为核心的创建 Bean 实例的逻辑传入。
 
 ## 源码实现
 
@@ -71,7 +71,7 @@ protected Object createBean(String beanName, RootBeanDefinition mbd, @Nullable O
 
 ### 解析 Class 对象
 
-
+> 暂时忽略。
 
 ### 处理 Override 方法
 
@@ -525,8 +525,6 @@ protected void autowireByName(String beanName, AbstractBeanDefinition mbd, BeanW
 > 妈的，真的太多了，先暂停一下吧。（20211123
 >
 > [Bean 获取和创建的简单总结](./Bean对象的获取和创建流程.md)
-
-
 
 
 

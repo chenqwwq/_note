@@ -212,7 +212,7 @@ Spring 中事务的发布流程的核心方法其实实现在 AbstractApplicatio
 
 如果没有指定，ApplicationContext 中使用的也是 SimpleApplicationEventMulticaster 来发布对应的事件。
 
-## 自定义监听器的女方是
+## 自定义监听器的方式：
 
 实现自定义的事件监听有以下三种方式:
 

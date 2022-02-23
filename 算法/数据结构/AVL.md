@@ -1,4 +1,18 @@
+# AVL （自平衡的二叉搜索树
 
+
+
+## 基本性质
+
+AVL 本身就是一颗二叉搜索树，并且要求平衡因子不超过1。
+
+对于查找来想相对于 BST，AVL 更加稳定，都是 O(LogN) 的复杂度，但是对于插入 AVL 需要额外的旋转来实现平衡的过程，但是总体的时间复杂度维持在 O(LogN) （略大于。
+
+
+
+ 
+
+## Go 实现
 
 ```go
 package main
@@ -48,20 +62,6 @@ type AVLTree interface {
 type AVL struct {
 	root          *node
 	balanceFactor int // 平衡因子，能接受的左右子树的高度差
-}
-
-func getTestTree() *AVL {
-	n := Constructor()
-	n.Add(5)
-	n.Add(3)
-	n.Add(7)
-	n.Add(2)
-	n.Add(4)
-	n.Add(6)
-	n.Add(8)
-	n.Add(1)
-	n.Add(9)
-	return n
 }
 
 func (avl *AVL) Add(val int) *node {
@@ -266,20 +266,6 @@ func (this *node) getHeight() int {
 	return this.height
 }
 
-func abs(a int) int {
-	if a < 0 {
-		return -a
-	}
-	return a
-}
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-
 // 旋转方法
 // LL 和 RR 可能颠倒
 
@@ -327,6 +313,22 @@ func (this *node) rotateLR() *node {
 func (this *node) rotateRL() *node {
 	this.right = this.right.rotateRR()
 	return this.rotateLL()
+}
+
+
+// 通用方法
+func abs(a int) int {
+	if a < 0 {
+		return -a
+	}
+	return a
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }
 
 ```

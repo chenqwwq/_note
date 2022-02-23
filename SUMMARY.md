@@ -65,6 +65,7 @@
     * [ProxyFactory](spring/core/aop/ProxyFactory.md)
     * [Aop 实现的不同方式](spring/core/aop/Aop实现的不同方式.md)
     * [Async 的实现原理](spring/core/module/async.md)
+    * [Bean 对象的创建流程](spring/core/ioc/Bean对象的创建流程.md)
   * SpringBoot
     - [SpringBoot 的事件模型](spring/boot/SpringBoot的事件模型 .md)
     - [SpringBoot 的启动流程](spring/boot/SpringBoot的启动流程.md)
