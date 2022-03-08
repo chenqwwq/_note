@@ -4,13 +4,17 @@
 
 [TOC]
 
+---
+
+
+
 ## 概述
 
 **ChannelPipeline 就是 Netty 中任何 IO 事件的处理链（责任链模式。**
 
 每一个 Channel 都会持有一个 ChannelPipeline 的实例对象，（也就是说 Channel 之间的 ChannelPipeline 之间都是相互独立的，并不会互相影响。
 
-不论是服务端还是客户端的 Channel 都会有自己的 ChannelPipeline，在 ServerBootstrap 声明的时候分别是 handler() 和 childHandler() 方法。
+不论是服务端还是客户端的 Channel 都会有自己的 ChannelPipeline，在 ServerBootstrap 声明的时 handler() 和 childHandler() 分别代表服务端 Channel 和客户端 Channel 的处理链。
 
 
 

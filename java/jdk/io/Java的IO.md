@@ -26,6 +26,8 @@ Java 的 IO 可以分为 BIO，NIO，AIO 三类（以网络 IO 介绍，文件 I
 
 BIO 是 Java 中最基础的 IO 模式，对应来说是 Linux 五种 IO 模型中的**同步阻塞 IO**。
 
+BIO 操作的对象是 Socket/ServerSocket，并且以流的形式来读写数据。
+
 
 
 ## NIO

@@ -8,17 +8,19 @@
 
 ## 概述
 
-**Netty 在创建 ServerBootstrap 并绑定端口的时候，就会创建服务端的 ServerSocketChannel 绑定 EventLoop，并监听 Channel 上的 OP_ACCEPT 事件。**
+**Netty 在创建服务端 Bootstrap（ServerBootstrap）并绑定端口的时候，就会创建服务端的 Channel（ServerSocketChannel ）绑定上 EventLoop，并监听 Channel 上的 OP_ACCEPT 事件。**
 
-> ServerBootstrap 在初始化 ServerSocketChannel 的时候还会添加一个特殊的 ChannelInboundHandler，也就是 ServerBootstrapAcceptor，它是处理 accpet 事件的主要对象。
+> ServerBootstrap 在初始化 ServerSocketChannel 的时候还会添加一个特殊的 ChannelInboundHandler，也就是 **ServerBootstrapAcceptor**，它是处理 accpet 事件的主要对象。
 
-通过 accpet 方法返回的是 JDK 原生的 Channel，因此 Netty 还需要对其进行封装（变成 Netty 自定义的 Channel 类型）并绑定到某个 EventLoop 中。
+<br>
+
+通过 accpet 方法返回的是 JDK 原生的 Channel，因此 Netty 还需要对其进行封装（封装为  Netty 自定义的 Channel 类型）并绑定到某个 EventLoop 中。
 
 ![](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201122230741489.png)
 
-以上就是 NioEventLoop#run 方法也就是轮询方法中的一段，这里就包含了 SelectionKey.OP_ACCEPT 事件的处理，**所以创建SocketChannel的起点就在 unsafe.read 方法。**
+以上就是 NioEventLoop#run 方法也就是轮询方法中的一段，这里就包含了 SelectionKey.OP_ACCEPT 事件的处理。
 
-> Netty 中 accpet 和 read 在同一个方法签名中实现，指示 unsafe 表示的不同对象。
+**创建 SocketChannel 的起点就在 unsafe.read 方法。**
 
 
 
@@ -28,6 +30,8 @@ Netty 中的底层读写基本是由 Unsafe 类完成的，Unsafe 的实现分�
 
 - **NioMessageUnsafe  -  以 Object 列表作为缓存读取**
 - **NioByteUnsafe  -  以 ByteBuf 作为缓存读取**
+
+Netty 中 accpet 和 read 在同一个方法签名中实现，通过不同  unsafe 实现不同的逻辑。
 
 以下是 AbstractNioMessageChannel$NioMessageUnsafe#read 方法的部分源码:
 
@@ -49,7 +53,9 @@ AbstractNioMessageChannel#doReadMessages 是一个模板方法，以下是 NioSe
 
 <br>
 
-显而易见的，对 NioSocketChannel 进一步初始化以及绑定 EventLoop 的逻辑都在 channelRead 事件中，在服务端初始化的时候，**ServerBootstrap 添加的 ServerBootstrapAcceptor 也在这个时候发挥作用。**
+显而易见的，对 NioSocketChannel 进一步初始化以及绑定 EventLoop 的逻辑都在 channelRead 事件中。
+
+在服务端初始化的时候，**添加的 ServerBootstrapAcceptor 也在这个时候发挥作用。**
 
 <br>
 
@@ -110,4 +116,12 @@ AbstractNioByteChannel 是 NioSocketChannel的直接父类。
 **ServerBootstrapAcceptor 继承自 ChannelInboundHandlerAdapter 负责响应 Accept 事件，生成 SocketChannel，并注册到 EventLoop。**
 
 ServerBootstrapAcceptor 是在服务端 ServerSocketChannel 创建并初始化的时候 addLast 添加的（initAndRegister）。
+
+
+
+
+
+> ChannelPipeline 的初始化
+
+ChannelPipeline 在一开始都会被包装为 ChannelInitilalizer，然后在首次注册的时候调用 handlerAdd 方法。
 

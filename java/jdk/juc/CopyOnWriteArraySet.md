@@ -14,7 +14,7 @@ CopyOnWriteArraySet 是对 Set 接口的并发安全实现。
 
 以下为该类的类注释：
 
-![image-20210826233942234](assets/image-20210826233942234.png)
+![image-20210826233942234](../assets/image-20210826233942234.png)
 
 由类注释可以了解如下信息:
 
@@ -36,7 +36,7 @@ CopyOnWriteArraySet 是对 Set 接口的并发安全实现。
 
 **CopyOnWriteArraySet 采用了 CopyOnWriteArrayList 实现所有的内部操作，**成员变量如下：
 
-![image-20210826233840080](assets/image-20210826233840080.png)
+![image-20210826233840080](../assets/image-20210826233840080.png)
 
 
 

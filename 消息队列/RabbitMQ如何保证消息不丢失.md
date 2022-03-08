@@ -36,9 +36,9 @@ RabbitMQ 可以分为 Producer（生产者），Consumer（消费者），Exchan
 
 该过程可以通过[生产者确认（Publisher Confirm）](https://www.rabbitmq.com/tutorials/tutorial-seven-java.html) 来保证。
 
-**Confirm 机制开启之后，会为生产者的每条消息添加从1开始的id，如果 Broker 确定接收到消息，则返回一个 confirm。**
+**Confirm 机制开启之后，会为生产者的每条消息添加从1开始递增的唯一  id，如果 Broker 确定接收到消息，则返回一个 confirm。**
 
-Confirm 机制只负责到消息是否到达 Exchange 不负责后续的消息投递等流程，另外 RabbitMQ 也提供了事务的情况，事务的作用就是确保消息一定能够全部到达 Broker。
+Confirm 机制只负责到消息是否到达 Exchange，不负责后续的消息投递等流程，另外 RabbitMQ 也提供了事务的情况，事务的作用就是确保消息一定能够全部到达 Broker。
 
 <br>
 

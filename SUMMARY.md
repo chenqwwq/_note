@@ -44,7 +44,7 @@
   * [NIO 服务端启动流程](netty/netty逻辑流程/NIO服务端启动流程.md)
   * [ChannelPipeline的结构和初始化流程](netty/netty逻辑流程/ChannelPipeline的结构和初始化流程.md)
   * [NioEventLoop的事件轮询](netty/netty逻辑流程/NioEventLoop的事件轮询.md)
-  * [客户端Channel的建立过程](netty/netty逻辑流程/客户端Channel的创建流程.md)
+  * [客户端Channel的建立过程](netty/netty逻辑流程/服务端ACCEPT事件相关流程.md.md)
   * [ChannelPipeline事件传递机制](netty/netty逻辑流程/ChannelPipeline事件传递机制.md) - TODO
   * [Netty 中的编解码逻辑](netty/netty逻辑流程/Netty中的编解码逻辑.md)
   * [Netty 中写数据的逻辑](netty/netty逻辑流程/Netty中写数据的逻辑.md) - 未开始
@@ -95,6 +95,7 @@
     * [TCP 协议总结（一）](网络/tcp协议整理1.md)
     * [Linux 中的相关 TCP 参数](网络/tcp内核参数整理.md)
   * [HTTP](网络/http.md)
+  * [HTTPS](网络/https.md)
 * 系统设计
   * [如何设计 TinyURL 系统](系统设计/如何设计TinyURL系统.md)
 * 其他

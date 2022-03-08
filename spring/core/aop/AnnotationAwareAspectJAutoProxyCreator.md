@@ -1,5 +1,7 @@
 # AnnotationAwareAspectJAutoProxyCreator 
 
+
+
 ## 类图
 
 ![AnnotationAwareAspectJAutoProxyCreator](assets/AnnotationAwareAspectJAutoProxyCreator.png)
@@ -67,6 +69,12 @@ proxyTypes 中保存的是对代理对象的映射，**该缓存在代理对象�
 ![image-20211125155910262](assets/image-20211125155910262.png)
 
 获取缓存的 Key，并且会**添加原始 bean 实例（未经过属性填充和初始化的对象）到 earlyProxyReferences** ，之后尝试代理该对象。
+
+<br>
+
+这个方法的调用时机很特殊，Spring 在创建 Bean 对象的时候会考虑提前暴露引用，此时不是单纯暴露对象，而是讲对象包装成 ObjectFactory，工厂中包装的就是对该方法对调用。
+
+因为未进行初始化的时候尚不知道最后是真实对象还是代理对象，如果此时贸然暴露就会使代理实现，所以使用该方法也提前创建代理对象，使用 ObjectFactory 的原因是使代理的创建也切到懒加载模式。
 
 
 

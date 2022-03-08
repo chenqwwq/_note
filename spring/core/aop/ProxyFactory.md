@@ -10,7 +10,7 @@
 
 ProxyFactory 是 Spring 中创建动态代理的工厂类，以下是 ProxyFactory 的类图：
 
-<img src="/home/chen/_note/pic/image-20210307232919119.png" alt="image-20210307232919119" style="zoom:67%;" />
+<img src="../../../pic/image-20210307232919119.png" alt="image-20210307232919119" style="zoom:67%;" />
 
 
 
@@ -18,7 +18,7 @@ ProxyFactory 是 Spring 中创建动态代理的工厂类，以下是 ProxyFacto
 
 该类中维护了一些基本的代理属性。
 
-<img src="/home/chen/_note/pic/image-20210307233056966.png" alt="image-20210307233056966" style="zoom:67%;" />
+<img src="../../../pic/image-20210307233056966.png" alt="image-20210307233056966" style="zoom:67%;" />
 
 这五个属性的含义分别是：
 
@@ -36,19 +36,19 @@ ProxyFactory 是 Spring 中创建动态代理的工厂类，以下是 ProxyFacto
 
 代理的创建流程就是从 ProxyFactory#getProxy 开始的。
 
-<img src="/home/chen/_note/pic/image-20210307233632767.png" alt="image-20210307233632767" style="zoom:67%;" />
+<img src="../../../pic/image-20210307233632767.png" alt="image-20210307233632767" style="zoom:67%;" />
 
 ### 创建 AopProxy 对象
 
 以下是 ProxyCreatorSupport#createAopProxy 的源码：
 
-<img src="/home/chen/_note/pic/image-20210307233823035.png" alt="image-20210307233823035" style="zoom:67%;" />
+<img src="../../../pic/image-20210307233823035.png" alt="image-20210307233823035" style="zoom:67%;" />
 
 getAopProxyFactory() 就是获取 AopProxyFactory 类，该类是 AopProxy 的工厂类，默认为 DefaultAopProxyFactory。
 
 以下是 DefaultAopProxyFactory#createAopProxy 方法源码:
 
-<img src="/home/chen/_note/pic/image-20210307234005228.png" alt="image-20210307234005228" style="zoom:67%;" />
+<img src="../../../pic/image-20210307234005228.png" alt="image-20210307234005228" style="zoom:67%;" />
 
 创建代理类一共又两种方法：
 
@@ -71,6 +71,6 @@ getAopProxyFactory() 就是获取 AopProxyFactory 类，该类是 AopProxy 的�
 
 在获取到 ProxyFactory 之后就调用 getProxy 方法获取最终的代理类。
 
-<img src="/home/chen/_note/pic/image-20210307235518132.png" alt="image-20210307235518132" style="zoom:67%;" />
+<img src="../../../pic/image-20210307235518132.png" alt="image-20210307235518132" style="zoom:67%;" />
 
 找到实现接口，最终还是使用 Proxy.newProxyInstance 来创建的代理类，以当前类 也就是 JdkDynamicAopProxy 作为最终的 InvocationHandler。

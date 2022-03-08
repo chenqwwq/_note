@@ -284,3 +284,19 @@ DelayQueue 需要在任务到期的时候唤醒一个线程去获取，leader �
 **队列不允许 null 元素**。
 
 [SynchronousQueue 源码实现](./SynchronousQueue.md)
+
+
+
+
+
+## BlockingQueue 的并发安全实现
+
+
+
+| 队列名                | 实现方式      |
+| --------------------- | ------------- |
+| ArrayBlockingQueue    | ReentrantLock |
+| ConcurrentLinkedQueue | CAS           |
+| LinkedBlockingQueue   | ReentrantLock |
+| LinkedTransferQueue   | CAS           |
+

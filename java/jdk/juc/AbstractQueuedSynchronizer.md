@@ -28,10 +28,6 @@ AbstractQueuedSynchronizer 是用于**构造锁和基本同步器**的基础框�
 
 **Condition 使用同样的双端队列来保存阻塞的任务。**
 
-> CLH队列锁是自旋锁的一种简单实现，后继节点需要轮询前驱节点状态判断自己的动作，可以确保线程无饥饿，也可以保证锁释放的顺序。
->
-> 另外还有一种自旋锁队列的实现叫 MCS 队列，该队列是由前驱节点来修改后继节点的状态来确定后继节点的轮询。
-
 
 
 **AbstractQueueSynchronizer 的上锁形式又可以分为独占锁和共享锁。**
@@ -52,6 +48,36 @@ Java 中以线程为单位竞争锁，竞争成功则成为持有者执行相关
 2. CPU 盲目空转 - 因为等待的线程都需要检查锁的状态
 
 即使使用 Wait 等方法阻塞线程，等到锁释放之后 notify 也依旧会存在饥饿的问题，如果 notifyAll 更存在惊群的问题。
+
+
+
+> Q: CLH 队列的优势
+
+CLH 队列是一种**基于链表实现的自旋锁等待结构**，使用链表来决定锁的获取顺序避免饥饿。
+
+CLH 种等待线程也不再是轮询同一个共享变量，而是在链表中后继节点通过轮询前驱节点状态判断当前的状态，链表的顺序也决定了锁的获取顺序。
+
+（另外还有一种自旋锁队列的实现叫 MCS 队列，**该队列是由前驱节点来修改后继节点的状态来确定后继节点的轮询**。
+
+普通的共享变量上锁模式，多个等待线程会论询同个变量，任何线程对变量的修改都会导致缓存的失效而需要重新读取。
+
+
+
+> Q:  AQS 对 CLH 队列的改动
+
+AQS 并不是完全参照 CLH 队列，对其还有部分的优化。
+
+1. 改变等待的形式
+
+自旋虽然避免了线程切换，但自旋的线程仍然会占用大量 CPU 时间，AQS 中并不是单纯的自旋，经过2次以上的自旋之后会转为阻塞状态，而在前驱节点为头节点时被唤醒。
+
+2. 增加了节点状态
+
+AQS 包含 CANCELLED，SIGNAL，PROPAGTE 等多种节点状态。
+
+3. 增加锁类型
+
+在独占锁的基础上，增加了共享锁的实现（在共享锁释放资源时，会在独占锁处停住。
 
 
 
@@ -205,7 +231,7 @@ protected final boolean tryAcquire(int acquires) {
     if (c == 0) {
         // 查看是否有前驱节点，公平的体现，如果有前驱会获取锁失败，继续等待
         if (!hasQueuedPredecessors() &&
-            // 无前驱只有获取成功
+            // 无前驱只有获取成功，尝试 CAS 替换状态
             compareAndSetState(0, acquires)) {
             setExclusiveOwnerThread(current);
             return true;
@@ -213,7 +239,9 @@ protected final boolean tryAcquire(int acquires) {
     }
     // 以下是重入的部分
     else if (current == getExclusiveOwnerThread()) {
+        // 计算重后入持有的总资源数
         int nextc = c + acquires;
+         // 越界检查
         if (nextc < 0)
             throw new Error("Maximum lock count exceeded");
         setState(nextc);
@@ -223,11 +251,11 @@ protected final boolean tryAcquire(int acquires) {
 }
 ```
 
-**在 ReentrantLock 中 AQS 的 state 表示的就是重入次数，**为0时就表示空闲状态并没有上锁，所以一顿操作之后返回 true。
+
+
+**ReentrantLock 中 state 表示的是重入次数，所以为0时表示没有线程持有当前锁，所以 CAS 尝试上锁。**
 
 如果返回的 false，就进入等待队列，首先调用的就是 addWaiter 方法。
-
-> ReentrantLock 中 state 表示的是重入次数，所以为0时表示没有线程持有当前锁，所以 CAS 尝试上锁。
 
 
 

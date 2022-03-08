@@ -23,10 +23,10 @@ flowchart TD
 subgraph 继承
 	C[依赖倒置原则]
 	D[里氏替换原则]
-	E[单一职责原则]
 	F[接口隔离原则]
 end 
 subgraph 组合
+	E[单一职责原则]
 	G[合成复用原则]
 	H[迪米特法则]
 end

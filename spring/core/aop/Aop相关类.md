@@ -10,7 +10,7 @@
 
 ## Pointcut - 切点
 
-![image-20210131204622387](/home/chen/_note/pic/image-20210131204622387.png)
+![image-20210131204622387](../../../pic/image-20210131204622387.png)
 
 **切点接口，该接口用来匹配类。**
 
@@ -24,7 +24,7 @@ Spring中的常用实现有以下几种:
 
 该类是最常用的几种之一，**用来匹配某个注解，可以在类上也可以在方法上。**
 
-<img src="/home/chen/_note/pic/image-20210131214807937.png" alt="image-20210131214807937" style="zoom: 80%;" />
+<img src="../../../pic/image-20210131214807937.png" alt="image-20210131214807937" style="zoom: 80%;" />
 
 以上的构造函数可以看到，类和方法的匹配分别是 AnnotationClassFilter 以及 AnnotationMethodMatcher。
 
@@ -65,7 +65,7 @@ Advice 可以分为以下两种:
 
 **但是在Proxy中最终都会被 AdvisorAdapter 适配为 MethodInterceptor**，这里是用了适配器模式。
 
-![image-20210131222356539](/home/chen/_note/pic/image-20210131222356539.png)
+![image-20210131222356539](../../../pic/image-20210131222356539.png)
 
 **Interceptor/MethodInterceptor**的固定实现:
 
@@ -81,13 +81,13 @@ Advice 可以分为以下两种:
 
   抽象的日志类，子类都是负责相关的日志记录，以下是整体的调用方法:
 
-  ![image-20210131231856989](/home/chen/_note/pic/image-20210131231856989.png)
+  ![image-20210131231856989](../../../pic/image-20210131231856989.png)
 
   具体的方法调用，invokeUnderTrace 为模板方法在子类中实现。
 
   粗略的继承者有以下几个。
 
-  ​	                                   ![image-20210131231746122](/home/chen//_note/pic/image-20210131231746122.png)	
+  ​	                                   ![image-20210131231746122](../../../pic/image-20210131231746122.png)	
 
   CustomizableTraceInterceptor 会在方法调用的前后打日志。
 
@@ -117,7 +117,7 @@ Advice 可以分为以下两种:
 
    在 AnnotationAwareAspectJAutoProxyCreator 中，会一次性获取所有的 Advisor 相关类(直接继承 Advisor 以及标注 @AspectJ)，上层解析方法如下:
 
-   ![image-20210131224056857](/home/chen/_note/pic/image-20210131224056857.png)
+   ![image-20210131224056857](../../../pic/image-20210131224056857.png)
 
    上图方法中，super.findCandidateAdvisors() 会检索出所有的 Advisor 的类，
 
@@ -135,7 +135,7 @@ Advice 可以分为以下两种:
 
 该类并不是完全明白，但简单的可以当做是代理对象的创建者。
 
-![image-20210131232148813](/home/chen/_note/pic/image-20210131232148813.png)
+![image-20210131232148813](../../../pic/image-20210131232148813.png)
 
 注释表明，该接口的子类持有AOP代理类的配置，该配置包括了拦截器以及切点以及被代理的接口。
 
@@ -151,7 +151,7 @@ Spring中的任何代理类都可以从该接口中获取。(我也不知道翻�
 
 都是创建代理类的主要方法，以 ProxyFactory 举例，创建的方法简单如下:
 
-![image-20210131234456371](/home/chen/_note/pic/image-20210131234456371.png)
+![image-20210131234456371](../../../pic/image-20210131234456371.png)
 
 
 

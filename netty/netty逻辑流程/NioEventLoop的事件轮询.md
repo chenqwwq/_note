@@ -13,52 +13,58 @@ NioEventLoop 是 Netty 中事件轮询器，负责处理 Netty 框架中产生�
 
 > 这里的事件处理机制可以类比于 Redis 的事件处理器，不过 Redis 毕竟是单线程处理事件比较简单。
 
-在服务端启动的流程中，NioServerSocketChannel在创建并初始化之后会绑定到一个NioEventLoop上，然后在绑定到本地的端口。
+**Event 包括 Selector 产生的 I/O 事件，以及直接对类提交的任务。**
 
-NioEventLoop自身只会绑定单个线程，所以线程的轮询以及对事件的处理在无额外配置的情况下都是单线程执行的。
+<br>
 
+例如，NioEventLoop 在初始化的时候就会绑定一个 Selector 对象，而 NioServerSocketChannel 在初始化之后会直接被绑定在 NioEventLoop 上，并监听 Accpet 事件。
 
+NioEventLoop 自身只会绑定单个线程，所以线程的轮询以及对事件的处理在无额外配置的情况下都是单线程执行的。
 
-另外NioEventLoop本身也属于`ExecutorService`类族，所以也可以用通过`submit`以及`schedule`等方法提交任务执行。
+另外 NioEventLoop 本身也属于 ExecutorService 类族，所以也可以用通过 submit  以及 schedule 等方法提交任务执行。
 
+<br>
 
+>简单来说，**EventLoop 就是 Netty 中的事件轮询器，它持有 JDK 原生的Selector的引用，并且负责其上就绪的所有 IO事件，同时作为执行器和线程池可以提交并执行各类任务。**
+
+<br>
 
 
 
 ## EventLoop的结构
 
-简单来说，**EventLoop就是Netty中的轮询器，它持有JDK原生的Selector的引用，并且负责其上就绪的所有IO事件，同时作为执行器和线程池可以提交并执行各类任务。**
-
-以上时NioEventLoop的类图：
+以上时 NioEventLoop 的类图：
 
 ![image-20201227232339822](../../pic/image-20201227232339822.png)
 
-NioEventLoop继承了SingleThreadEventLoop类，所以是**绝对单线程结构**。
+NioEventLoop 继承了 SingleThreadEventLoop 类，所以是**绝对单线程结构**。
 
-另外，NioEventLoop存在如下四种类型的任务：
+另外，NioEventLoop 存在如下四种类型的任务：
 
-1. 延时任务，这个是在AbstractScheduledEventExecutor中提供的
-2. 正常任务，这是SingleThreadEventExecutor中提供的
-3. 低优先级任务，这是SingleThreadEventLoop中提供的
-4. Selector触发的IO事件
+1. 延时任务，这个是在 AbstractScheduledEventExecutor 中提供的 scheduledTaskQueue
+2. 正常任务，这是 SingleThreadEventExecutor 中提供的 taskQueue
+3. 低优先级任务，这是 SingleThreadEventLoop 中提供的 tailTasks
+4. Selector 触发的 IO 事件
 
 > 注意，Nio的轮询逻辑不仅仅包含了Selector的IO事件的处理，还有以上三级任务的处理。
+>
+> 延时任务会在到期之后转入正常任务队列，ioRatio 控制了正常任务和 IO 事件的执行比例，低优先级任务不受 ioRatio 影响会被全部执行。
 
 
 
 ## EventLoop什么时候开启轮询
 
-**NioEventLoop采用的是懒开始的策略，只有在执行第一次任务的时候才会开启线程**。
+**NioEventLoop 采用的是懒开始的策略，只有在执行第一次任务的时候才会开启线程**。
 
-以下是EventLoop实现的几种execute方法:
+以下是 EventLoop 实现的几种 execute 方法:
 
 ![image-20201116230458199](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201116230458199.png)
 
-在最后一个executor方法中，会先调用addTask添加任务到taskQueue。
+在最后一个 executor 方法中，会先调用 addTask 添加任务到 taskQueue。
 
-再判断EventLoop事都是当前线程，如果不是当前线程则会调用startThread方法开启线程，因为startThread方法会多次被调用，但是线程不能被多次开启，所以方法内部应该是会有相应的判断限制。
+再判断 EventLoop 事都是当前线程，如果不是当前线程则会调用 startThread 方法开启线程，因为 startThread 方法会多次被调用，但是线程不能被多次开启，所以方法内部应该是会有相应的判断限制。
 
-以下是startThread的源码:
+以下是 startThread 的源码:
 
 ![image-20201116230731561](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201116230731561.png)
 
@@ -132,7 +138,7 @@ NioEventLoop中的`selectStrategy`是使用的`DefaultSelectStrategty`，以下�
 
 接下来的逻辑就是对返回值做`switch`判断，
 
-![image-20201228235716224](/home/chen/github/_note/pic/image-20201228235716224.png)
+![image-20201228235716224](../../pic/image-20201228235716224.png)
 
 存在任务的时候会跳过switch的执行，但如果没有存在任务的话，会进入switch的SELECT分支，代码如下:
 
@@ -151,7 +157,7 @@ NioEventLoop中的`selectStrategy`是使用的`DefaultSelectStrategty`，以下�
 
 到这里就获取了所有就绪的IO事件或者常规任务事件，之后继续接下来的处理流程了，以下是下面两步的全部代码:
 
-![image-20201117221704024](/home/chen/github/_note/pic/image-20201117221704024.png)
+![image-20201117221704024](../../pic/image-20201117221704024.png)
 
 其他都是虚的，主要还是调用`processSelectKeys()`以及`runAllTasks()`方法。
 
@@ -167,13 +173,13 @@ NioEventLoop中的`selectStrategy`是使用的`DefaultSelectStrategty`，以下�
 
 小优化暂时忽略，直接来看未优化的版本吧，源码如下:
 
-![image-20201117224457543](/home/chen/github/_note/pic/image-20201117224457543.png)
+![image-20201117224457543](../../pic/image-20201117224457543.png)
 
 方法就是通过iterator遍历所有就绪的IO事件，也就是SelectedKeys。
 
 attachment方法获取的a对象就是Channel，在Channel绑定到Selector的时候添加的，以下是AbstractNioChannel的注册方法，注意最后面的this参数。
 
-![image-20201117224703189](/home/chen/github/_note/pic/image-20201117224703189.png)
+![image-20201117224703189](../../pic/image-20201117224703189.png)
 
 所以很明显，我们因该走的是processSelectedKey方法，这个方法有点长，而且很重要:
 
