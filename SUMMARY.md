@@ -76,8 +76,7 @@
     * [zuul 简述](spring/cloud/zuul.md)
 * 数据库
   * [数据库的事务](数据库/mysql/数据库的事务.md)
-  * [MySQL]()
-    * [MySQL 的整体架构](数据库/mysql/MySQL 的整体架构.md)
+  * [MySQL](数据库/mysql/MySQL.md)
     * [MySQL 日志相关](数据库/mysql/日志相关.md)
     * [MySQL 中的索引](数据库/mysql/索引相关.md)
     * [InnoDB 中的锁](数据库/mysql/锁相关.md)

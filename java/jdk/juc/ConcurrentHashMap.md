@@ -70,12 +70,13 @@ Node 表示一个 K/V 的数据对，并且也是桶中链表节点，具体源�
 
 <br>
 
-### ForwardingNode 
+### ForwardingNode（转发节点
 
-- 转发节点
+<br>
 
-- 该类仅仅存活在扩容阶段,作为一个标记节点放在桶的首位,并且指向是`nextTable`<font size=2>(扩容的中间数组)</font>
-- 从构造函数可知,`ForwardingNode`的`hash`为-1,其他为空,是个完完全全的辅助类.
+该类仅仅存活在扩容阶段,作为一个标记节点放在桶的首位,并且指向是 `nextTable`<font size=2>(扩容的中间数组)</font>
+
+从构造函数可知,`ForwardingNode`  的`hash` 为 MOVED（常量 -1）,其他为空，是个完完全全的辅助类.
 
 ```java
 static final class ForwardingNode<K,V> extends Node<K,V> {
@@ -115,118 +116,13 @@ static final class ForwardingNode<K,V> extends Node<K,V> {
     }
 ```
 
-- `find()`方法实在扩容期间帮助`get`方法获取桶中元素.
+- `find()` 方法实在扩容期间帮助 `get` 方法获取桶中元素.
 
 
 
+## 元素新增方法
 
-
----
-
-## 元素的获取方法
-
-Hash 算法的作用就是以 O(1) 的时间复杂度得出桶的下标。
-
-```java
-public V get(Object key) {
-        Node<K,V>[] tab; Node<K,V> e, p; int n, eh; K ek;
-        int h = spread(key.hashCode());
-        if ((tab = table) != null && (n = tab.length) > 0 &&  (e = tabAt(tab, (n - 1) & h)) != null) {
-            if ((eh = e.hash) == h) {
-                if ((ek = e.key) == key || (ek != null && key.equals(ek)))
-                    return e.val;
-            } else if (eh < 0){
-                return (p = e.find(h, key)) != null ? p.val : null;
-            }
-            while ((e = e.next) != null) {
-                if (e.hash == h &&
-                    ((ek = e.key) == key || (ek != null && key.equals(ek))))
-                    return e.val;
-            }
-        }
-        return null;
-}
-```
-
-首先就是**通过 spread 方法调整 Key 的 HashCode**，并获取。
-
-![image-20210911193130318](../assets/image-20210911193130318.png)
-
-将高低16位做并发，增加 HashCode 的随机性，减少 Hash 冲突的产生。
-
-之后就是在常规判断后，**使用 (n-1) & h 计算桶的下标**，并且使用 tabAt 方法获取到桶的头节点。
-
-如果 hash 正常则判断头节点是否就是想要的节点，如果小于 0，表示可能处于桶迁移或者转红黑树的步骤，所以调用 Node 的 find 方法查询。
-
-> 节点相等的判断是通过 == 或者 equals 实现的。
-
-如果大于等于0，表示节点正常，遍历整个链表节点。
-
-
-
-
-
-## 元素个数统计方法
-
-ConcurrentHashMap 中的元素统计采用了特殊的方式。
-
-使用了上文说到了 baseCount 和 ConuterCell 两个成员变量，统计的逻辑如下：
-
-> baseCount 表示的是基础的元素个数，而 CounterCell 数组中保存的是对应的各个桶中的变化的元素个数。
->
-> 所以统计的时候，需要从 CounterCell 数组中统计所有的个数加上 baseCount。
-
-
-
-### 元素个数新增方法
-
-```java
-private final void addCount(long x, int check) {
-        CounterCell[] as; long b, s;
-        if ((as = counterCells) != null ||
-            !U.compareAndSwapLong(this, BASECOUNT, b = baseCount, s = b + x)) {
-            CounterCell a; long v; int m;
-            boolean uncontended = true;
-            if (as == null || (m = as.length - 1) < 0 ||
-                (a = as[ThreadLocalRandom.getProbe() & m]) == null ||
-                !(uncontended =
-                  U.compareAndSwapLong(a, CELLVALUE, v = a.value, v + x))) {
-                fullAddCount(x, uncontended);
-                return;
-            }
-            if (check <= 1)
-                return;
-            s = sumCount();
-        }
-        if (check >= 0) {
-            Node<K,V>[] tab, nt; int n, sc;
-            while (s >= (long)(sc = sizeCtl) && (tab = table) != null &&
-                   (n = tab.length) < MAXIMUM_CAPACITY) {
-                int rs = resizeStamp(n);
-                if (sc < 0) {
-                    if ((sc >>> RESIZE_STAMP_SHIFT) != rs || sc == rs + 1 ||
-                        sc == rs + MAX_RESIZERS || (nt = nextTable) == null ||
-                        transferIndex <= 0)
-                        break;
-                    if (U.compareAndSwapInt(this, SIZECTL, sc, sc + 1))
-                        transfer(tab, nt);
-                }
-                else if (U.compareAndSwapInt(this, SIZECTL, sc,
-                                             (rs << RESIZE_STAMP_SHIFT) + 2))
-                    transfer(tab, null);
-                s = sumCount();
-            }
-        }
-}
-
-
-```
-
-
-
-
-
-#### 元素新增方法
+CHM#put 直接调用 putVal 方法。
 
 ```java
  	public V put(K key, V value) {
@@ -234,12 +130,12 @@ private final void addCount(long x, int check) {
     }
 ```
 
-- 按照惯例,暴露在最外面的方法都是直接调用的逻辑实现方法.
+<br>
 
-##### putVal 存的具体逻辑方法
+### putVal  - 新增元素
 
 ```java
-    /**
+  /**
 	 * 方法参数:
 	 * 1. key,value 自然不用说就是k/v的两个值
 	 * 2. onlyIfAbsent 若为true,则仅仅在值为空时覆盖
@@ -247,7 +143,7 @@ private final void addCount(long x, int check) {
 	 *  返回旧值,若是新增就为null.
 	 */
     final V putVal(K key, V value, boolean onlyIfAbsent) {
-        // CHM不支持NULL值的铁证.
+        // CHM不支持NULL值的铁证
         if (key == null || value == null) throw new NullPointerException();
         // 获得key的Hash,spread可以称之为扰动函数
         int hash = spread(key.hashCode());
@@ -255,21 +151,22 @@ private final void addCount(long x, int check) {
         // 无限循环
         for (Node<K,V>[] tab = table;;) {
             Node<K,V> f; int n, i, fh;
-            // 在tab为空时负责初始化Table
+            // 1. 在tab为空时负责初始化Table
             if (tab == null || (n = tab.length) == 0)
                 tab = initTable();
-            // 使用`(n-1)&hash`确定了元素的下标位置,获取对应节点
+            // 2. 使用`(n-1)&hash`确定了元素的下标位置,获取对应节点
             else if ((f = tabAt(tab, i = (n - 1) & hash)) == null) {
                 // 如果对应位置节点为空,直接以当前信息为桶的头节点
                 if (casTabAt(tab, i, null, new Node<K,V>(hash, key, value, null)))
                     break;                   // no lock when adding to empty bin
             }
-            // 如果获取的桶的头结点的`Hash`为`MOVED`,表示该节点是`ForwardingNode`
+            // 3. 如果获取的桶的头结点的`Hash`为`MOVED`,表示该节点是`ForwardingNode`
             // 也就表示数组正在进行扩容
             else if ((fh = f.hash) == MOVED)
                 // 帮助扩容
                 tab = helpTransfer(tab, f);
             else {
+              // 4. 桶存在并且当前处于正常状态
                 V oldVal = null;
                 // 上锁保证原子性,volatile仅能保证可见性
                 // f为key获取到的节点元素,以此为锁对象
@@ -347,13 +244,30 @@ private final void addCount(long x, int check) {
 
 
 
-##### 整个的新增流程
+CHM 中使用桶头节点的 Hash 表示当前桶的状态。
 
-1. 判断并排除key,value非空,`ConcurrentHashMap`不支持key或value为空.
+```java
+/*
+ * Encodings for Node hash fields. See above for explanation.
+ */
+static final int MOVED     = -1; // hash for forwarding nodes
+static final int TREEBIN   = -2; // hash for roots of trees
+static final int RESERVED  = -3; // hash for transient reservations
+static final int HASH_BITS = 0x7fffffff; // usable bits of normal node hash
+```
 
-2. 得到扰动后的hash,进入tab数组的遍历,若数组为空则进行初始化
-3. 通过`(n - 1) & hash`的公式获取桶的下标 ,若桶为空则直接填充key,value为桶的头节点
-4. 判断桶的头节点hash,若`hash == -1`表示**数组在扩容并帮助扩容.**
+
+
+
+
+
+
+#### 元素新增流程小结：
+
+1. 判断并排除 key,value 为空的情况（CHM 不支持 key/value 为空。
+2. 得到扰动后的 hash，获取对应下标的桶，若桶为空则进行初始化。
+3. 通过 `(n - 1) & hash` 的公式获取桶的下标 ，若桶为空则直接 CAS 填充 key/value 为桶的头节点。
+4. 判断桶的头节点 hash,若 hash == MOVED 表示**数组在扩容并帮助扩容。**
 5. 进入`synchronize`的同步代码块,如果**桶的头节点的hash大于0表示桶的结构为链表**,接下去就是正常的链表遍历,新增或者覆盖.
 6. 如果**桶的头节点是`TreeBin`类型表示桶的结构为红黑树**,按红黑树的操作进行遍历.
 7. 退出同步代码块,判断在遍历期间统计的`binCount`是否需要转化为红黑树结构.
@@ -364,7 +278,7 @@ private final void addCount(long x, int check) {
 
 
 
-#### 元素获取方法
+## 元素获取方法
 
 ```java
    public V get(Object key) {
@@ -417,7 +331,7 @@ private final void addCount(long x, int check) {
 
 
 
-#### 扩容机制
+## 扩容机制
 
 - 不得不说,扩容部分的代码绝对是超一流的大师手笔!!!
 
@@ -806,11 +720,7 @@ final Node<K,V>[] helpTransfer(Node<K,V>[] tab, Node<K,V> f) {
 
 4.  扩容完成 -> `sizeCtl = nextTab.length * 0.75` 
 
-
-
-
-
-#### 初始化方法
+## 初始化方法
 
 - 和`HashMap`一样,`ConcurrentHashMap`并不是在构造函数中就直接初始化底层的数组,而是在`put`等存方法中,判断是否需要扩容.
 
@@ -857,11 +767,7 @@ private final Node<K,V>[] initTable() {
   3. 以`sizeCtl`之前的值为初始容量,`sizeCtl`<=0时使用默认容量16
   4. 初始化结束,**将`sizeCtl`赋值为0.75*数组容量**<font size="2">(sizeCtl贯穿全篇,真的很重要)</font>
 
-
-
----
-
-#### 通用工具方法
+## 通用工具方法
 
 
 ###### 1. resizeStamp  获取扩容时的一个标记
@@ -888,7 +794,65 @@ static final int spread(int h) {
 - 扰动函数,和`HashMap`中的`hash()`方法功能类似.
 - `CHM`中的扰动函数除了将高16位于低16位异或之外又与上HASH_BITS,**可以有效降低哈希冲突的概率,使元素分散更加均匀.**
 
+## 元素个数统计方法
 
+ConcurrentHashMap 中的元素统计采用了特殊的方式。
+
+使用了上文说到了 baseCount 和 ConuterCell 两个成员变量，统计的逻辑如下：
+
+> **baseCount 表示的是基础的元素个数，而 CounterCell 数组中保存的是对应的各个桶中的变化的元素个数。**
+>
+> 所以统计的时候，需要从 CounterCell 数组中统计所有的个数加上 baseCount。
+
+
+
+### 元素个数新增
+
+```java
+private final void addCount(long x, int check) {
+        CounterCell[] as; long b, s;
+        if ((as = counterCells) != null ||
+            !U.compareAndSwapLong(this, BASECOUNT, b = baseCount, s = b + x)) {
+            CounterCell a; long v; int m;
+            boolean uncontended = true;
+            if (as == null || (m = as.length - 1) < 0 ||
+                (a = as[ThreadLocalRandom.getProbe() & m]) == null ||
+                !(uncontended =
+                  U.compareAndSwapLong(a, CELLVALUE, v = a.value, v + x))) {
+                fullAddCount(x, uncontended);
+                return;
+            }
+            if (check <= 1)
+                return;
+            s = sumCount();
+        }
+        if (check >= 0) {
+            Node<K,V>[] tab, nt; int n, sc;
+            while (s >= (long)(sc = sizeCtl) && (tab = table) != null &&
+                   (n = tab.length) < MAXIMUM_CAPACITY) {
+                int rs = resizeStamp(n);
+                if (sc < 0) {
+                    if ((sc >>> RESIZE_STAMP_SHIFT) != rs || sc == rs + 1 ||
+                        sc == rs + MAX_RESIZERS || (nt = nextTable) == null ||
+                        transferIndex <= 0)
+                        break;
+                    if (U.compareAndSwapInt(this, SIZECTL, sc, sc + 1))
+                        transfer(tab, nt);
+                }
+                else if (U.compareAndSwapInt(this, SIZECTL, sc,
+                                             (rs << RESIZE_STAMP_SHIFT) + 2))
+                    transfer(tab, null);
+                s = sumCount();
+            }
+        }
+}
+
+
+```
+
+
+
+## 
 
 
 

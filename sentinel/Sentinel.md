@@ -61,21 +61,13 @@ AuthoritySlot 之后是 SystemSlot，
 
 
 
-
-
-
-
 **CtSph 会根据 ResourceWrapper 选择对应的处理链（ProcessorSlotChain）。**
 
 > 这里就可以说一个请求具体走哪条执行链都是用 ResourceWrapper 决定的。
 >
 > **ProcessorSlotCahin 和 ResourceWrapper 绑定。**
 
-
-
-
-
-
+<br>
 
 > 在 ProcessorSlotChain 中参与统计的节点和对应维度：
 

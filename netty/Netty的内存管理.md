@@ -22,6 +22,31 @@ Netty 基于 jemalloc 实现了自身的内存管理。
 
 
 
+## Netty 的堆外内存清理
+
+（目前算是对博客的整理，没有自行验证。
+
+堆外内存 DirectByteBuf 都和和一个 Cleaner 绑定，通过虚引用，因此当 DirectByteBuf  在被回收的时候 Cleaner 就会被投入 ReferenceQueue，此时可以清楚堆外内存。
+
+
+
+
+
+
+
+## Netty 的零拷贝
+
+1. Netty 中大量使用了堆外内存。
+
+> 堆外内存的读写相对于堆内存少了一次 JVM 到 用户空间的拷贝流程。
+>
+> 堆内存属于逻辑内存，任何的读写操作都需要将数据拷贝到用户空间然后在进行系统调用。
+
+2. CompositeByteBuf
+3. FeignRegion - 对 FileChannel#transferTo 的重新封装
+
+
+
 ## 笔记
 
 最上层的对象是 ByteBufAllocator，具体的实现有PooledByteBufAllocator 和 UnpooledByteBufAllocator。
@@ -39,6 +64,18 @@ PooledByteBufAllocator 会管理所有申请的内存，默认会创建 PoolAren
 从缓存中取出 Arena，然后继续分配。
 
 > PoolThreadLocalCache 只是标记 Arena 的归属，其实最终使用的还是 Allocator 的 Arena。
+
+
+
+内存管理的基本要求：减少内存碎片，加快分配效率
+
+
+
+
+
+
+
+
 
 
 

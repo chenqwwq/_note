@@ -28,65 +28,65 @@ Spring MVC 是基于 Servlet 容器实现的，所有请求都会先经过 Filte
 
 ```java
 protected void doDispatch(HttpServletRequest request, HttpServletResponse response) throws Exception {
-		HttpServletRequest processedRequest = request;
-		HandlerExecutionChain mappedHandler = null;
-		boolean multipartRequestParsed = false;
-		WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);
-		try {
-			ModelAndView mv = null;
-			Exception dispatchException = null;
-			try {
-                		  // 1. 检查是否是文件
-				processedRequest = checkMultipart(request);
-				multipartRequestParsed = (processedRequest != request);
+  HttpServletRequest processedRequest = request;
+  HandlerExecutionChain mappedHandler = null;
+  boolean multipartRequestParsed = false;
+  WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);
+  try {
+    ModelAndView mv = null;
+    Exception dispatchException = null;
+    try {
+      // 1. 检查是否是文件
+      processedRequest = checkMultipart(request);
+      multipartRequestParsed = (processedRequest != request);
 
-				// Determine handler for the current request.
-               			// 2. 获取处理器的执行链 HandlerExecutionChain
-				mappedHandler = getHandler(processedRequest);
-				if (mappedHandler == null) {
-                    		        // 404 返回
-					noHandlerFound(processedRequest, response);
-					return;
-				}
+      // Determine handler for the current request.
+      // 2. 获取处理器的执行链 HandlerExecutionChain
+      mappedHandler = getHandler(processedRequest);
+      if (mappedHandler == null) {
+        // 404 返回
+        noHandlerFound(processedRequest, response);
+        return;
+      }
 
-				// Determine handler adapter for the current request.
-                		  // 3. 获取处理器适配器
-				HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
+      // Determine handler adapter for the current request.
+      // 3. 获取处理器适配器
+      HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
 
-				// Process last-modified header, if supported by the handler.
-                		  // 处理 last-modified 请求头
-				String method = request.getMethod();
-				boolean isGet = "GET".equals(method);
-				if (isGet || "HEAD".equals(method)) {
-					long lastModified = ha.getLastModified(request, mappedHandler.getHandler());
-					if (new ServletWebRequest(request, response).checkNotModified(lastModified) && isGet) {
-						return;
-					}
-				}
-				
-                		  // 4. 执行前置拦截器，失败则返回
-				if (!mappedHandler.applyPreHandle(processedRequest, response)) {
-					return;
-				}
+      // Process last-modified header, if supported by the handler.
+      // 处理 last-modified 请求头
+      String method = request.getMethod();
+      boolean isGet = "GET".equals(method);
+      if (isGet || "HEAD".equals(method)) {
+        long lastModified = ha.getLastModified(request, mappedHandler.getHandler());
+        if (new ServletWebRequest(request, response).checkNotModified(lastModified) && isGet) {
+          return;
+        }
+      }
 
-				// Actually invoke the handler.
-                		  // 调用方法处理请求
-				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
+      // 4. 执行前置拦截器，失败则返回
+      if (!mappedHandler.applyPreHandle(processedRequest, response)) {
+        return;
+      }
 
-				if (asyncManager.isConcurrentHandlingStarted()) {
-					return;
-				}
+      // Actually invoke the handler.
+      // 调用方法处理请求
+      mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
 
-				applyDefaultViewName(processedRequest, mv);
-               			 // 5. 执行拦截器后置处理器
-				mappedHandler.applyPostHandle(processedRequest, response, mv);
-			}
-		。。。（省略部分异常处理
-			}
-            	      // 后置处理结果
-			processDispatchResult(processedRequest, response, mappedHandler, mv, dispatchException);
-		}
-		。。。（省略部分异常处理
+      if (asyncManager.isConcurrentHandlingStarted()) {
+        return;
+      }
+
+      applyDefaultViewName(processedRequest, mv);
+      // 5. 执行拦截器后置处理器
+      mappedHandler.applyPostHandle(processedRequest, response, mv);
+    }
+    。。。（省略部分异常处理
+  }
+  // 后置处理结果
+  processDispatchResult(processedRequest, response, mappedHandler, mv, dispatchException);
+}
+。。。（省略部分异常处理
 ```
 
 

@@ -19,9 +19,9 @@
 ```java
 @SpringBootApplication
 public class MvcApplication {
-        public static void main(String[] args) {
-            	SpringApplication.run(MvcApplication.class, args);
-        }
+  public static void main(String[] args) {
+    SpringApplication.run(MvcApplication.class, args);
+  }
 }
 ```
 
@@ -35,20 +35,20 @@ public class MvcApplication {
 // SpringApplication
 // 入参中的的PrimarySources是配置主类,也就是MvcApplication.class.
 public SpringApplication(ResourceLoader resourceLoader, Class<?>... primarySources) {
-            // 资源加载器,此处为null
-            this.resourceLoader = resourceLoader;
-            Assert.notNull(primarySources, "PrimarySources must not be null");
-             // 主要数据源集合
-            this.primarySources = new LinkedHashSet<>(Arrays.asList(primarySources));
-             // Web应用类型
-            this.webApplicationType = WebApplicationType.deduceFromClasspath();
-             // 设置初始化器,具体有哪些看下文
-             setInitializers(
-                (Collection)getSpringFactoriesInstances(ApplicationContextInitializer.class));
-              // 设置监听者
-            setListeners((Collection) getSpringFactoriesInstances(ApplicationListener.class));
-              // 推断应用主类，此处代码我感觉还是很新奇的
-            this.mainApplicationClass = deduceMainApplicationClass();
+  // 资源加载器,此处为null
+  this.resourceLoader = resourceLoader;
+  Assert.notNull(primarySources, "PrimarySources must not be null");
+  // 主要数据源集合
+  this.primarySources = new LinkedHashSet<>(Arrays.asList(primarySources));
+  // Web应用类型
+  this.webApplicationType = WebApplicationType.deduceFromClasspath();
+  // 设置初始化器,具体有哪些看下文
+  setInitializers(
+    (Collection)getSpringFactoriesInstances(ApplicationContextInitializer.class));
+  // 设置监听者
+  setListeners((Collection) getSpringFactoriesInstances(ApplicationListener.class));
+  // 推断应用主类，此处代码我感觉还是很新奇的
+  this.mainApplicationClass = deduceMainApplicationClass();
 }
 ```
 
@@ -453,69 +453,69 @@ refresh() 最终会调用到 AbstractApplicationContext#refresh 方法，方法�
 ```java
 @Override
 public void refresh() throws BeansException, IllegalStateException {
-    synchronized (this.startupShutdownMonitor) {
-        // Prepare this context for refreshing.
-        prepareRefresh();
+  synchronized (this.startupShutdownMonitor) {
+    // Prepare this context for refreshing.
+    prepareRefresh();
 
-        // Tell the subclass to refresh the internal bean factory.
-        ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
+    // Tell the subclass to refresh the internal bean factory.
+    ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
-        // Prepare the bean factory for use in this context.
-        prepareBeanFactory(beanFactory);
+    // Prepare the bean factory for use in this context.
+    prepareBeanFactory(beanFactory);
 
-        try {
-            // Allows post-processing of the bean factory in context subclasses.
-            postProcessBeanFactory(beanFactory);
+    try {
+      // Allows post-processing of the bean factory in context subclasses.
+      postProcessBeanFactory(beanFactory);
 
-            // Invoke factory processors registered as beans in the context.
-            // 应用所有的 BeanFactoryPostProcessor
-            invokeBeanFactoryPostProcessors(beanFactory);
+      // Invoke factory processors registered as beans in the context.
+      // 应用所有的 BeanFactoryPostProcessor
+      invokeBeanFactoryPostProcessors(beanFactory);
 
-            // Register bean processors that intercept bean creation.
-            // 注册所有的 BeanPostProcessor
-            registerBeanPostProcessors(beanFactory);
+      // Register bean processors that intercept bean creation.
+      // 注册所有的 BeanPostProcessor
+      registerBeanPostProcessors(beanFactory);
 
-            // Initialize message source for this context.
-            initMessageSource();
+      // Initialize message source for this context.
+      initMessageSource();
 
-            // Initialize event multicaster for this context.
-            initApplicationEventMulticaster();
+      // Initialize event multicaster for this context.
+      initApplicationEventMulticaster();
 
-            // Initialize other special beans in specific context subclasses.
-            onRefresh();
+      // Initialize other special beans in specific context subclasses.
+      onRefresh();
 
-            // Check for listener beans and register them.
-            registerListeners();
+      // Check for listener beans and register them.
+      registerListeners();
 
-            // Instantiate all remaining (non-lazy-init) singletons.
-            finishBeanFactoryInitialization(beanFactory);
+      // Instantiate all remaining (non-lazy-init) singletons.
+      finishBeanFactoryInitialization(beanFactory);
 
-            // Last step: publish corresponding event.
-            finishRefresh();
-        }
-
-        catch (BeansException ex) {
-            if (logger.isWarnEnabled()) {
-                logger.warn("Exception encountered during context initialization - " +
-                            "cancelling refresh attempt: " + ex);
-            }
-
-            // Destroy already created singletons to avoid dangling resources.
-            destroyBeans();
-
-            // Reset 'active' flag.
-            cancelRefresh(ex);
-
-            // Propagate exception to caller.
-            throw ex;
-        }
-
-        finally {
-            // Reset common introspection caches in Spring's core, since we
-            // might not ever need metadata for singleton beans anymore...
-            resetCommonCaches();
-        }
+      // Last step: publish corresponding event.
+      finishRefresh();
     }
+
+    catch (BeansException ex) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("Exception encountered during context initialization - " +
+                    "cancelling refresh attempt: " + ex);
+      }
+
+      // Destroy already created singletons to avoid dangling resources.
+      destroyBeans();
+
+      // Reset 'active' flag.
+      cancelRefresh(ex);
+
+      // Propagate exception to caller.
+      throw ex;
+    }
+
+    finally {
+      // Reset common introspection caches in Spring's core, since we
+      // might not ever need metadata for singleton beans anymore...
+      resetCommonCaches();
+    }
+  }
 
 ```
 
@@ -582,25 +582,25 @@ public void refresh() throws BeansException, IllegalStateException {
 ```java
 // SpringApplication
 stopWatch.stop();
-	
+
 // StopWatch
 public void stop() throws IllegalStateException {
-        if (this.currentTaskName == null) {
-            	throw new IllegalStateException("Can't stop StopWatch: it's not running");
-        }
-    	// 记录单词的SpringApplication启动时间
-        long lastTime = System.nanoTime() - this.startTimeNanos;
-    	// 总时间
-        this.totalTimeNanos += lastTime;
-    	// 当前任务的信息
-        this.lastTaskInfo = new TaskInfo(this.currentTaskName, lastTime);
-    	// 是否保存任务列表
-        if (this.keepTaskList) {
-            	this.taskList.add(this.lastTaskInfo);
-        }
-    	// task计数+1
-        ++this.taskCount;
-        this.currentTaskName = null;
+  if (this.currentTaskName == null) {
+    throw new IllegalStateException("Can't stop StopWatch: it's not running");
+  }
+  // 记录单词的SpringApplication启动时间
+  long lastTime = System.nanoTime() - this.startTimeNanos;
+  // 总时间
+  this.totalTimeNanos += lastTime;
+  // 当前任务的信息
+  this.lastTaskInfo = new TaskInfo(this.currentTaskName, lastTime);
+  // 是否保存任务列表
+  if (this.keepTaskList) {
+    this.taskList.add(this.lastTaskInfo);
+  }
+  // task计数+1
+  ++this.taskCount;
+  this.currentTaskName = null;
 }
 ```
 
@@ -639,21 +639,21 @@ callRunners(context, applicationArguments);
 
 // SpringApplication
 private void callRunners(ApplicationContext context, ApplicationArguments args) {
-        List<Object> runners = new ArrayList<>();
-    	// 从上下文中获取ApplicationRunner和CommandLineRunner的Bean对象
-        runners.addAll(context.getBeansOfType(ApplicationRunner.class).values());
-        runners.addAll(context.getBeansOfType(CommandLineRunner.class).values());
-    	// 排序
-        AnnotationAwareOrderComparator.sort(runners);
-    	// 遍历调用run方法
-        for (Object runner : new LinkedHashSet<>(runners)) {
-            if (runner instanceof ApplicationRunner) {
-                	callRunner((ApplicationRunner) runner, args);
-            }
-            if (runner instanceof CommandLineRunner) {
-                	callRunner((CommandLineRunner) runner, args);
-            }
-        }
+  List<Object> runners = new ArrayList<>();
+  // 从上下文中获取ApplicationRunner和CommandLineRunner的Bean对象
+  runners.addAll(context.getBeansOfType(ApplicationRunner.class).values());
+  runners.addAll(context.getBeansOfType(CommandLineRunner.class).values());
+  // 排序
+  AnnotationAwareOrderComparator.sort(runners);
+  // 遍历调用run方法
+  for (Object runner : new LinkedHashSet<>(runners)) {
+    if (runner instanceof ApplicationRunner) {
+      callRunner((ApplicationRunner) runner, args);
+    }
+    if (runner instanceof CommandLineRunner) {
+      callRunner((CommandLineRunner) runner, args);
+    }
+  }
 }
 ```
 
