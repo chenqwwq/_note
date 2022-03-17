@@ -39,11 +39,19 @@ Apache Kafka 是一款开源的消息引擎系统（消息中间件，MQ）， 
 
 累加器的作用就是尽量累计合适量的消息，组成 BatchMessage 并发送已节省网络贷款。
 
-因为累加器的关系，所以消息发送是异步的，调用 send 方法可能会立即返回，但是不意味着消息已经发送成功。
+因为累加器的关系，所以**消息发送是异步的**，调用 send 方法可能会立即返回，但是不意味着消息已经发送成功。
 
 
 
-## Kafka 中的 Election
+
+
+## Kafka 的
+
+
+
+## Kafka 中的 Election（选举
+
+Kafka 中的选举有如下几种：
 
 1. Controller 的选举
 2. Leader Partition 的选举
@@ -181,12 +189,22 @@ offset 就是消息的偏移量，在一个 Partition 内单调递增，一个 o
 简单描述其搜索过程为：
 
 1. 根据消息的偏移量二分确定 index 文件（文件名就是最小偏移量，下个文件名就算是最大偏移量
-2. 在 index 文件中查找到最后一个比偏移量小的记录，获取对应的文件偏移
-3. 从文件偏移开始顺序查找 log 文件
+2. 在 index 文件中查找到最后一个比偏移量小的记录，获取对应的在 log 文件中的物理偏移地址
+3. 从文件偏移开地址始顺序查找 log 文件
 
 （Kafka 的查找可以类比于跳表的查询，总共分为三层索引，最外层的文件名为第一层索引，index 文件内为第二层索引。
 
 <br>
 
 [Kafka文件存储机制那些事 - 美团](https://tech.meituan.com/2015/01/13/kafka-fs-design-theory.html)
+
+[Kafka 的消息存储结构：索引文件与数据文件](https://shuyi.tech/archives/kafka-message-storage)
+
+
+
+
+
+
+
+## 相关问题
 

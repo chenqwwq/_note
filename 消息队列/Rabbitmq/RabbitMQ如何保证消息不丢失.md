@@ -4,7 +4,7 @@
 
 ## 脑图
 
-![RabbitMQ 脑图1.png](assets/RabbitMQ 脑图1.png)
+![RabbitMQ 脑图1.png](../assets/RabbitMQ 脑图1.png)
 
 
 
@@ -44,13 +44,13 @@ Confirm 机制只负责到消息是否到达 Exchange，不负责后续的消息
 
 Springboot 的 RabbitMQ 实现中，可以对 RabbitTemplate 添加 RabbitTemplate.ConfirmCallback 回调函数，该回调需要额外配置以下内容
 
-<img src="assets/rabbitmq-publish-confirm配置.png" alt="image-20210324235140208" style="zoom:67%;" />
+<img src="../assets/rabbitmq-publish-confirm配置.png" alt="image-20210324235140208" style="zoom:67%;" />
 
 **confirm 的回调方法在消息投递出去之后触发，不论成功还是失败都会。**
 
 以回执的方式明确消息是否真正到达 Broker，如果未到达则可以做下一步的处理，重发或者入库等等，方法相关入参如下：
 
-<img src="assets/rabbitmq-publish-confirm%E7%A4%BA%E4%BE%8B.png" alt="image-20210325000559884" style="zoom:67%;" />
+<img src="../assets/rabbitmq-publish-confirm%E7%A4%BA%E4%BE%8B.png" alt="image-20210325000559884" style="zoom:67%;" />
 
 <br>
 
@@ -68,11 +68,11 @@ Springboot 的客户端封装也提供了 RabbitTemplate.ReturnCallback 回调�
 
 想要该参数生效，以下两个配置必须同时配置。
 
-<img src="assets/rabbitmq-springboot-mandatory%E9%85%8D%E7%BD%AE.png" alt="image-20210325000405539" style="zoom:67%;" />
+<img src="../assets/rabbitmq-springboot-mandatory%E9%85%8D%E7%BD%AE.png" alt="image-20210325000405539" style="zoom:67%;" />
 
 方法相关入参如下：
 
-<img src="assets/rabbitmq-mandatory%E5%9B%9E%E8%B0%83%E7%A4%BA%E4%BE%8B.png" alt="image-20210325000626949" style="zoom:67%;" />
+<img src="../assets/rabbitmq-mandatory%E5%9B%9E%E8%B0%83%E7%A4%BA%E4%BE%8B.png" alt="image-20210325000626949" style="zoom:67%;" />
 
 <br>
 

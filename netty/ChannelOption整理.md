@@ -8,7 +8,7 @@
 
 以下是DefaultChannelPipeline#newContext的源码:
 
-![image-20201021225413195](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201021225413195.png)
+![image-20201021225413195](assets/image-20201021225413195.png)
 
 **在ChannelHandler添加到Pipeline之前都会将其包装为一个ChannelHandlerContext。**
 
@@ -16,7 +16,7 @@
 
 举例来说，比如如下场景，希望使用一个Group去执行Pipeline中多个Handler：
 
-![image-20201021230356157](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20201021230356157.png)
+![image-20201021230356157](assets/image-20201021230356157.png)
 
 如果配置为false，那么可能就会由Group中不同的Executor来执行，这是不推荐的，因为还存在着线程上下文切换的问题。
 

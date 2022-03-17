@@ -10,7 +10,7 @@
 
 ## 思维导图
 
-![ThreadLocal思维导图](assets/ThreadLocal.png)
+![ThreadLocal思维导图](../assets/ThreadLocal.png)
 
 <br>
 
@@ -28,7 +28,7 @@ ThreadLocal（线程局部变量），作用是**保存每个线程的私有变�
 
 以下就是 ThreadLocalMap 在 Thread 中的变量声明:
 
- ![ThreadLocalMap的变量声明](assets/ThreadLocalMap的变量声明.png)
+ ![ThreadLocalMap的变量声明](../assets/ThreadLocalMap的变量声明.png)
 
 >threadLocals 是给 ThreadLocal 用的，该类只能访问当前线程中的数据。
 >
@@ -559,7 +559,7 @@ ThreadLocal 是对单线程而言的，如果出现线程切换会丢失 ThreadL
 
 InheritableThreadLocal 的主要实现如下：
 
-![InheritableThreadLocal#getMap和createMap](assets/image-20210902161137264.png)
+![InheritableThreadLocal#getMap和createMap](../assets/image-20210902161137264.png)
 
 基本逻辑和 ThreadLocal 并无不同，只是切换了操作的 ThreadLocalMap 对象。
 
@@ -567,7 +567,7 @@ InheritableThreadLocal 的主要实现如下：
 
 继承的实现逻辑在 Thread 的构造函数中，以下是 Thread#init 方法的片段：
 
-![image-20210902161430450](assets/image-20210902161430450.png)
+![image-20210902161430450](../assets/image-20210902161430450.png)
 
 方法会获取 parent 线程的 inheritableThreadLocals，并复制到当前的 Thread 对象。
 
