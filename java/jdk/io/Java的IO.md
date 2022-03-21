@@ -87,5 +87,3 @@ Selector 是对 IO 多路复用的支持，对于不同的底层系统会提供�
 
 ## NIO 和 BIO 的对比
 
-1. BIO 是基于流（Stream）的操作，而
-

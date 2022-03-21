@@ -77,12 +77,8 @@
     * [feign 简述](spring/cloud/feign.md)
     * [zuul 简述](spring/cloud/zuul.md)
 * 数据库
-  * [数据库的事务](数据库/mysql/数据库的事务.md)
-  * [MySQL（主要是 InnoDB）](数据库/mysql/MySQL.md)
-    * [MySQL 的日志](数据库/mysql/日志.md)
-    * [MySQL 的索引](数据库/mysql/索引.md)
-    * [MySQL 的事务](数据库/mysql/事务.md)
-    * [MySQL 的锁](数据库/mysql/锁.md)
+  * [MySQL（残酷学习版）](数据库/mysql/MySQL.md)
+  * [数据库优化方案](数据库/数据库优化.md)
   * [SQL语法](数据库/SQL语句.md)
 * 设计模式
   * [Gof 的设计模式](系统设计/Gof设计模式.md)

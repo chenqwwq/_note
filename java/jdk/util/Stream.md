@@ -1,5 +1,7 @@
 # Stream
 
+
+
 ## Stream 的作用
 
 Stream 是 Java8 提供的一种流式操作 API，除了结合 Lambda 表达式可以提供良好的阅读性之外，Stream 还为集合操作提供了另外一种形式。
