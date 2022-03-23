@@ -1,18 +1,27 @@
+---
+title: MySQL 复习总结（残酷学习版
+index_img: https://chenqwwq.oss-cn-hangzhou.aliyuncs.com/note/assets/image-20220322%E4%B8%8B%E5%8D%8844525458.png
+banner_img: https://chenqwwq.oss-cn-hangzhou.aliyuncs.com/note/assets/image-20220322%E4%B8%8B%E5%8D%8844525458.png
+excerpt: MySQL 重要知识点整理，包含事务，索引，锁，日志，主从等
+date: 2022-03-18 11:24:35
+categories:
+- 复习总结
+- 数据库
+tags:
+- MySQL
+---
+
 # MySQL（残酷学习版
 
----
-
 [TOC]
-
----
 
 ## MySQL 的整体架构
 
 
 
-<img src="assets/MySQL%E7%9A%84%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84.png" alt="img" style="zoom: 33%;" />
+![MySQL整体架构](https://chenqwwq.oss-cn-hangzhou.aliyuncs.com/note/MySQL%E7%9A%84%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84-7940422.png)
 
-<br>
+
 
 ### 连接器
 
@@ -44,7 +53,7 @@
 
 MySQL 的存储引擎是可插拔式的，在创建表的时候就可以使用不同的存储引擎。
 
-<br>
+
 
 早期的 MySQL 还会有查询缓存层，但是在4.x版本中就已经被删除了。
 
@@ -58,7 +67,7 @@ MySQL 的存储引擎是可插拔式的，在创建表的时候就可以使用�
 
 事务的特性有如下四种，**原子性（Atomicity），一致性（Consistency），隔离性（Isolation），持久性（Durability）**。
 
-<br>
+
 
 原子性指的是事务的操作作为一个不可再分的整体，**要不同时完成要不同时失败**。
 
@@ -72,7 +81,7 @@ MySQL 的存储引擎是可插拔式的，在创建表的时候就可以使用�
 
 
 
-<br>
+
 
 ### InnoDB 下事务的隔离级别
 
@@ -83,7 +92,7 @@ MySQL InnoDB 中提供了四种隔离级别：
 - REPEATABLE READ 可重复读（Default）
 - SERIALIZABLE  序列化
 
-<br>
+
 
 四种隔离级别分别解决了不同的并发问题：
 
@@ -102,13 +111,13 @@ MySQL InnoDB 中提供了四种隔离级别：
 >
 > **幻读，事务前后多次读取总量不一致。**
 
-<br>
+
 
 **RC  解决脏读依靠的就是锁和MVCC。**
 
 > MVCC 在 InnoDB 的 RR 和 RC 级别下表现是不一样的，RR 级别下，MVCC 以第一次 SELECT 查到的数据为主不会再创建新的快照，但是 RC 级别下，MVCC 机制每次都会创建新的快照，所以也会存在前后数据不一致的情况。
 
-<br>
+
 
 ### InnoDB 中 ACID 的实现
 
@@ -128,7 +137,7 @@ InnoDB 中提供了多种不同的隔离级别，每个隔离级别使用不同�
 
 一致性... emmm 不太清楚，应该是其他的东西一起保证的。
 
-<br>
+
 
 ### InnoDB 中的MVCC（多版本并发控制）
 
@@ -142,7 +151,7 @@ MVCC 机制在数据行中保留了多版本的数据，使用数据行隐藏字
 
 > 这里的快照不同于 Redis 的 RDB，是基于隐藏字段 trx_id 实现的可读范围标识。 
 
-<br>
+
 
 InnoDB 的行记录包含了两个隐藏字段：
 
@@ -153,7 +162,7 @@ InnoDB 的行记录包含了两个隐藏字段：
 
 回滚指针指向的是当前行上次的数据，以此形成一个版本链，如果需要回滚到最先版本的数据，需要顺着 roll_pointer 一直往上。
 
-<br>
+
 
 **MVCC 根据 trx_id 的大小界定出可见范围。**
 
@@ -167,7 +176,7 @@ InnoDB 的行记录包含了两个隐藏字段：
 
 
 
-<br>
+
 
 **MVCC 特性仅仅在 RC 和 RR 级别下生效，**并且在两个级别下的表现形式不同。
 
@@ -194,7 +203,7 @@ InnoDB 的行记录包含了两个隐藏字段：
 
 索引就是用来加速查询速度的特殊结构。
 
-<br>
+
 
 ### InnoDB 中的索引结构
 
@@ -212,7 +221,7 @@ M 阶的B+树，根节点的节点数为[2,M]，索引节点的节点数为[M/2,
 
 > 因为B+树数据有序性的特点，所以如果不使用单调递增的索引键，在插入和删除操作时候就会存在页分裂和页合并的问题，十分影响效率。
 
-<br>
+
 
 B 树和 B+树 的区别如下：
 
@@ -221,7 +230,7 @@ B 树和 B+树 的区别如下：
 
 相对于 B 树和 Hash 来说，B+树更加符合磁盘的特性。
 
-<br>
+
 
 > 为什么说 B+ 树更加符合磁盘特性呢？
 
@@ -229,13 +238,13 @@ B 树和 B+树 的区别如下：
 
 相比于 B 树，除去叶子节点成链不说，B+ 树的非叶子节点不保存数据，具有更稳定的查询效率，B 树虽然在某些查询中可以更快速，但是整体查询并不稳定，读取同样大小的索引页 B+ 树有更多的索引项。
 
-<br>
+
 
 > MySQL 为什么不使用 Hash 表或者跳表作为索引实现？
 
 Hash 表只适合等值查询，几乎无法做范围查询。
 
-<br>
+
 
 > 为什么不使用跳表的原因如下：
 
@@ -271,7 +280,7 @@ MyISAM 中的非聚集索引实现不同，MyISAM 中所有的索引树都是非
 >
 > MyISAM 的索引中保存的都是数据地址，而 InnoDB 的次级索引保存的主键。
 
-<br>
+
 
 #### 稠密索引和稀疏索引
 
@@ -279,7 +288,7 @@ MyISAM 中的非聚集索引实现不同，MyISAM 中所有的索引树都是非
 
 稀疏索引不会为每一个键值建立索引，这种索引往往出现在有序的排序中，例如跳表结构就是稀疏索引的典型实现（Mongo 以及 Kafka 都算是稀疏索引，Mongo 的文档可能会缺失某些字段？Kafka 是以时间戳为序间隔一定长度建立索引项
 
-<br>
+
 
 #### 唯一索引和非唯一索引
 
@@ -308,7 +317,7 @@ Change Buffer 主要优化非唯一辅助索引的维护成本。
 
 保存在 Change Buffer 的数据在下一次读取到数据页时合并，也就是 Merge 过程。
 
-<br>
+
 
 #### 前缀索引
 
@@ -316,9 +325,9 @@ Change Buffer 主要优化非唯一辅助索引的维护成本。
 
 > 长字符串的索引除了使用前缀索引，还可以直接独立一个字段做hash，搜索会更加全面。
 
-<br>
 
-<br>
+
+
 
 ### 索引使用的相关算法
 
@@ -330,11 +339,11 @@ Change Buffer 主要优化非唯一辅助索引的维护成本。
 
 本质上来说，联合索引在 InnoDB 中的数据结构仍然是一棵 B+ 树，并且索引节点保存以声明顺序所表示的索引数据。
 
->  例如[a,b,c]，在索引树中的排序就是先按照a排序，a相同按照b排序，b相同按照c排序。
+> 例如[a,b,c]，在索引树中的排序就是先按照a排序，a相同按照b排序，b相同按照c排序。
 >
->  ！！！利用索引有序的结构，可以完美的优化查询语句中的排序，但是在联合索引中，如果搜索条件是[a,b]并且按照b排序就不会出现文件排序，因为在a相同时，b本身就是有序的。
+> ！！！利用索引有序的结构，可以完美的优化查询语句中的排序，但是在联合索引中，如果搜索条件是[a,b]并且按照b排序就不会出现文件排序，因为在a相同时，b本身就是有序的。
 >
->  但是在搜索条件为[a,c]时，当a相同时，c并非有序，所以查询会出现 file sort。
+> 但是在搜索条件为[a,c]时，当a相同时，c并非有序，所以查询会出现 file sort。
 
 #### 覆盖索引
 
@@ -376,7 +385,7 @@ Change Buffer 主要优化非唯一辅助索引的维护成本。
 
 
 
-<br>
+
 
 ## MySQL Log（日志
 
@@ -386,7 +395,7 @@ MySQL 中存在多种日志，比如 **binlog ，redo log 以及 undo log。**
 
 redo log 和  undo log 属于 InnoDB 层的日志，而 binlog 属于 MySQL Server 层的日志。
 
-<br>
+
 
 binlog 主要用于主从复制，数据归档（可以单独根据 binlog 实现数据恢复，但不能保证 crash-safe
 
@@ -402,13 +411,13 @@ undo log 在 InnoDB 中另外实现了 MVCC。
 
 binlog  记录了所有的**数据库变更操作**，包括 UPDATE，INSERT，DELETE，也包括表结构的修改 ALTER TABLE 等。
 
-<br>
+
 
 **binlog 的主要作用是 1. 主从复制  2. 数据归档（奔溃后的适度恢复）。**
 
 但是 binlog 并不能提供 crash-safe 的保证。
 
-<br>
+
 
 #### 日志格式
 
@@ -418,19 +427,19 @@ binlog  记录了所有的**数据库变更操作**，包括 UPDATE，INSERT，D
 
 statement 完整的保存执行的语句，但是因为 now() 等即时函数的存在复制的异常，所以用于复制的情况下会出现异常。
 
-2. row
+1. row
 
 **row 记录的是表中数据 完整的变更，比如 now() 就会直接记录当前时间，数据较为准确，不会受语句上下文环境的影响**
 
 但是相对的日志文件会比较大，因为 statement 一个删除语句，row 会保存所有的行记录。
 
-3. mixed
+1. mixed
 
 mixed 基本上就是混合两种的情况。
 
-<br>
 
-<br>
+
+
 
 #### 相关配置
 
@@ -444,7 +453,7 @@ mixed 基本上就是混合两种的情况。
 
 因为一个事务中可能涉及多个更新语句，并且多个更新语句不能拆分写入，因此需要单独一个缓冲区。
 
-2. sync_binlog 
+1. sync_binlog 
 
 binlog 的 fsync 刷盘策略，有如下几种配置形式：
 
@@ -454,9 +463,9 @@ binlog 的 fsync 刷盘策略，有如下几种配置形式：
 
 为0时性能最好，但是如果系统宕机，会丢失未落盘的内容。
 
-<br>
 
-<br>
+
+
 
 ### redo log（重做日志
 
@@ -466,11 +475,11 @@ WAL（Write Ahead Log ）就是预写日志技术，在 InnoDB 中所有的修�
 
 所以理论上 redo log 可以单独提供 crash-safe 的保证。
 
-<br>
+
 
 redo log 中记录的是每次修改的物理日志，即每个数据页的修改（包含主键索引和次级索引。
 
-<br>
+
 
 #### redo log buffer
 
@@ -478,15 +487,15 @@ InnoDB 中的 redo log 有一个固定的大小的缓冲区，并且首尾相连
 
 
 
-<img src="assets/16a7950217b3f0f4ed02db5db59562a7.png" alt="img" style="zoom: 50%;" />
+![img](https://chenqwwq.oss-cn-hangzhou.aliyuncs.com/note/16a7950217b3f0f4ed02db5db59562a7-7940422.png)
 
-<br>
+
 
 在 write_pos 和 check_point 之间的就是日志的可写范围，如果刷盘不及时导致 write_pos 追上了 check_point，就会开启强制的刷盘（所以在 MySQL 大量写的时候会有瞬间抖动的现象。
 
 另外在 MySQL 的后台线程也会定时刷盘，在正常关闭 MySQL 的时候也会将 redo log 落盘。
 
-<br>
+
 
 #### redo log 的配置
 
@@ -496,7 +505,7 @@ redo log 的刷盘策略也有参数控制 - **innodb_fluish_log_at_trx_commit**
 
 该参数为1时，每次的 redo log 都会调用 fsync，真正落盘持久化保存。
 
-<br>
+
 
 
 
@@ -504,7 +513,7 @@ redo log 的刷盘策略也有参数控制 - **innodb_fluish_log_at_trx_commit**
 
 undo log 在 InnoDB 中用于实现 MVCC 和原子性。
 
-<br>
+
 
 InnoDB 在修改行记录都会带有几个隐藏字段：
 
@@ -515,7 +524,7 @@ InnoDB 在修改行记录都会带有几个隐藏字段：
 
 **原子性的实现就是直接替换当前行记录，修改都是会上锁的所以不存在多个修改并行的情况。**
 
-<br>
+
 
 undo log 在 5.6 之后记录在单独的表空间，并且使用回滚段作为组织的形式。
 
@@ -535,7 +544,7 @@ undo log 不会一直存在，当事务提交的时候 undo log 就没有作用�
 
 之所以要保证一致性的原因是因为 binlog 作为归档日志以及复制功能基础，如果 binlog 已经写入的数据，redo log 回滚，就会导致主从或者恢复前后的数据不一致。
 
-<br>
+
 
 二阶段提交的流程如下：
 
@@ -545,21 +554,21 @@ undo log 不会一直存在，当事务提交的时候 undo log 就没有作用�
 
 该阶段可能执行多次，每次修改都需要将 redo log 落盘。
 
-2. 提交阶段（Storage Engine（InnoDB）Commit Phase）
+1. 提交阶段（Storage Engine（InnoDB）Commit Phase）
 
 如果将事务提交，则将 binlog 落盘，如果回滚则使用 undo log 进行回滚。
 
-3. 完成阶段
+1. 完成阶段
 
 事务提交或者回滚都需要看情况清除对应的 undo log。
 
-<br>
+
 
 binlog 在 2PC 中充当了事务的协调者（Transaction Coordinator），并且以 binlog 是否写入来判断事务是否成功，使用 XID 建立当前日志之间的对应关系。
 
 在恢复的时候，redo log 检查到最近的 checkpoint，然后查看之后的日志，需要确定事务是否已经提交则通过 XID 找到对应的 binlog 俩判断 commit 状态。
 
-<br>
+
 
 
 
@@ -601,7 +610,7 @@ LSN 表示的就是日志的序号，在 InnoDB 中占8个字节。
 
 ### reference
 
-- [Redo log,Undo log 和 Binlog](https://huzb.me/2019/04/24/redo-undo%E5%92%8Cbinlog/)
+- [Redo log,Undo log 和 Binlog](https://huzb.me/2019/04/24/redo-undo和binlog/)
 - [详细分析MySQL事务日志(redo log和undo log)](https://www.cnblogs.com/f-ck-need-u/p/9010872.html)
 
 
@@ -616,13 +625,13 @@ Change Buffer 的主要作用就是**缓存对二级（辅助）非唯一索引�
 
 Changer Buffer 属于日志的一种，在 InnoDB 底层的 Buffer Pool 中会占据一定的空间。
 
-<br>
+
 
 如果没有 Change Buffer，在一次数据更新中会需要将数据所有的索引树加载到 Buffer Pool 之后再做更新（因为 Redo Log 的存在，所以此时 Buffer Pool 不需要立即刷到磁盘中。
 
 **Change Buffer 会在适当的时候进行 Merge**，例如当索引页被加载到 Buffer Pool 的时候，或者服务空闲的时候，服务关闭之前等等。
 
-<br>
+
 
 Change Buffer 的机制可以和 redo log 做类比，redo log 减少了随机写的操作，而 Change Buffer 减少了随机读的操作（对于磁盘操作顺序操作比随机操作快了好几倍。
 
@@ -664,7 +673,7 @@ TODO
 
 
 
-![img](assets/v2-b1542fa213b5322ed17364411af8cf99_1440w.jpg)
+![img](https://chenqwwq.oss-cn-hangzhou.aliyuncs.com/note/v2-b1542fa213b5322ed17364411af8cf99_1440w-7940422.jpg)
 
 
 
@@ -730,7 +739,7 @@ InnoDB 中根据划分依据的不同存在多种不同的锁。
 
 强行上锁可以使用以下语句加锁：
 
-```mysql
+```
 // 读锁
 SELECT * FROM tableName WHERE ... LOCK IN SHARE MODE
 // 写锁
@@ -749,7 +758,7 @@ SELECT * FROM tableName WHERE ...  FOR UPDATE
 
 **对于常规的 CURD 语句，判断行锁还是表锁，简单来看就是是否走索引，不走索引的 CRUD 语句都会经过一个全表扫描的过程，扫描过程中慢慢的就会锁表。**
 
-<br>
+
 
 InnoDb 支持多粒度上锁，即表锁和行锁，如果表锁和行锁都为读锁，那也不会冲突，而如何在上表锁的时候判断是否在表中存在行锁就会出现问题，总不能扫表来判断是否有锁吧，此时就出现了意向锁。
 
@@ -771,7 +780,7 @@ Next-Key Lock 就是**行锁和 GAP 锁的结合**，GAP 锁锁定的是命中�
 
 Next-Key Lock 的存在使 InnoDB 在 RR 级别下面就可以解决幻读问题。
 
-#
+
 
 ### 死锁
 
@@ -786,7 +795,7 @@ Next-Key Lock 的存在使 InnoDB 在 RR 级别下面就可以解决幻读问题
 3. 不可强占 - 资源不可强行剥夺，即无法强行获取别的所持有的资源
 4. 循环等待 - 若干对象循环持有对方所需要的资源
 
-<br>
+
 
 如何避免死锁（减少死锁的发生：
 
@@ -796,12 +805,11 @@ Next-Key Lock 的存在使 InnoDB 在 RR 级别下面就可以解决幻读问题
 >
 > 因为事务的解锁统一在事务的提交的时候，所以即使不同表的更新也会造成死锁。
 
-2. 尽量使用主键索引更新语句
+1. 尽量使用主键索引更新语句
 
 > 避免对索引树的扫描导致一次更新覆盖太多的行。
 
-3. 以相同的顺序更新
-
+1. 以相同的顺序更新
 
 > 死锁的原因是在更新多条记录的时候，互相持有部分记录的锁（单条记录的更新不会有死锁的问题。
 >
@@ -814,7 +822,6 @@ Next-Key Lock 的存在使 InnoDB 在 RR 级别下面就可以解决幻读问题
 ### rference
 
 - [浅谈数据库并发控制 - 锁和 MVCC](https://draveness.me/database-concurrency-control/)
-
 - [史上最全的select加锁分析(Mysql)](https://www.cnblogs.com/rjzheng/p/9950951.html)
 
 
@@ -829,17 +836,17 @@ MySQL 中的排序算法包括三种：
 
 全字段排序就是将全部需要的字段放入 sort_buffer 统一排序后返回。
 
-2. rowId 排序
+1. rowId 排序
 
 在排序内容较多的时候，可能仅使用 rowId + 排序字段进行排序，然后回表查询另外的内容。
 
 此时的效率可能非常低，因为先根据筛选字段查询 rowId 以及 排序字段（此时可能已经经过一次回表，而排序结束之后可能再次使用 rowId 进行二次回表。
 
-3. 索引树排序
+1. 索引树排序
 
 MySQL 索引本身就是有序的，因此如果排序条件满足索引（最左匹配原则，则可以直接使用索引中的顺序。
 
-<br>
+
 
 explain 的 Extra 字段中可能出现 filesort 标记，表示出现额外排序（并不一定是磁盘排序。
 
@@ -869,9 +876,8 @@ explain 的 Extra 字段中可能出现 filesort 标记，表示出现额外排�
 
 此时 a 和 b 的 id 在对方表中无匹配项的就不会被返回。
 
-2. 左连接查询
-
-3. 右连接查询
+1. 左连接查询
+2. 右连接查询
 
 
 
@@ -921,7 +927,7 @@ TODO
 
 
 
-![img](assets/a66c154c1bc51e071dd2cc8c1d6ca6a3.png)
+![img](https://chenqwwq.oss-cn-hangzhou.aliyuncs.com/note/a66c154c1bc51e071dd2cc8c1d6ca6a3-7940422.png)
 
 （还是 MySQL 45讲里面的图片。
 
@@ -947,23 +953,23 @@ master 侧的线程，负责从 binlog 中读取日志记录并推送到 Slave�
 
 master 会为每个从节点创建一个 Dump Thread，从不同的起始点开始读取日志文件（因此一主多从多架构对主的要求很高。
 
-2. I/O Thread
+1. I/O Thread
 
 slave 侧的线程，负责接收从 master 请求来的日志数据，并写入 relay log（relay log 就是中转日志，负责缓存从 master 接收的日志数据。
 
-3. SQL Thread Group
+1. SQL Thread Group
 
 旧版本的 MySQL 可能就是单个线程，在5.?之后变成了线程组，但是因为 SQL 语句可能存在上下文语境，因此并发执行需要额外判断。
 
 该线程组用来执行从 relay log 解析出来的 SQL 语句。
 
-<br>
+
 
 和 Redis 不同的是，MySQL 支持 Master-Master（主主）架构，此时需要双方各自指定自身的 server_id 防止日志的无限复制。
 
 另外的 MySQL 还支持级联复制，Slave 可以复制 Slave 节点的数据，主节点只需要创建一个 Dump Thread 去扩散日志，其他的从节点都从一级从节点复制。
 
-<br>
+
 
 
 
@@ -1010,7 +1016,6 @@ GTID 模式下，通过 GTID 代替了之前的 binlog 偏移量，可以清楚�
 ### reference
 
 - [MySQL 主从复制原理不再难](https://www.cnblogs.com/rickiyang/p/13856388.html)
-
 - [【MySQL】主从复制实现原理详解](https://blog.nowcoder.net/n/b90c959437734a8583fddeaa6d102e43)
 
 ## Explain 分析
@@ -1021,11 +1026,9 @@ GTID 模式下，通过 GTID 代替了之前的 binlog 偏移量，可以清楚�
 >
 > 分析 Explain 的输出就能帮助我们优化和改进 SQL 语句。
 
----
-
 ### 示例
 
-```mysql
+```
 mysql> explain select * from servers;
 +----+-------------+---------+------+---------------+------+---------+------+------+-------+
 | id | select_type | table   | type | possible_keys | key  | key_len | ref  | rows | Extra |
@@ -1045,7 +1048,7 @@ explain 用于展示 SQL 语句的执行计划，可以将其作为 SQL 优化�
 
 这里会将表结构中可以用到的所有索引列出，然后从中选择效率最高的执行（可能选择错误）。
 
-<br>
+
 
 如果 possible_keys 为空，表示没有任何索引可以使用，所以都会作全表扫描处理。
 
@@ -1055,9 +1058,7 @@ explain 用于展示 SQL 语句的执行计划，可以将其作为 SQL 优化�
 
 key_len 肯定是越小越好，类型上 int 的匹配优于字符串匹配。
 
-
-
-## rows 
+### rows 
 
 扫描行数。
 
@@ -1127,4 +1128,3 @@ key_len 肯定是越小越好，类型上 int 的匹配优于字符串匹配。
 ## Reference
 
 - [官方文档](https://dev.mysql.com/doc/refman/5.6/en/preface.html)
-
