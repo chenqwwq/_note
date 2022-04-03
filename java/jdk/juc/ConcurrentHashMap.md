@@ -39,10 +39,6 @@ ConcurrentHashMap 就是线程安全的 HashMap。
 
 
 
-
-
-
-
 > sizeCtl 变量的作用？
 
 sizeCtl 表示的是 ConcurrentHashMap 的状态，可以分为如下情况：
@@ -80,40 +76,40 @@ Node 表示一个 K/V 的数据对，并且也是桶中链表节点，具体源�
 
 ```java
 static final class ForwardingNode<K,V> extends Node<K,V> {
-        final Node<K,V>[] nextTable;
-    
-    	// 构造函数中默认以MOVED:-1为Hash,其它为空
-        ForwardingNode(Node<K,V>[] tab) {
-            super(MOVED, null, null, null);
-            this.nextTable = tab;
+  final Node<K,V>[] nextTable;
+
+  // 构造函数中默认以MOVED:-1为Hash,其它为空
+  ForwardingNode(Node<K,V>[] tab) {
+    super(MOVED, null, null, null);
+    this.nextTable = tab;
+  }
+  // 帮助扩容时的元素查找
+  Node<K,V> find(int h, Object k) {
+    // loop to avoid arbitrarily deep recursion on forwarding nodes
+    outer: for (Node<K,V>[] tab = nextTable;;) {
+      Node<K,V> e; int n;
+      if (k == null || tab == null || (n = tab.length) == 0 ||
+          (e = tabAt(tab, (n - 1) & h)) == null)
+        return null;
+      for (;;) {
+        int eh; K ek;
+        if ((eh = e.hash) == h &&
+            ((ek = e.key) == k || (ek != null && k.equals(ek))))
+          return e;
+        if (eh < 0) {
+          if (e instanceof ForwardingNode) {
+            tab = ((ForwardingNode<K,V>)e).nextTable;
+            continue outer;
+          }
+          else
+            return e.find(h, k);
         }
-    	// 帮助扩容时的元素查找
-        Node<K,V> find(int h, Object k) {
-            // loop to avoid arbitrarily deep recursion on forwarding nodes
-            outer: for (Node<K,V>[] tab = nextTable;;) {
-                Node<K,V> e; int n;
-                if (k == null || tab == null || (n = tab.length) == 0 ||
-                    (e = tabAt(tab, (n - 1) & h)) == null)
-                    return null;
-                for (;;) {
-                    int eh; K ek;
-                    if ((eh = e.hash) == h &&
-                        ((ek = e.key) == k || (ek != null && k.equals(ek))))
-                        return e;
-                    if (eh < 0) {
-                        if (e instanceof ForwardingNode) {
-                            tab = ((ForwardingNode<K,V>)e).nextTable;
-                            continue outer;
-                        }
-                        else
-                            return e.find(h, k);
-                    }
-                    if ((e = e.next) == null)
-                        return null;
-                }
-            }
-        }
+        if ((e = e.next) == null)
+          return null;
+      }
     }
+  }
+}
 ```
 
 - `find()` 方法实在扩容期间帮助 `get` 方法获取桶中元素.
@@ -135,111 +131,111 @@ CHM#put 直接调用 putVal 方法。
 ### putVal  - 新增元素
 
 ```java
-  /**
-	 * 方法参数:
-	 * 1. key,value 自然不用说就是k/v的两个值
-	 * 2. onlyIfAbsent 若为true,则仅仅在值为空时覆盖
-	 * 返回值:
-	 *  返回旧值,若是新增就为null.
-	 */
-    final V putVal(K key, V value, boolean onlyIfAbsent) {
-        // CHM不支持NULL值的铁证
-        if (key == null || value == null) throw new NullPointerException();
-        // 获得key的Hash,spread可以称之为扰动函数
-        int hash = spread(key.hashCode());
-        int binCount = 0;
-        // 无限循环
-        for (Node<K,V>[] tab = table;;) {
-            Node<K,V> f; int n, i, fh;
-            // 1. 在tab为空时负责初始化Table
-            if (tab == null || (n = tab.length) == 0)
-                tab = initTable();
-            // 2. 使用`(n-1)&hash`确定了元素的下标位置,获取对应节点
-            else if ((f = tabAt(tab, i = (n - 1) & hash)) == null) {
-                // 如果对应位置节点为空,直接以当前信息为桶的头节点
-                if (casTabAt(tab, i, null, new Node<K,V>(hash, key, value, null)))
-                    break;                   // no lock when adding to empty bin
-            }
-            // 3. 如果获取的桶的头结点的`Hash`为`MOVED`,表示该节点是`ForwardingNode`
-            // 也就表示数组正在进行扩容
-            else if ((fh = f.hash) == MOVED)
-                // 帮助扩容
-                tab = helpTransfer(tab, f);
-            else {
-              // 4. 桶存在并且当前处于正常状态
-                V oldVal = null;
-                // 上锁保证原子性,volatile仅能保证可见性
-                // f为key获取到的节点元素,以此为锁对象
-                synchronized (f) {
-                    // f在上文就是根据`tabAt(tab,i)`获取的
-                    // 此处是再次获取验证有没有被修改
-                    if (tabAt(tab, i) == f) {
-                        // 与else.if比较,得知
-                        // fh >= 0表示当前节点为链表节点,即当前桶结构为链表 		  ？？？
-                        if (fh >= 0) {
-                            // 链表中的元素个数统计
-                            binCount = 1;
-                            // 循环遍历整个桶
-                            // 跳出循环的两种情况:
-                            // 1. 找到相同的值,binCount此时表示遍历的节点个数
-                            // 2. 遍历到末尾,binCount就表示桶中的节点个数
-                            for (Node<K,V> e = f;; ++binCount) {
-                                K ek;
-                                // 源码中大量运用了表达式的短路特性,来展示判断的优先级
-                                // 1. 若hash不相等,则直接跳过判断
-                                // 2. hash相等之后,若key的地址相同,则直接进入if
-                                // 3. 地址不同时在进入判断内容是否相等
-                                if (e.hash == hash &&
-                                    ((ek = e.key) == key ||
-                                     (ek != null && key.equals(ek)))) {
-                                    oldVal = e.val;
-                                    // onlyIfAbsent为true,表示存在时不覆盖内容
-                                    if (!onlyIfAbsent)
-                                        e.val = value;
-                                    // 已经找到确定的元素了,更新不更新都跳出
-                                    break;
-                                }
-                                // 因为e就在同步代码块中,桶已经被上锁,不可能有别的线程改变
-                                // 所以不需要重新获取
-                                Node<K,V> pred = e;
-                                // 1. 如果e为空,则直接将元素挂接到e后面,跳出循环
-                                // 2. e不为空,继续遍历
-                                if ((e = e.next) == null) {
-                                    pred.next = new Node<K,V>(hash, key,
-                                                              value, null);
-                                    break;
-                                }
-                            }
-                        }
-                        // 类似HashMap,树节点独立操作.
-                        else if (f instanceof TreeBin) {
-                            Node<K,V> p;
-                            binCount = 2;
-                            if ((p = ((TreeBin<K,V>)f).putTreeVal(hash, key,
-                                                           value)) != null) {
-                                oldVal = p.val;
-                                if (!onlyIfAbsent)
-                                    p.val = value;
-                            }
-                        }
-                    }
-                }
-                // 表示进入了上面的同步表达式,对桶进行修改之后
-                if (binCount != 0) {
-                    // 如果binCount大于树的临界值,就将链表转化为红黑树
-                    if (binCount >= TREEIFY_THRESHOLD)
-                        treeifyBin(tab, i);
-                    // 如果oldVal部位空,则返回
-                    if (oldVal != null)
-                        return oldVal;
-                    break;
-                }
-            }
-        }
-        // 添加元素计数,并在binCount大于0时检查是否需要扩容
-        addCount(1L, binCount);
-        return null;
+/** 
+ * 方法参数:
+ * 1. key,value 自然不用说就是k/v的两个值
+ * 2. onlyIfAbsent 若为true,则仅仅在值为空时覆盖
+ * 返回值:
+ *  返回旧值,若是新增就为null.
+ */
+final V putVal(K key, V value, boolean onlyIfAbsent) {
+  // CHM不支持NULL值的铁证
+  if (key == null || value == null) throw new NullPointerException();
+  // 获得key的Hash,spread可以称之为扰动函数
+  int hash = spread(key.hashCode());
+  int binCount = 0;
+  // 无限循环
+  for (Node<K,V>[] tab = table;;) {
+    Node<K,V> f; int n, i, fh;
+    // 1. 在tab为空时负责初始化Table
+    if (tab == null || (n = tab.length) == 0)
+      tab = initTable();
+    // 2. 使用`(n-1)&hash`确定了元素的下标位置,获取对应节点
+    else if ((f = tabAt(tab, i = (n - 1) & hash)) == null) {
+      // 如果对应位置节点为空,直接以当前信息为桶的头节点
+      if (casTabAt(tab, i, null, new Node<K,V>(hash, key, value, null)))
+        break;                   // no lock when adding to empty bin
     }
+    // 3. 如果获取的桶的头结点的`Hash`为`MOVED`,表示该节点是`ForwardingNode`
+    // 也就表示数组正在进行扩容
+    else if ((fh = f.hash) == MOVED)
+      // 帮助扩容
+      tab = helpTransfer(tab, f);
+    else {
+      // 4. 桶存在并且当前处于正常状态
+      V oldVal = null;
+      // 上锁保证原子性,volatile仅能保证可见性
+      // f为key获取到的节点元素,以此为锁对象
+      synchronized (f) {
+        // f在上文就是根据`tabAt(tab,i)`获取的
+        // 此处是再次获取验证有没有被修改
+        if (tabAt(tab, i) == f) {
+          // 与else.if比较,得知
+          // fh >= 0表示当前节点为链表节点,即当前桶结构为链表 		  ？？？
+          if (fh >= 0) {
+            // 链表中的元素个数统计
+            binCount = 1;
+            // 循环遍历整个桶
+            // 跳出循环的两种情况:
+            // 1. 找到相同的值,binCount此时表示遍历的节点个数
+            // 2. 遍历到末尾,binCount就表示桶中的节点个数
+            for (Node<K,V> e = f;; ++binCount) {
+              K ek;
+              // 源码中大量运用了表达式的短路特性,来展示判断的优先级
+              // 1. 若hash不相等,则直接跳过判断
+              // 2. hash相等之后,若key的地址相同,则直接进入if
+              // 3. 地址不同时在进入判断内容是否相等
+              if (e.hash == hash &&
+                  ((ek = e.key) == key ||
+                   (ek != null && key.equals(ek)))) {
+                oldVal = e.val;
+                // onlyIfAbsent为true,表示存在时不覆盖内容
+                if (!onlyIfAbsent)
+                  e.val = value;
+                // 已经找到确定的元素了,更新不更新都跳出
+                break;
+              }
+              // 因为e就在同步代码块中,桶已经被上锁,不可能有别的线程改变
+              // 所以不需要重新获取
+              Node<K,V> pred = e;
+              // 1. 如果e为空,则直接将元素挂接到e后面,跳出循环
+              // 2. e不为空,继续遍历
+              if ((e = e.next) == null) {
+                pred.next = new Node<K,V>(hash, key,
+                                          value, null);
+                break;
+              }
+            }
+          }
+          // 类似HashMap,树节点独立操作.
+          else if (f instanceof TreeBin) {
+            Node<K,V> p;
+            binCount = 2;
+            if ((p = ((TreeBin<K,V>)f).putTreeVal(hash, key,
+                                                  value)) != null) {
+              oldVal = p.val;
+              if (!onlyIfAbsent)
+                p.val = value;
+            }
+          }
+        }
+      }
+      // 表示进入了上面的同步表达式,对桶进行修改之后
+      if (binCount != 0) {
+        // 如果binCount大于树的临界值,就将链表转化为红黑树
+        if (binCount >= TREEIFY_THRESHOLD)
+          treeifyBin(tab, i);
+        // 如果oldVal部位空,则返回
+        if (oldVal != null)
+          return oldVal;
+        break;
+      }
+    }
+  }
+  // 添加元素计数,并在binCount大于0时检查是否需要扩容
+  addCount(1L, binCount);
+  return null;
+}
 ```
 
 
@@ -256,23 +252,17 @@ static final int RESERVED  = -3; // hash for transient reservations
 static final int HASH_BITS = 0x7fffffff; // usable bits of normal node hash
 ```
 
+### 元素新增流程
 
-
-
-
-
-
-#### 元素新增流程小结：
-
-1. 判断并排除 key,value 为空的情况（CHM 不支持 key/value 为空。
-2. 得到扰动后的 hash，获取对应下标的桶，若桶为空则进行初始化。
-3. 通过 `(n - 1) & hash` 的公式获取桶的下标 ，若桶为空则直接 CAS 填充 key/value 为桶的头节点。
-4. 判断桶的头节点 hash,若 hash == MOVED 表示**数组在扩容并帮助扩容。**
-5. 进入`synchronize`的同步代码块,如果**桶的头节点的hash大于0表示桶的结构为链表**,接下去就是正常的链表遍历,新增或者覆盖.
-6. 如果**桶的头节点是`TreeBin`类型表示桶的结构为红黑树**,按红黑树的操作进行遍历.
-7. 退出同步代码块,判断在遍历期间统计的`binCount`是否需要转化为红黑树结构.
-8. 判断`oldVal`是否为空,这步也挺关键的,如果不为空表示时覆盖操作,直接`return`就好.
-9. 如果`oldVal`不为空调用`addCount`方法新增元素个数,并检测是否需要扩容.
+1. 判断并排除 key，value 为空的情况（CHM 不支持 key/value 为空
+2. 得到扰动后的 hash，获取对应下标的桶，若桶为空则进行初始化
+3. 通过 `(n - 1) & hash` 的公式获取桶的下标 ，若桶为空则直接 CAS 填充 key/value 为桶的头节点
+4. 判断桶的头节点 hash,若 hash == MOVED 表示数组在扩容并帮助扩容，若桶处于正常状态，则直接进入 `synchronize` 的同步代码块开始新增过程
+5. 如果**桶的头节点的 hash 大于0表示桶的结构为链表**，接下去就是正常的链表遍历，新增或者覆盖
+6. 如果**桶的头节点是 `TreeBin` 类型表示桶的结构为红黑树**，按红黑树的操作进行遍历
+7. 退出同步代码块,判断在遍历期间统计的`binCount` 是否需要转化为红黑树结构.
+8. 判断 `oldVal` 是否为空，这步也挺关键的，如果不为空表示是覆盖操作，直接`return`就好
+9. 如果 `oldVal` 不为空调用 `addCount` 方法新增元素个数,并检测是否需要扩容
 
 
 
@@ -281,136 +271,149 @@ static final int HASH_BITS = 0x7fffffff; // usable bits of normal node hash
 ## 元素获取方法
 
 ```java
-   public V get(Object key) {
-        Node<K,V>[] tab; Node<K,V> e, p; int n, eh; K ek;
-       	// 获取hash，并进过扰动
-        int h = spread(key.hashCode());
-       	// 判断以进入获取方法
-       	// 1. 数组不为空 & 数组长度大于0
-        // 2. 获取的桶不为空
-        if ((tab = table) != null && (n = tab.length) > 0 &&
-            // 获取桶下标的公式都是通用的 `(n -1) & h`
-            (e = tabAt(tab, (n - 1) & h)) != null)
-        {// 对于桶中头节点的hash，对比成功就不需要遍历整个列表了
-            if ((eh = e.hash) == h) {
-                // 返回匹配的元素value
-                if ((ek = e.key) == key || (ek != null && key.equals(ek)))
-                    return e.val;
-            }
-            // 元素hash < 0的情况有以下三种:
-            // 1. 数组正在扩容，Node的实际类型是ForwardingNode
-            // 2. 节点为树的root节点，TreeNode
-            // 3. 暂时保留的Hash, Node
-            // 不同的Node都会调用各自的find()方法
-            else if (eh < 0)
-                return (p = e.find(h, key)) != null ? p.val : null;
-            // 如果头节点不是所需节点,且Map此时并未扩容
-        	// 直接遍历桶中元素查找
-            while ((e = e.next) != null) {
-                if (e.hash == h &&
-                    ((ek = e.key) == key || (ek != null && key.equals(ek))))
-                    return e.val;
-            }
-        }
-        return null;
+public V get(Object key) {
+  Node<K,V>[] tab; Node<K,V> e, p; int n, eh; K ek;
+  // 获取hash，并进过扰动
+  int h = spread(key.hashCode());
+  // 判断以进入获取方法
+  // 1. 数组不为空 & 数组长度大于0
+  // 2. 获取的桶不为空
+  if ((tab = table) != null && (n = tab.length) > 0 &&
+      // 获取桶下标的公式都是通用的 `(n -1) & h`
+      (e = tabAt(tab, (n - 1) & h)) != null)
+  {// 对于桶中头节点的hash，对比成功就不需要遍历整个列表了
+    if ((eh = e.hash) == h) {
+      // 返回匹配的元素value
+      if ((ek = e.key) == key || (ek != null && key.equals(ek)))
+        return e.val;
     }
+    // 元素hash < 0的情况有以下三种:
+    // 1. 数组正在扩容，Node的实际类型是ForwardingNode
+    // 2. 节点为树的root节点，TreeNode
+    // 3. 暂时保留的Hash, Node
+    // 不同的Node都会调用各自的find()方法
+    else if (eh < 0)
+      return (p = e.find(h, key)) != null ? p.val : null;
+    // 如果头节点不是所需节点,且Map此时并未扩容
+    // 直接遍历桶中元素查找
+    while ((e = e.next) != null) {
+      if (e.hash == h &&
+          ((ek = e.key) == key || (ek != null && key.equals(ek))))
+        return e.val;
+    }
+  }
+  return null;
+}
 ```
 
-##### 完整的获取流程如下:
+### 完整的获取流程
 
-1. 经过扰动函数获取`key`的hash,在获取之前会先判断tab是否为空以及长度
+1. 经过扰动函数获取 key 的 hash,在获取之前会先判断tab是否为空以及长度
+
 2. 通过`(n -1)& hash`获取的桶下表获取桶.
-3. 判断`key`的hash和桶的头节点是否相等,相等则直接返回.
-4. 若获得的桶头节点的`hash < 0`,表示**处于以下三种状态,则是通过调用各自实际节点类型的`find`方法获取元素.**
-   1. 数组正在扩容，Node的实际类型是`ForwardingNode`
-   2. 节点为树的root节点,节点类型为`TreeNode`
-   3. 暂时保留的Hash, Node
+
+3. 判断 key 的hash和桶的头节点是否相等,相等则直接返回.
+
+4. 若获得的桶头节点的`hash < 0`，表示**处于以下三种特殊状态，则是通过调用各自实际节点类型的 find() 方法获取元素
+   - 数组正在扩容，Node 的实际类型是`ForwardingNode`
+   
+   - 节点为树的 root 节点，节点类型为`TreeNode`
+   
+   - 暂时保留的 Hash,
+   
 5. 如果hash不相等,且头节点hash正常,之后**就是普通的链表遍历查找操作.**
 
 
 
+## 元素个数统计
 
+ConcurrentHashMap 中的元素统计使用了上文说到了 baseCount 和 ConuterCell 两个成员变量，统计的逻辑如下：
 
-## 扩容机制
+> **baseCount 表示的是基础的元素个数，而 CounterCell 数组中保存的是对应的各个桶中的变化的元素个数。**
+>
+> 所以统计的时候，需要从 CounterCell 数组中统计所有的个数加上 baseCount。
 
-- 不得不说,扩容部分的代码绝对是超一流的大师手笔!!!
+元素个数的统计也是开启扩容流程的前置判断过程。
 
-##### addCount  扩容的监测
+<br>
 
-- `addCount`的作用:
-  1.   增加`ConcurrentHashMap`的元素计数
-  2.   前驱检测是否需要扩容,
+### addCount（增加计数
 
 ```java
 /**
  *   参数: 
  * 	 x -> 具体增加的元素个数
- *   check -> 如果check<0不检查时都需要扩容,
+ *   check -> 如果check<1不检查时都需要扩容,
  */
 private final void addCount(long x, int check) {
-        CounterCell[] as; long b, s;
-     	// 1. counterCells不为空
-      	// 2. CAS修改baseCount属性成功
-        if ((as = counterCells) != null ||
-            // CAS增加baseCOunt
-            !U.compareAndSwapLong(this, BASECOUNT, b = baseCount, s = b + x)) {
-            CounterCell a; long v; int m;
-            // 线程争用的状态标记
-            boolean uncontended = true;
-            // 1. 计数cell为null,或长度小于1
-            // 2. 随机去一个数组位置为为空
-            // 3. CAS替换CounterCell的value失败
-            if (as == null || (m = as.length - 1) < 0 ||
-                (a = as[ThreadLocalRandom.getProbe() & m]) == null ||
-            // CAS增加CounterCell的value值失败会调用fullAddCount方法
-                !(uncontended =
-                  U.compareAndSwapLong(a, CELLVALUE, v = a.value, v + x))) {
-                fullAddCount(x, uncontended);
-                return;
-            }
-            if (check <= 1)
-                return;
-            s = sumCount();
-        }
-    	// 根据`check >= 0`判断是否需要检查扩容
-        if (check >= 0) {
-            Node<K,V>[] tab, nt; int n, sc;
-            // 1. 如果元素总数大于sizeCtl,表示达到了扩容阈值
-            // 2. tab数组不能为空,已经初始化
-            // 3. table.length小于最大容,有扩容空间
-            while (s >= (long)(sc = sizeCtl) && (tab = table) != null &&
-                   (n = tab.length) < MAXIMUM_CAPACITY) {
-                // 根据数组长度获取一个扩容标志
-                int rs = resizeStamp(n);
-                if (sc < 0) {
-                    // 如果sc的低16位不等于rs,表示标识符已经改变.				// 待补充
-                    // 如果nextTable为空,表示扩容已经结束
-                    if ((sc >>> RESIZE_STAMP_SHIFT) != rs || sc == rs + 1 ||
-                        sc == rs + MAX_RESIZERS || (nt = nextTable) == null ||
-                        transferIndex <= 0)
-                        break;
-                    // CAS替换sc值为sc+1,成功则开始扩容
-                    if (U.compareAndSwapInt(this, SIZECTL, sc, sc + 1))
-                        //	调用transfer开始扩容,此时nextTable已经指定
-                        transfer(tab, nt);
-                }
-                // `sc > 0`表示数组此时并不在扩容阶段,更新sizeCtl并开始扩容
-                else if (U.compareAndSwapInt(this, SIZECTL, sc,
-                                             (rs << RESIZE_STAMP_SHIFT) + 2))
-                    // 调用transfer,nextTable待生成
-                    transfer(tab, null);
-                s = sumCount();
-            }
-        }
+  CounterCell[] as; long b, s;
+  // 1. counterCells不为空
+  // 2. CAS修改baseCount属性成功
+  // 尝试CAS修改，成功就直接进行下一个环节
+  if ((as = counterCells) != null ||
+      // CAS增加baseCOunt
+      !U.compareAndSwapLong(this, BASECOUNT, b = baseCount, s = b + x)) {
+    CounterCell a; long v; int m;
+    // 线程争用的状态标记
+    boolean uncontended = true;
+    // 1. 计数cell为null,或长度小于1
+    // 2. 随机去一个数组位置为为空
+    // 3. CAS替换CounterCell的value失败
+    if (as == null || (m = as.length - 1) < 0 ||
+        (a = as[ThreadLocalRandom.getProbe() & m]) == null ||
+        // CAS增加CounterCell的value值失败会调用fullAddCount方法
+        !(uncontended =
+          U.compareAndSwapLong(a, CELLVALUE, v = a.value, v + x))) {
+      fullAddCount(x, uncontended);
+      return;
     }
+    if (check <= 1)
+      return;
+    s = sumCount();
+  }
+  // 根据`check >= 0`判断是否需要检查扩容
+  if (check >= 0) {
+    Node<K,V>[] tab, nt; int n, sc;
+    // 1. 如果元素总数大于sizeCtl,表示达到了扩容阈值
+    // 2. tab数组不能为空,已经初始化
+    // 3. table.length小于最大容,有扩容空间
+    while (s >= (long)(sc = sizeCtl) && (tab = table) != null &&
+           (n = tab.length) < MAXIMUM_CAPACITY) {
+      // 根据数组长度获取一个扩容标志
+      int rs = resizeStamp(n);
+      if (sc < 0) {
+        // 如果sc的低16位不等于rs,表示标识符已经改变.				// 待补充
+        // 如果nextTable为空,表示扩容已经结束
+        if ((sc >>> RESIZE_STAMP_SHIFT) != rs || sc == rs + 1 ||
+            sc == rs + MAX_RESIZERS || (nt = nextTable) == null ||
+            transferIndex <= 0)
+          break;
+        // CAS替换sc值为sc+1,成功则开始扩容
+        if (U.compareAndSwapInt(this, SIZECTL, sc, sc + 1))
+          //	调用transfer开始扩容,此时nextTable已经指定
+          transfer(tab, nt);
+      }
+      // `sc > 0`表示数组此时并不在扩容阶段,更新sizeCtl并开始扩容
+      else if (U.compareAndSwapInt(this, SIZECTL, sc,
+                                   (rs << RESIZE_STAMP_SHIFT) + 2))
+        // 调用transfer,nextTable待生成
+        transfer(tab, null);
+      s = sumCount();
+    }
+  }
+}
 ```
 
 
 
-##### helpTransfer  帮助扩容
+## 扩容机制
+
+不得不说,扩容部分的代码绝对是超一流的大师手笔!!!
+
+### helpTransfer  帮助扩容
 
 ```java
- /**
+/**
   * 参数：
   * tab -> 扩容的数组，一般为table
   * f -> 线程持有的锁对应的桶的头节点
@@ -418,238 +421,237 @@ private final void addCount(long x, int check) {
   * 1. `putVal`检测到头节点Hash为MOVED
   */
 final Node<K,V>[] helpTransfer(Node<K,V>[] tab, Node<K,V> f) {
-        Node<K,V>[] nextTab; int sc;
-        // 1.参数数组不能为空 
-		// 2.参数f必须为ForwardingNode类型
-        // 3.f.nextTab不能为空
-        if (tab != null && (f instanceof ForwardingNode) &&
-            (nextTab = ((ForwardingNode<K,V>)f).nextTable) != null) {
-            // resizeStamp一顿位操作打的我头昏脑涨
-            // 获取扩容的标识
-            int rs = resizeStamp(tab.length);
-            // Map仍处在扩容状态的判断
-            // 1. 判断节点f的nextTable是否和成员变量的nextTable相同
-            // 2. 判断传入的tab和成员变量的table是否相同
-            // 3. sizeCtl是否小于0
-            while (nextTab == nextTable && table == tab &&
-                   (sc = sizeCtl) < 0) {
-                // 两种不同的情况判断                
-                // 一. 不需要帮助扩容的情况
-                // 1. sc的高16位不等于rs
-                // 2. sc等于rs+1
-                // 3. sc等于rs+MAX_RESIZERS
-                // 4. transferIndex <= 0, 这个好理解因为扩容时会分配并减去transferIndex,
-                // 小于0时表示数组的区域已分配完毕
-                if ((sc >>> RESIZE_STAMP_SHIFT) != rs || sc == rs + 1 ||
-                    sc == rs + MAX_RESIZERS || transferIndex <= 0)
-                    break;
-                // 二. CAS `sc+1`并调用transfer帮助扩容.
-                // 线程在帮助扩容时会对sizeCtl+1,完成时-1,表示标记
-                if (U.compareAndSwapInt(this, SIZECTL, sc, sc + 1)) {
-                    transfer(tab, nextTab);
-                    break;
-                }
-            }
-            return nextTab;
-        }
-        return table;
+  Node<K,V>[] nextTab; int sc;
+  // 1.参数数组不能为空 
+  // 2.参数f必须为ForwardingNode类型
+  // 3.f.nextTab不能为空
+  if (tab != null && (f instanceof ForwardingNode) &&
+      (nextTab = ((ForwardingNode<K,V>)f).nextTable) != null) {
+    // resizeStamp一顿位操作打的我头昏脑涨
+    // 获取扩容的标识
+    int rs = resizeStamp(tab.length);
+    // Map仍处在扩容状态的判断
+    // 1. 判断节点f的nextTable是否和成员变量的nextTable相同
+    // 2. 判断传入的tab和成员变量的table是否相同
+    // 3. sizeCtl是否小于0
+    while (nextTab == nextTable && table == tab &&
+           (sc = sizeCtl) < 0) {
+      // 两种不同的情况判断                
+      // 一. 不需要帮助扩容的情况
+      // 1. sc的高16位不等于rs
+      // 2. sc等于rs+1
+      // 3. sc等于rs+MAX_RESIZERS
+      // 4. transferIndex <= 0, 这个好理解因为扩容时会分配并减去transferIndex,
+      // 小于0时表示数组的区域已分配完毕
+      if ((sc >>> RESIZE_STAMP_SHIFT) != rs || sc == rs + 1 ||
+          sc == rs + MAX_RESIZERS || transferIndex <= 0)
+        break;
+      // 二. CAS `sc+1`并调用transfer帮助扩容.
+      // 线程在帮助扩容时会对sizeCtl+1,完成时-1,表示标记
+      if (U.compareAndSwapInt(this, SIZECTL, sc, sc + 1)) {
+        transfer(tab, nextTab);
+        break;
+      }
     }
+    return nextTab;
+  }
+  return table;
+}
 ```
 
-
-
-##### transfer 扩容的核心方法,负责迁移桶中元素
+### transfer 扩容的核心方法,负责迁移桶中元素
 
 ```java
-  private final void transfer(Node<K,V>[] tab, Node<K,V>[] nextTab) {
-        int n = tab.length, stride;
-      	// stride为此次需要迁移的桶的数目
-      	// NCPU为当前主机CPU数目
-      	// MIN_TRANSFER_STRIDE为每个线程最小处理的组数目
-      	// 1. 在多核中stride为当前容量的1/8对CPU数目取整,例如容量为16时,CPU为2时结果是1
-      	// 2. 在单核中stride为n就为当前数组容量
- 		// !!! stride最小为16,被限定死.
-        if ((stride = (NCPU > 1) ? (n >>> 3) / NCPU : n) < MIN_TRANSFER_STRIDE)
-            stride = MIN_TRANSFER_STRIDE; // subdivide range
-      	// nextTab是扩容的过渡对象,所以必须要先初始化
-        if (nextTab == null) {            // initiating
-            try {
-                @SuppressWarnings("unchecked")
-                // !!! 重点就在这 扩容后的大小为当前的两倍 --> n << 1
-                Node<K,V>[] nt = (Node<K,V>[])new Node<?,?>[n << 1];
-                nextTab = nt;
-            } catch (Throwable ex) {      // try to cope with OOME
-            	// 扩容失败,直接填充int的最大值
-                sizeCtl = Integer.MAX_VALUE;
-                // 直接退出
-                return;	
-           }
-            // 更新成员变量
-            nextTable = nextTab;
-            // transferIndex为数组长度
-            transferIndex = n;
-        }
-      	// 记录过渡数组的长度
-        int nextn = nextTab.length;
-    	// 此处新建了一个ForwardingNode用于后续占位
-        ForwardingNode<K,V> fwd = new ForwardingNode<K,V>(nextTab);
-        /**
-          * 以上为数据准备部分,初始化过渡数组,记录长度,创建填充节点等操作
-          * 以下时真正扩容的主要逻辑
-          */
- 		// 该变量控制迁移的进行,     
-        boolean advance = true;
-        boolean finishing = false; 			// 两个变量作用未知 finishing可能是此次扩容标记
-  // 扩容的for循环里面可以分为两部分
- // 一. while循环里面确定需要迁移的桶的区域,以及本次需要迁移的桶的下标
-      	// 这个i就是需要迁移的桶的下标
-        for (int i = 0, bound = 0;;) {
-            Node<K,V> f; int fh;
-          	// 该while代码块根据if的顺序功能分别是
-            // --i: 负责迁移区域的向前推荐,i为桶下标
-            // nextIndex: 在没有获取负责区域时,检查是否还需要扩容
-            // CAS: 负责获取此次for循环的区域,每次都为stride个桶
-            while (advance) {
-                int nextIndex, nextBound;
-                // 这个`--i`每次都会进行,每次都会向前推进一个位置
-                if (--i >= bound || finishing)
-                    advance = false;
-                // 因此如果当transferIndex<=0时,表示扩容的区域分配完
-                else if ((nextIndex = transferIndex) <= 0) {
-            		i = -1;
-                    advance = false;
-                // CAS替换transferIndex的值,新值为旧值减去分到的stride
-                // stride就表示此次的迁移区域,nextIndex就代表了下次起点
-                // 从这里可以看出扩容是从数组末尾开始向前推进的
-                }else if (U.compareAndSwapInt
-                         (this, TRANSFERINDEX, nextIndex,
-                          nextBound = (nextIndex > stride ?
-                                       nextIndex - stride : 0))) {
-                    // bount为此次扩容的推进终点,下次起点
-                    bound = nextBound;
-                    // i此次扩容开始的桶下表
-                    i = nextIndex - 1;
-                    advance = false;
-                }
-            }
- // 二. 扩容的逻辑代码
-        // 1. 此if判定扩容的结果,中间是三种异常值
-              // 1). i < 0的情况时上面第二个if跳出的线程
-          	  // 2). i > 旧数组的长度
-           	  // 3). i+n大于新数组的长度
-            if (i < 0 || i >= n || i + n >= nextn) {
-                int sc;
-                // 此阶段扩容结束后的操作
-                // 1. 将nextTable置空,
-                // 2. 将中间过渡的数组赋值给table
-                // 3. sizeCtl变为1.5倍(2n-0.5n)
-                if (finishing) {
-                    nextTable = null;
-                    table = nextTab;
-                    // 分别使用有符号左移,无符号右移
-                    sizeCtl = (n << 1) - (n >>> 1);
-                    return;
-                }
-                // CAS替换`sizeCtl-1`,表示本线程的扩容任务已经完成
-                if (U.compareAndSwapInt(this, SIZECTL, sc = sizeCtl, sc - 1)) {
-                    //	表达式成立表示还有别的线程在执行扩容,直接退出
-                    if ((sc - 2) != resizeStamp(n) << RESIZE_STAMP_SHIFT)
-                        return;
-                    // 表达式成立,表示已经全部扩容完成.
-                    finishing = advance = true;
-                    // 提交前重新检查
-                    i = n; 
-                }
-            }
-       // 2. 扩容时发现负责的区域有空的桶直接使用ForwardingNode填充
-            // ForwardingNode持有nextTable的引用
-            else if ((f = tabAt(tab, i)) == null)
-                // CAS替换
-                advance = casTabAt(tab, i, null, fwd);
-       // 3. 表示处理完毕
-            else if ((fh = f.hash) == MOVED)
-                advance = true; // already processed
-      // 4. 迁移桶的操作
-            else {
-                // sync保证原子性和可见性
-                synchronized (f) {                
-                    // 获取数组中的第i个桶的头节点
-                    // 进入synchronized之后重新判断,保证数据的正确性没有在中间被修改
-                    if (tabAt(tab, i) == f) {
-                        // 此处扩容和HashMap有点像,分为了lowNode和highNode两个头结点
-                        Node<K,V> ln, hn;
-                        if (fh >= 0) {
-                            int runBit = fh & n;
-                            Node<K,V> lastRun = f;
-                            for (Node<K,V> p = f.next; p != null; p = p.next) {
-                                int b = p.hash & n;
-                                if (b != runBit) {
-                                    runBit = b;
-                                    lastRun = p;
-                                }
-                            }
-                            if (runBit == 0) {
-                                ln = lastRun;
-                                hn = null;
-                            }
-                            else {
-                                hn = lastRun;
-                                ln = null;
-                            }
-                            for (Node<K,V> p = f; p != lastRun; p = p.next) {
-                                int ph = p.hash; K pk = p.key; V pv = p.val;
-                                if ((ph & n) == 0)
-                                    ln = new Node<K,V>(ph, pk, pv, ln);
-                                else
-                                    hn = new Node<K,V>(ph, pk, pv, hn);
-                            }
-                            setTabAt(nextTab, i, ln);
-                            setTabAt(nextTab, i + n, hn);
-                            setTabAt(tab, i, fwd);
-                           	// true的话会重新
-                            advance = true;
-                        }
-                        // 树的桶迁移操作
-                        else if (f instanceof TreeBin) {
-                            TreeBin<K,V> t = (TreeBin<K,V>)f;
-                            TreeNode<K,V> lo = null, loTail = null;
-                            TreeNode<K,V> hi = null, hiTail = null;
-                            int lc = 0, hc = 0;
-                            for (Node<K,V> e = t.first; e != null; e = e.next) {
-                                int h = e.hash;
-                                TreeNode<K,V> p = new TreeNode<K,V>
-                                    (h, e.key, e.val, null, null);
-                                if ((h & n) == 0) {
-                                    if ((p.prev = loTail) == null)
-                                        lo = p;
-                                    else
-                                        loTail.next = p;
-                                    loTail = p;
-                                    ++lc;
-                                }
-                                else {
-                                    if ((p.prev = hiTail) == null)
-                                        hi = p;
-                                    else
-                                        hiTail.next = p;
-                                    hiTail = p;
-                                    ++hc;
-                                }
-                            }
-                            ln = (lc <= UNTREEIFY_THRESHOLD) ? untreeify(lo) :
-                                (hc != 0) ? new TreeBin<K,V>(lo) : t;
-                            hn = (hc <= UNTREEIFY_THRESHOLD) ? untreeify(hi) :
-                                (lc != 0) ? new TreeBin<K,V>(hi) : t;
-                            setTabAt(nextTab, i, ln);
-                            setTabAt(nextTab, i + n, hn);
-                            setTabAt(tab, i, fwd);
-                            advance = true;
-                        }
-                    }
-                }
-            }
-        }
+private final void transfer(Node<K,V>[] tab, Node<K,V>[] nextTab) {
+  int n = tab.length, stride;
+  // stride为此次需要迁移的桶的数目
+  // NCPU为当前主机CPU数目
+  // MIN_TRANSFER_STRIDE为每个线程最小处理的组数目
+  // 1. 在多核中stride为当前容量的1/8对CPU数目取整,例如容量为16时,CPU为2时结果是1
+  // 2. 在单核中stride为n就为当前数组容量
+  // !!! stride最小为16,被限定死.
+  if ((stride = (NCPU > 1) ? (n >>> 3) / NCPU : n) < MIN_TRANSFER_STRIDE)
+    stride = MIN_TRANSFER_STRIDE; // subdivide range
+  // nextTab是扩容的过渡对象,所以必须要先初始化
+  if (nextTab == null) {            // initiating
+    try {
+      @SuppressWarnings("unchecked")
+      // !!! 重点就在这 扩容后的大小为当前的两倍 --> n << 1
+      Node<K,V>[] nt = (Node<K,V>[])new Node<?,?>[n << 1];
+      nextTab = nt;
+    } catch (Throwable ex) {      // try to cope with OOME
+      // （这里是创建新数组都失败，直接填充int的最大值
+      sizeCtl = Integer.MAX_VALUE;
+      // 直接退出
+      return;	
     }
+    // 更新成员变量
+    // 这里用了三个对象（nt，nextTab，nextTable）传递到 nextTable
+    nextTable = nextTab;
+    // transferIndex为旧数组长度
+    transferIndex = n;
+  }
+  // 记录过渡数组的长度
+  int nextn = nextTab.length;
+  // 此处新建了一个ForwardingNode用于后续占位
+  ForwardingNode<K,V> fwd = new ForwardingNode<K,V>(nextTab);
+  /**
+   * 以上为数据准备部分,初始化过渡数组,记录长度,创建填充节点等操作
+   * 以下时真正扩容的主要逻辑
+   */
+  // 该变量控制迁移的进行,     
+  boolean advance = true;
+  boolean finishing = false; 			// 两个变量作用未知 finishing可能是此次扩容标记
+  // 扩容的for循环里面可以分为两部分
+  // 一. while循环里面确定需要迁移的桶的区域,以及本次需要迁移的桶的下标
+  // 这个i就是需要迁移的桶的下标
+  for (int i = 0, bound = 0;;) {
+    Node<K,V> f; int fh;
+    // 该while代码块根据if的顺序功能分别是
+    // --i: 负责迁移区域的向前推荐,i为桶下标
+    // nextIndex: 在没有获取负责区域时,检查是否还需要扩容
+    // CAS: 负责获取此次for循环的区域,每次都为stride个桶
+    while (advance) {
+      int nextIndex, nextBound;
+      // 这个`--i`每次都会进行,每次都会向前推进一个位置
+      if (--i >= bound || finishing)
+        advance = false;
+      // 因此如果当transferIndex<=0时,表示扩容的区域分配完
+      else if ((nextIndex = transferIndex) <= 0) {
+        i = -1;
+        advance = false;
+        // CAS替换transferIndex的值,新值为旧值减去分到的stride
+        // stride就表示此次的迁移区域,nextIndex就代表了下次起点
+        // 从这里可以看出扩容是从数组末尾开始向前推进的
+      }else if (U.compareAndSwapInt
+                (this, TRANSFERINDEX, nextIndex,
+                 nextBound = (nextIndex > stride ?
+                              nextIndex - stride : 0))) {
+        // bount为此次扩容的推进终点,下次起点
+        bound = nextBound;
+        // i此次扩容开始的桶下表
+        i = nextIndex - 1;
+        advance = false;
+      }
+    }
+    // 二. 扩容的逻辑代码
+    // 1. 此if判定扩容的结果,中间是三种异常值
+    // 1). i < 0的情况时上面第二个if跳出的线程
+    // 2). i > 旧数组的长度
+    // 3). i+n大于新数组的长度
+    if (i < 0 || i >= n || i + n >= nextn) {
+      int sc;
+      // 此阶段扩容结束后的操作
+      // 1. 将nextTable置空,
+      // 2. 将中间过渡的数组赋值给table
+      // 3. sizeCtl变为1.5倍(2n-0.5n)
+      if (finishing) {
+        nextTable = null;
+        table = nextTab;
+        // 分别使用有符号左移,无符号右移
+        sizeCtl = (n << 1) - (n >>> 1);
+        return;
+      }
+      // CAS替换`sizeCtl-1`,表示本线程的扩容任务已经完成
+      if (U.compareAndSwapInt(this, SIZECTL, sc = sizeCtl, sc - 1)) {
+        //	表达式成立表示还有别的线程在执行扩容,直接退出
+        if ((sc - 2) != resizeStamp(n) << RESIZE_STAMP_SHIFT)
+          return;
+        // 表达式成立,表示已经全部扩容完成.
+        finishing = advance = true;
+        // 提交前重新检查
+        i = n; 
+      }
+    }
+    // 2. 扩容时发现负责的区域有空的桶直接使用ForwardingNode填充
+    // ForwardingNode持有nextTable的引用
+    else if ((f = tabAt(tab, i)) == null)
+      // CAS替换
+      advance = casTabAt(tab, i, null, fwd);
+    // 3. 表示处理完毕
+    else if ((fh = f.hash) == MOVED)
+      advance = true; // already processed
+    // 4. 迁移桶的操作
+    else {
+      // sync保证原子性和可见性
+      synchronized (f) {                
+        // 获取数组中的第i个桶的头节点
+        // 进入synchronized之后重新判断,保证数据的正确性没有在中间被修改
+        if (tabAt(tab, i) == f) {
+          // 此处扩容和HashMap有点像,分为了lowNode和highNode两个头结点
+          Node<K,V> ln, hn;
+          if (fh >= 0) {
+            int runBit = fh & n;
+            Node<K,V> lastRun = f;
+            for (Node<K,V> p = f.next; p != null; p = p.next) {
+              int b = p.hash & n;
+              if (b != runBit) {
+                runBit = b;
+                lastRun = p;
+              }
+            }
+            if (runBit == 0) {
+              ln = lastRun;
+              hn = null;
+            }
+            else {
+              hn = lastRun;
+              ln = null;
+            }
+            for (Node<K,V> p = f; p != lastRun; p = p.next) {
+              int ph = p.hash; K pk = p.key; V pv = p.val;
+              if ((ph & n) == 0)
+                ln = new Node<K,V>(ph, pk, pv, ln);
+              else
+                hn = new Node<K,V>(ph, pk, pv, hn);
+            }
+            setTabAt(nextTab, i, ln);
+            setTabAt(nextTab, i + n, hn);
+            setTabAt(tab, i, fwd);
+            // true的话会重新
+            advance = true;
+          }
+          // 树的桶迁移操作
+          else if (f instanceof TreeBin) {
+            TreeBin<K,V> t = (TreeBin<K,V>)f;
+            TreeNode<K,V> lo = null, loTail = null;
+            TreeNode<K,V> hi = null, hiTail = null;
+            int lc = 0, hc = 0;
+            for (Node<K,V> e = t.first; e != null; e = e.next) {
+              int h = e.hash;
+              TreeNode<K,V> p = new TreeNode<K,V>
+                (h, e.key, e.val, null, null);
+              if ((h & n) == 0) {
+                if ((p.prev = loTail) == null)
+                  lo = p;
+                else
+                  loTail.next = p;
+                loTail = p;
+                ++lc;
+              }
+              else {
+                if ((p.prev = hiTail) == null)
+                  hi = p;
+                else
+                  hiTail.next = p;
+                hiTail = p;
+                ++hc;
+              }
+            }
+            ln = (lc <= UNTREEIFY_THRESHOLD) ? untreeify(lo) :
+            (hc != 0) ? new TreeBin<K,V>(lo) : t;
+            hn = (hc <= UNTREEIFY_THRESHOLD) ? untreeify(hi) :
+            (lc != 0) ? new TreeBin<K,V>(hi) : t;
+            setTabAt(nextTab, i, ln);
+            setTabAt(nextTab, i + n, hn);
+            setTabAt(tab, i, fwd);
+            advance = true;
+          }
+        }
+      }
+    }
+  }
+}
 
 ```
 
@@ -793,68 +795,6 @@ static final int spread(int h) {
 
 - 扰动函数,和`HashMap`中的`hash()`方法功能类似.
 - `CHM`中的扰动函数除了将高16位于低16位异或之外又与上HASH_BITS,**可以有效降低哈希冲突的概率,使元素分散更加均匀.**
-
-## 元素个数统计方法
-
-ConcurrentHashMap 中的元素统计采用了特殊的方式。
-
-使用了上文说到了 baseCount 和 ConuterCell 两个成员变量，统计的逻辑如下：
-
-> **baseCount 表示的是基础的元素个数，而 CounterCell 数组中保存的是对应的各个桶中的变化的元素个数。**
->
-> 所以统计的时候，需要从 CounterCell 数组中统计所有的个数加上 baseCount。
-
-
-
-### 元素个数新增
-
-```java
-private final void addCount(long x, int check) {
-        CounterCell[] as; long b, s;
-        if ((as = counterCells) != null ||
-            !U.compareAndSwapLong(this, BASECOUNT, b = baseCount, s = b + x)) {
-            CounterCell a; long v; int m;
-            boolean uncontended = true;
-            if (as == null || (m = as.length - 1) < 0 ||
-                (a = as[ThreadLocalRandom.getProbe() & m]) == null ||
-                !(uncontended =
-                  U.compareAndSwapLong(a, CELLVALUE, v = a.value, v + x))) {
-                fullAddCount(x, uncontended);
-                return;
-            }
-            if (check <= 1)
-                return;
-            s = sumCount();
-        }
-        if (check >= 0) {
-            Node<K,V>[] tab, nt; int n, sc;
-            while (s >= (long)(sc = sizeCtl) && (tab = table) != null &&
-                   (n = tab.length) < MAXIMUM_CAPACITY) {
-                int rs = resizeStamp(n);
-                if (sc < 0) {
-                    if ((sc >>> RESIZE_STAMP_SHIFT) != rs || sc == rs + 1 ||
-                        sc == rs + MAX_RESIZERS || (nt = nextTable) == null ||
-                        transferIndex <= 0)
-                        break;
-                    if (U.compareAndSwapInt(this, SIZECTL, sc, sc + 1))
-                        transfer(tab, nt);
-                }
-                else if (U.compareAndSwapInt(this, SIZECTL, sc,
-                                             (rs << RESIZE_STAMP_SHIFT) + 2))
-                    transfer(tab, null);
-                s = sumCount();
-            }
-        }
-}
-
-
-```
-
-
-
-## 
-
-
 
 #### Node数组的元素访问方法
 

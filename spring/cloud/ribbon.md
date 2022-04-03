@@ -22,12 +22,6 @@ Ribbon 为 SpringCloud 提供了服务定位，负载均衡的功能，可以结
 
 
 
-## RestTemplate 的LB
-
-> LoadBalancerInterceptor 是整个负载均衡的实现中心。
-
-
-
 ### 内置的负载均衡策略
 
 
@@ -41,6 +35,16 @@ Ribbon 为 SpringCloud 提供了服务定位，负载均衡的功能，可以结
 | ZoneAvoidanceRule         | Ribbon 默认，根据服务分区以及服务的可用性判断 |
 | RetryRule                 | 重试机制，失败可选择另外一个服务实例          |
 | WeightedResponseTimeRule  | 响应时间加权，时间越长权重越小                |
+
+
+
+
+
+### 组合实现
+
+对于 RestTemplate 的负载均衡，使用 LoadBalancerInterceptor 前置修改请求地址。
+
+对于 Feign，使用 LoadBalanceClient 动态选择请求地址。
 
 
 

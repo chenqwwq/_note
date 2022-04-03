@@ -53,7 +53,7 @@ XXL-Job
 
 
 
-## XXL-Job Executor - 执行器的执行流程 
+## Executor - 执行器的执行流程 
 
 > 以 Spring 的客户端，MethodJobHandler 为例。
 
@@ -100,7 +100,6 @@ XXL-JOB 使用 Netty 建立的 Http 的服务端，所以请求处理也在 Chan
 ```java
 // EmbedServer$EmbedHttpServerHandler#process
 private Object process(HttpMethod httpMethod, String uri, String requestData, String accessTokenReq) {
-
   // valid
   // 只支持 POST 请求 
   if (HttpMethod.POST != httpMethod) {
@@ -116,8 +115,8 @@ private Object process(HttpMethod httpMethod, String uri, String requestData, St
       && !accessToken.equals(accessTokenReq)) {
     return new ReturnT<String>(ReturnT.FAIL_CODE, "The access token is wrong.");
   }
-
   // services mapping
+  // 检测消息类型
   try {
     // 心跳发送
     if ("/beat".equals(uri)) {
@@ -154,6 +153,8 @@ private Object process(HttpMethod httpMethod, String uri, String requestData, St
 
 ![image-20220118140419963](assets/image-20220118140419963.png)
 
+### 任务执行流程
+
 接口中包含了所有的业务逻辑方法，先来看执行方法 run()：
 
 ```java
@@ -161,27 +162,23 @@ private Object process(HttpMethod httpMethod, String uri, String requestData, St
 public ReturnT<String> run(TriggerParam triggerParam) {
     // load old：jobHandler + jobThread
     // 获取执行线程，根据 jobId
+    // XxlJobExeutor 中保存了 JobThreadRepository(JobId,JobThread 的映射)，表明当前任务是否在执行
     JobThread jobThread = XxlJobExecutor.loadJobThread(triggerParam.getJobId());
     // 获取线程绑定的执行器 JobHandler
     IJobHandler jobHandler = jobThread!=null?jobThread.getHandler():null;
     String removeOldReason = null;
-
     // valid：jobHandler + jobThread
     GlueTypeEnum glueTypeEnum = GlueTypeEnum.match(triggerParam.getGlueType());
     if (GlueTypeEnum.BEAN == glueTypeEnum) {
-
         // new jobhandler
         IJobHandler newJobHandler = XxlJobExecutor.loadJobHandler(triggerParam.getExecutorHandler());
-
         // valid old jobThread
         if (jobThread!=null && jobHandler != newJobHandler) {
             // change handler, need kill old thread
             removeOldReason = "change jobhandler or glue type, and terminate the old job thread.";
-
             jobThread = null;
             jobHandler = null;
         }
-
         // valid handler
         if (jobHandler == null) {
             jobHandler = newJobHandler;
@@ -189,9 +186,7 @@ public ReturnT<String> run(TriggerParam triggerParam) {
                 return new ReturnT<String>(ReturnT.FAIL_CODE, "job handler [" + triggerParam.getExecutorHandler() + "] not found.");
             }
         }
-
     } else if (GlueTypeEnum.GLUE_GROOVY == glueTypeEnum) {
-
         // valid old jobThread
         if (jobThread != null &&
                 !(jobThread.getHandler() instanceof GlueJobHandler
@@ -202,7 +197,6 @@ public ReturnT<String> run(TriggerParam triggerParam) {
             jobThread = null;
             jobHandler = null;
         }
-
         // valid handler
         if (jobHandler == null) {
             try {
@@ -214,18 +208,15 @@ public ReturnT<String> run(TriggerParam triggerParam) {
             }
         }
     } else if (glueTypeEnum!=null && glueTypeEnum.isScript()) {
-
         // valid old jobThread
         if (jobThread != null &&
                 !(jobThread.getHandler() instanceof ScriptJobHandler
                         && ((ScriptJobHandler) jobThread.getHandler()).getGlueUpdatetime()==triggerParam.getGlueUpdatetime() )) {
             // change script or gluesource updated, need kill old thread
             removeOldReason = "change job source or glue type, and terminate the old job thread.";
-
             jobThread = null;
             jobHandler = null;
         }
-
         // valid handler
         if (jobHandler == null) {
             jobHandler = new ScriptJobHandler(triggerParam.getJobId(), triggerParam.getGlueUpdatetime(), triggerParam.getGlueSource(), GlueTypeEnum.match(triggerParam.getGlueType()));
@@ -233,7 +224,6 @@ public ReturnT<String> run(TriggerParam triggerParam) {
     } else {
         return new ReturnT<String>(ReturnT.FAIL_CODE, "glueType[" + triggerParam.getGlueType() + "] is not valid.");
     }
-
     // executor block strategy
     // 执行阻塞策略
     if (jobThread != null) {
@@ -257,19 +247,18 @@ public ReturnT<String> run(TriggerParam triggerParam) {
             // just queue trigger
         }
     }
-
     // replace thread (new or exists invalid)
     // 注册 Job 的处理线程，如果存在旧线程则先中断旧线程
     if (jobThread == null) {
         jobThread = XxlJobExecutor.registJobThread(triggerParam.getJobId(), jobHandler, removeOldReason);
     }
-
     // push data to queue
     // 将需要执行的任务推到待触发的队列
     return jobThread.pushTriggerQueue(triggerParam);
 }
 ```
 
+#### 总结
 
 
 
@@ -277,8 +266,7 @@ public ReturnT<String> run(TriggerParam triggerParam) {
 
 
 
-
-## XXL-Job Scheduler - 调度器的调度流程
+## Scheduler - 调度器的调度流程
 
 > 具体的流程在 JobScheduleHelper 中，其中包括了 scheduleThread 和 ringThraed。
 
@@ -290,142 +278,120 @@ public ReturnT<String> run(TriggerParam triggerParam) {
 
 ```java
 scheduleThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-								// 停顿五秒
-                try {
-                    TimeUnit.MILLISECONDS.sleep(5000 - System.currentTimeMillis()%1000 );
-                } catch (InterruptedException e) {
-                    if (!scheduleThreadToStop) {
-                        logger.error(e.getMessage(), e);
-                    }
-                }
-                logger.info(">>>>>>>>> init xxl-job admin scheduler success.");
+  @Override
+  public void run() {
+    // 停顿五秒
+    try {
+      TimeUnit.MILLISECONDS.sleep(5000 - System.currentTimeMillis()%1000 );
+    } catch (InterruptedException e) {
+      if (!scheduleThreadToStop) {
+        logger.error(e.getMessage(), e);
+      }
+    }
+    logger.info(">>>>>>>>> init xxl-job admin scheduler success.");
 
-                // pre-read count: treadpool-size * trigger-qps (each trigger cost 50ms, qps = 1000/50 = 20)
-              // 每次读去的数量
-                int preReadCount = (XxlJobAdminConfig.getAdminConfig().getTriggerPoolFastMax() + XxlJobAdminConfig.getAdminConfig().getTriggerPoolSlowMax()) * 20;
-
-                while (!scheduleThreadToStop) {
-
-                    // Scan Job
-                    long start = System.currentTimeMillis();
-
-                    Connection conn = null;
-                    Boolean connAutoCommit = null;
-                    PreparedStatement preparedStatement = null;
-
-                    boolean preReadSuc = true;
-                    try {
-
-                        conn = XxlJobAdminConfig.getAdminConfig().getDataSource().getConnection();
-                        connAutoCommit = conn.getAutoCommit();
-                        conn.setAutoCommit(false);
-												// for update 作为分布式锁
-                        preparedStatement = conn.prepareStatement(  "select * from xxl_job_lock where lock_name = 'schedule_lock' for update" );
-                        preparedStatement.execute();
-
-                        // tx start
-
-                        // 1、pre read
-                        long nowTime = System.currentTimeMillis();
-                      // 查询当前需要执行的 Job
-                        List<XxlJobInfo> scheduleList = XxlJobAdminConfig.getAdminConfig().getXxlJobInfoDao().scheduleJobQuery(nowTime + PRE_READ_MS, preReadCount);
-                        if (scheduleList!=null && scheduleList.size()>0) {
-                            // 2、push time-ring
-                            for (XxlJobInfo jobInfo: scheduleList) {
-
-                                // time-ring jump
-                              // 已经过期，并且过期时间大于5s
-                                if (nowTime > jobInfo.getTriggerNextTime() + PRE_READ_MS) {
-                                    // 2.1、trigger-expire > 5s：pass && make next-trigger-time
-                                    logger.warn(">>>>>>>>>>> xxl-job, schedule misfire, jobId = " + jobInfo.getId());
-
-                                    // 1、misfire match
-                                  // 获取在错过调度之后的处理策略
-                                    MisfireStrategyEnum misfireStrategyEnum = MisfireStrategyEnum.match(jobInfo.getMisfireStrategy(), MisfireStrategyEnum.DO_NOTHING);
-                                  // 立马执行一次任务调度
-                                    if (MisfireStrategyEnum.FIRE_ONCE_NOW == misfireStrategyEnum) {
-                                        // FIRE_ONCE_NOW 》 trigger
-                                        JobTriggerPoolHelper.trigger(jobInfo.getId(), TriggerTypeEnum.MISFIRE, -1, null, null, null);
-                                        logger.debug(">>>>>>>>>>> xxl-job, schedule push trigger : jobId = " + jobInfo.getId() );
-                                    }
-
-                                    // 2、fresh next
-                                     // 刷新下次的调度时间
-                                    refreshNextValidTime(jobInfo, new Date());
-																// 已经过期的任务，但是并咩有超过5s
-                                } else if (nowTime > jobInfo.getTriggerNextTime()) {
-                                    // 2.2、trigger-expire < 5s：direct-trigger && make next-trigger-time
-																	  // 直接调度一次
-                                    // 1、trigger
-                                    JobTriggerPoolHelper.trigger(jobInfo.getId(), TriggerTypeEnum.CRON, -1, null, null, null);
-                                    logger.debug(">>>>>>>>>>> xxl-job, schedule push trigger : jobId = " + jobInfo.getId() );
-
-                                    // 2、fresh next
-                                    // 更新下一次调度时间
-                                    refreshNextValidTime(jobInfo, new Date());
-
-                                    // next-trigger-time in 5s, pre-read again
-                                    // 下次调度在5s钟之内，直接进调度队列
-                                    if (jobInfo.getTriggerStatus()==1 && nowTime + PRE_READ_MS > jobInfo.getTriggerNextTime()) {
-
-                                        // 1、make ring second
-                                        int ringSecond = (int)((jobInfo.getTriggerNextTime()/1000)%60);
-
-                                        // 2、push time ring
-                                        pushTimeRing(ringSecond, jobInfo.getId());
-
-                                        // 3、fresh next
-                                        refreshNextValidTime(jobInfo, new Date(jobInfo.getTriggerNextTime()));
-
-                                    }
-
-                                } else {
-                                    // 2.3、trigger-pre-read：time-ring trigger && make next-trigger-time
- 																		// 刚刚好调度，直接扔到 ringThraed 里面去
-                                    // 1、make ring second
-                                    int ringSecond = (int)((jobInfo.getTriggerNextTime()/1000)%60);
-
-                                    // 2、push time ring
-                                    pushTimeRing(ringSecond, jobInfo.getId());
-
-                                    // 3、fresh next
-                                    refreshNextValidTime(jobInfo, new Date(jobInfo.getTriggerNextTime()));
-                                }
-
-                            }
-
-                            // 3、update trigger info
-                            // 更新调度任务 ->   ??? 为什么不批量更新呢
-                            for (XxlJobInfo jobInfo: scheduleList) {
-                                XxlJobAdminConfig.getAdminConfig().getXxlJobInfoDao().scheduleUpdate(jobInfo);
-                            }
-                        } else {
-                            preReadSuc = false;
-                        }
-                        // tx stop
-
-                    } catch (Exception e) {
-                       // IGNORE EXCEPTION
-                    } finally {
-                       // IGNORE FINALLY
-                			 // 关闭连接，提交事务，释放 for update 的锁
-                       long cost = System.currentTimeMillis() - start;
-                      // Wait seconds, align second
-                      if (cost < 1000) {  // scan-overtime, not wait
-                        try {
-                          // pre-read period: success > scan each second; fail > skip this period;
-                          // 1s执行一次
-                          TimeUnit.MILLISECONDS.sleep((preReadSuc ? 1000 : PRE_READ_MS) - System.currentTimeMillis() % 1000);
-                        } catch (InterruptedException e) {
-                          if (!scheduleThreadToStop) {
-                            logger.error(e.getMessage(), e);
-                          }
-                        }
-                      }
-                    }
-        });
+    // pre-read count: treadpool-size * trigger-qps (each trigger cost 50ms, qps = 1000/50 = 20)
+    // 每次读去的数量
+    int preReadCount = (XxlJobAdminConfig.getAdminConfig().getTriggerPoolFastMax() + XxlJobAdminConfig.getAdminConfig().getTriggerPoolSlowMax()) * 20;
+    while (!scheduleThreadToStop) {
+      // Scan Job
+      long start = System.currentTimeMillis();
+      Connection conn = null;
+      Boolean connAutoCommit = null;
+      PreparedStatement preparedStatement = null;
+      boolean preReadSuc = true;
+      try {
+        conn = XxlJobAdminConfig.getAdminConfig().getDataSource().getConnection();
+        connAutoCommit = conn.getAutoCommit();
+        conn.setAutoCommit(false);
+        // for update 作为分布式锁
+        preparedStatement = conn.prepareStatement(  "select * from xxl_job_lock where lock_name = 'schedule_lock' for update" );
+        preparedStatement.execute();
+        // tx start
+        // 1、pre read
+        long nowTime = System.currentTimeMillis();
+        // 查询当前需要执行的 Job
+        List<XxlJobInfo> scheduleList = XxlJobAdminConfig.getAdminConfig().getXxlJobInfoDao().scheduleJobQuery(nowTime + PRE_READ_MS, preReadCount);
+        if (scheduleList!=null && scheduleList.size()>0) {
+          // 2、push time-ring
+          for (XxlJobInfo jobInfo: scheduleList) {
+            // time-ring jump
+            // 已经过期，并且过期时间大于5s
+            if (nowTime > jobInfo.getTriggerNextTime() + PRE_READ_MS) {
+              // 2.1、trigger-expire > 5s：pass && make next-trigger-time
+              logger.warn(">>>>>>>>>>> xxl-job, schedule misfire, jobId = " + jobInfo.getId());
+              // 1、misfire match
+              // 获取在错过调度之后的处理策略
+              MisfireStrategyEnum misfireStrategyEnum = MisfireStrategyEnum.match(jobInfo.getMisfireStrategy(), MisfireStrategyEnum.DO_NOTHING);
+              // 立马执行一次任务调度
+              if (MisfireStrategyEnum.FIRE_ONCE_NOW == misfireStrategyEnum) {
+                // FIRE_ONCE_NOW 》 trigger
+                JobTriggerPoolHelper.trigger(jobInfo.getId(), TriggerTypeEnum.MISFIRE, -1, null, null, null);
+                logger.debug(">>>>>>>>>>> xxl-job, schedule push trigger : jobId = " + jobInfo.getId() );
+              }
+              // 2、fresh next
+              // 刷新下次的调度时间
+              refreshNextValidTime(jobInfo, new Date());
+              // 已经过期的任务，但是并咩有超过5s
+            } else if (nowTime > jobInfo.getTriggerNextTime()) {
+              // 2.2、trigger-expire < 5s：direct-trigger && make next-trigger-time
+              // 直接调度一次
+              // 1、trigger
+              JobTriggerPoolHelper.trigger(jobInfo.getId(), TriggerTypeEnum.CRON, -1, null, null, null);
+              logger.debug(">>>>>>>>>>> xxl-job, schedule push trigger : jobId = " + jobInfo.getId() );
+              // 2、fresh next
+              // 更新下一次调度时间
+              refreshNextValidTime(jobInfo, new Date());
+              // next-trigger-time in 5s, pre-read again
+              // 下次调度在5s钟之内，直接进调度队列
+              if (jobInfo.getTriggerStatus()==1 && nowTime + PRE_READ_MS > jobInfo.getTriggerNextTime()) {
+                // 1、make ring second
+                int ringSecond = (int)((jobInfo.getTriggerNextTime()/1000)%60);
+                // 2、push time ring
+                pushTimeRing(ringSecond, jobInfo.getId());
+                // 3、fresh next
+                refreshNextValidTime(jobInfo, new Date(jobInfo.getTriggerNextTime()));
+              }
+            } else {
+              // 2.3、trigger-pre-read：time-ring trigger && make next-trigger-time
+              // 刚刚好调度，直接扔到 ringThraed 里面去
+              // 1、make ring second
+              int ringSecond = (int)((jobInfo.getTriggerNextTime()/1000)%60);
+              // 2、push time ring
+              pushTimeRing(ringSecond, jobInfo.getId());
+              // 3、fresh next
+              refreshNextValidTime(jobInfo, new Date(jobInfo.getTriggerNextTime()));
+            }
+          }
+          // 3、update trigger info
+          // 更新调度任务 ->   ??? 为什么不批量更新呢
+          for (XxlJobInfo jobInfo: scheduleList) {
+            XxlJobAdminConfig.getAdminConfig().getXxlJobInfoDao().scheduleUpdate(jobInfo);
+          }
+        } else {
+          preReadSuc = false;
+        }
+        // tx stop
+      } catch (Exception e) {
+        // IGNORE EXCEPTION
+      } finally {
+        // IGNORE FINALLY
+        // 关闭连接，提交事务，释放 for update 的锁
+        long cost = System.currentTimeMillis() - start;
+        // Wait seconds, align second
+        if (cost < 1000) {  // scan-overtime, not wait
+          try {
+            // pre-read period: success > scan each second; fail > skip this period;
+            // 1s执行一次
+            TimeUnit.MILLISECONDS.sleep((preReadSuc ? 1000 : PRE_READ_MS) - System.currentTimeMillis() % 1000);
+          } catch (InterruptedException e) {
+            if (!scheduleThreadToStop) {
+              logger.error(e.getMessage(), e);
+            }
+          }
+        }
+      }
+    });
 ```
 
 **scheduleThread 的主要作用是将数据库中的任务读取出来并添加到 ringThread 中。**
@@ -642,5 +608,17 @@ XXL-Job 的忙碌策略包含以下三种：
 
 
 
-##
+> XXL-Job 的时间轮实现
+
+XXL-Job 中定义的时间轮采用的 Map 实现，Key 表示需要执行的时间而 Value 表示需要执行的任务。
+
+额外定义了调度（scheduleThread）和触发（ringThread）两个线程。
+
+scheduleThread 每隔5s中上锁并执行查询 SQL，从数据库中捞出后5s之前的所有任务，如果时间正确则加入 Map 结构为主的时间轮。
+
+ringThread 每秒执行一次，根据当前秒数获取任务并调度。
+
+<br>
+
+其中 Map 可以使用 数组重新实现。
 

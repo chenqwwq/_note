@@ -14,8 +14,6 @@
 
 ## 概述
 
- ![image-20200512151924315](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20200512151924315.png)
-
 上图即为该类的类注释，它提供了一个对编程方式注册的Bean类型的解析适配器。
 
 用来替代ClassPathBeanDefinitionScanner类，处理方式和它一样但是明确了处理的类型。
@@ -23,8 +21,6 @@
 
 
 ## 内部方法
-
- ![image-20200512153425592](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20200512153425592.png)
 
 以上就是AnnotatedBeanDefinitionReader的方法列表。
 
@@ -158,8 +154,6 @@ public ScopeMetadata resolveScopeMetadata(BeanDefinition definition)
 ```
 
 以下为默认的ScopeMetadata属性：
-
- ![image-20200502124545370](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20200502124545370.png)
 
 该方法负责解析Bean的生命周期，**默认为单例模式，不使用代理。**
 
@@ -341,6 +335,4 @@ public static void registerBeanDefinition(
 
 debug之后Registry中的内容也确实如我所想：
 
- ![image-20200504112754543](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20200504112754543.png)
-
-mvcApplication以不同的形式注册了两次
+mvcApplication 以不同的形式注册了两次

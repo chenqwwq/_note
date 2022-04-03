@@ -227,8 +227,6 @@ Spring中的任何代理类都可以从该接口中获取。(我也不知道翻�
 
 ## AopProxy
 
-![image-20210201001740754](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210201001740754.png)
-
 对象创建的顶级接口，具体实现主要有`JdkDynamicAopProxy`以及`CglibAopProxy`两个。
 
 
@@ -236,8 +234,6 @@ Spring中的任何代理类都可以从该接口中获取。(我也不知道翻�
 ## BeanFactoryAspectJAdvisorsBuilder
 
 根据 `@AspectJ` 注解生成 Advisor 类。
-
-![image-20210131212007062](https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210131212007062.png)
 
 注释的意思是帮助检索 `@AspectJ `注解标注的类，以及生成Spring Advisor。
 
