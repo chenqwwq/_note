@@ -15,12 +15,10 @@ Apache Kafka 是一款开源的消息引擎系统（消息中间件，MQ）， 
 | Broker（节点） |                                                              |
 | Topic（主题）  | Topic 是抽象形式上的队列，在 Kafka 中 Topic 会被分为不同的 Partitioning。 |
 | Partitiion     |                                                              |
-
-
-
-
-
-
+| Consumer Group |                                                              |
+| Offset         |                                                              |
+| Producer       |                                                              |
+| Consumer       |                                                              |
 
 
 
@@ -30,22 +28,22 @@ Apache Kafka 是一款开源的消息引擎系统（消息中间件，MQ）， 
 
 生产者的消息经过发送方法后，会经由以下几个组件发送：
 
-1. 拦截器 
-2. 序列化器
-3. 分区器
-4. 累加器
+1. 拦截器 （Interceptor，拦截消息并作统一处理，比如日志打印和业务Id添加
+2. 序列化器（Serializer，将消息体序列化为字节数组
+3. 分区器（Partitioner，根据消息键选择具体的分区
+4. 累加器（Record Accumulator，累加消息，批量发送节省IO时间
 
 
 
-累加器的作用就是尽量累计合适量的消息，组成 BatchMessage 并发送已节省网络贷款。
+累加器的作用就是尽量累计合适量的消息，组成 BatchMessage 并发送已节省网络带宽。
 
 因为累加器的关系，所以**消息发送是异步的**，调用 send 方法可能会立即返回，但是不意味着消息已经发送成功。
 
+在 Producer 中会有一类 Sender 线程不断轮询缓冲区判断数据是否准备完毕，判断的依据有时间（linger.ms)和数据大小（batch.size)。
+
+accumulator 中会以目标分区的形式保存消息记录。
 
 
-
-
-## Kafka 的
 
 
 
@@ -54,6 +52,9 @@ Apache Kafka 是一款开源的消息引擎系统（消息中间件，MQ）， 
 Kafka 中的选举有如下几种：
 
 1. Controller 的选举
+
+Controller 的选举基于 ZK 实现，先到先得。
+
 2. Leader Partition 的选举
 
 
