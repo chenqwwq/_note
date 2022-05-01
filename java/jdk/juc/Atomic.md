@@ -62,4 +62,4 @@ public final int getAndAddInt(Object o, long offset, int delta) {
 
 ## Striped64
 
-该类也是
+该类是在累加的逻辑上对原子类的优化。

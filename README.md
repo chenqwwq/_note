@@ -24,22 +24,27 @@
 - [HTTP 协议](网络/http.md)
 - [HTTPS 协议](网络/https.md)
 - [测试 CI/CD]
+- [Java Unsafe](java/jdk/juc/Unsafe.md) - 2022/04/22
+- [LongAdder（对原子类递增的优化](java/jdk/juc/LongAdder.md) -  2022/04/24
+- [MySQL 主从（包含在残酷学习里面了](数据库/mysql/MySQL.md) - 2022/04/25
+- 
 
 
 
 ## Ing
 
 - [CompletableFuture源码分析]()
-- [Kakfa 的消费组重平衡]()
-- [MySQL 主从]()
-- 
+- [ForkJoinPool]()
+
+
 
 ## Todo
 
-
+- [Kakfa 的消费组重平衡]()
+- [Zookeeper 残酷学习版本]()
 
 ## Hang
 
-- [ChannelPool 源码分析](netty/util/ChannelPool.md)
+- [ChannelPool 源码分析](netty/util/ChannelPool.md)）（整体不难，用的地方也少，先等等
 - [RateLimiter 源码分析](java/guava/RateLimiter.md)（也有点乱，有点特殊的算法
 - [Netty 的内存管理](netty/Netty的内存管理.md)（新版本从 jemelloc3 改成 jemelloc4，实在是看不懂啊，天

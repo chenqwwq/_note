@@ -1,18 +1,26 @@
 # FutureTask源码解析
 
-> FutureTask 就是对一个异步任务的抽象。
-
 [TOC]
 
 ---
 
 ## 概述
 
+FutureTask 就是对一个异步任务的抽象，实现了 Future#get 方法，可以在任务未完成的时候实现阻塞获取。
+
+FutureTask 内部实现了一个简易的双向链表保存等待的线程对象，未完成的时入队列（入队列依旧使用的 CAS 自旋）并使用 LockSupport 阻塞线程，完成之后唤醒阻塞的线程。
+
+任务完成之后，如果有返回值会直接塞到 FutureTask@outcome 变量中。
+
+
+
 ### 相关类族
 
 FutureTask 的继承关系图如下:
 
 ![image-20210101220124616](../assets/FutureTask%20%E7%B1%BB%E5%9B%BE.png)
+
+<br>
 
 FutureTask 直接继承了 RunnableFuture，而 RunabkleFuture 又继承了 Future 和 Runnable 接口。
 

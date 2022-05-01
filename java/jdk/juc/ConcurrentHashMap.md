@@ -30,12 +30,10 @@ ConcurrentHashMap 就是线程安全的 HashMap。
 | ------------- | ---------------- | ------------------------------------------------------------ |
 | table         | Node 数组        | Hash 桶数组，保存真实的数据                                  |
 | nextTable     | Node 数组        | 扩容时的过渡数组，扩容成功之后和 table 互换引用（类似 Redis 中 Dict 的实现 |
-| baseCount     | Long             | 基础的元素个数（在没有任何 CAS 失败的情况下                  |
+| baseCount     | Long             | 基础的元素个数（在没有任何 CAS 失败的情况下，存在并发的情况会使用 counterCells 额外记录 |
 | counterCells  | CounterCell 数组 | **结合 baseCount 得到真实的元素个数，在 CAS 失败后，每个组的变动元素个数会保存在各自的 Cell 里** |
-| transferIndex | int              | 扩容索引值,表示已经分配给扩容线程的table数组索引位置，主要用来协调多个线程间迁移任务的并发安全。 |
+| transferIndex | int              | 扩容索引值，表示已经分配给扩容线程的table数组索引位置，主要用来协调多个线程间迁移任务的并发安全 |
 | sizeCtl       | int              | 表示  ConcurrentHashMap 中的状态变化。                       |
-
-
 
 
 
@@ -121,9 +119,9 @@ static final class ForwardingNode<K,V> extends Node<K,V> {
 CHM#put 直接调用 putVal 方法。
 
 ```java
- 	public V put(K key, V value) {
-        return putVal(key, value, false);
-    }
+public V put(K key, V value) {
+  return putVal(key, value, false);
+}
 ```
 
 <br>
@@ -141,8 +139,9 @@ CHM#put 直接调用 putVal 方法。
 final V putVal(K key, V value, boolean onlyIfAbsent) {
   // CHM不支持NULL值的铁证
   if (key == null || value == null) throw new NullPointerException();
-  // 获得key的Hash,spread可以称之为扰动函数
+  // 获得key的Hash,spread可以称之为扰动函数，高低16位异或
   int hash = spread(key.hashCode());
+  // 节点数统计
   int binCount = 0;
   // 无限循环
   for (Node<K,V>[] tab = table;;) {
@@ -174,7 +173,7 @@ final V putVal(K key, V value, boolean onlyIfAbsent) {
           // fh >= 0表示当前节点为链表节点,即当前桶结构为链表 		  ？？？
           if (fh >= 0) {
             // 链表中的元素个数统计
-            binCount = 1;
+           binCount = 1;
             // 循环遍历整个桶
             // 跳出循环的两种情况:
             // 1. 找到相同的值,binCount此时表示遍历的节点个数
@@ -211,8 +210,7 @@ final V putVal(K key, V value, boolean onlyIfAbsent) {
           else if (f instanceof TreeBin) {
             Node<K,V> p;
             binCount = 2;
-            if ((p = ((TreeBin<K,V>)f).putTreeVal(hash, key,
-                                                  value)) != null) {
+            if ((p = ((TreeBin<K,V>)f).putTreeVal(hash, key, value)) != null) {
               oldVal = p.val;
               if (!onlyIfAbsent)
                 p.val = value;
@@ -246,10 +244,12 @@ CHM 中使用桶头节点的 Hash 表示当前桶的状态。
 /*
  * Encodings for Node hash fields. See above for explanation.
  */
+// MOVED 仅仅存在于 ForwardingNode 中，头节点位 ForwardingNode 表示当前正在扩容
 static final int MOVED     = -1; // hash for forwarding nodes
+// TREEBIN 表示当前下挂状态为红黑树
 static final int TREEBIN   = -2; // hash for roots of trees
+// 
 static final int RESERVED  = -3; // hash for transient reservations
-static final int HASH_BITS = 0x7fffffff; // usable bits of normal node hash
 ```
 
 ### 元素新增流程
@@ -257,12 +257,12 @@ static final int HASH_BITS = 0x7fffffff; // usable bits of normal node hash
 1. 判断并排除 key，value 为空的情况（CHM 不支持 key/value 为空
 2. 得到扰动后的 hash，获取对应下标的桶，若桶为空则进行初始化
 3. 通过 `(n - 1) & hash` 的公式获取桶的下标 ，若桶为空则直接 CAS 填充 key/value 为桶的头节点
-4. 判断桶的头节点 hash,若 hash == MOVED 表示数组在扩容并帮助扩容，若桶处于正常状态，则直接进入 `synchronize` 的同步代码块开始新增过程
+4. 判断桶的头节点 hash 若 hash == MOVED 表示数组在扩容并帮助扩容，若桶处于正常状态，则直接进入 synchronize  的同步代码块开始新增过程
 5. 如果**桶的头节点的 hash 大于0表示桶的结构为链表**，接下去就是正常的链表遍历，新增或者覆盖
-6. 如果**桶的头节点是 `TreeBin` 类型表示桶的结构为红黑树**，按红黑树的操作进行遍历
-7. 退出同步代码块,判断在遍历期间统计的`binCount` 是否需要转化为红黑树结构.
-8. 判断 `oldVal` 是否为空，这步也挺关键的，如果不为空表示是覆盖操作，直接`return`就好
-9. 如果 `oldVal` 不为空调用 `addCount` 方法新增元素个数,并检测是否需要扩容
+6. 如果**桶的头节点是  TreeBin  类型表示桶的结构为红黑树**，按红黑树的操作进行遍历
+7. 退出同步代码块，判断在遍历期间统计的 binCount 是否需要转化为红黑树结构.
+8. 判断 oldVal 是否为空，这步也挺关键的，如果不为空表示是覆盖操作，直接  return 就好
+9. 如果 oldVal  不为空调用  addCount 方法新增元素个数,并检测是否需要扩容
 
 
 
