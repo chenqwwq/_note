@@ -107,15 +107,15 @@ ${spring.cloud.config.consul.prefix}/application,dev/。
 
 > RefreshEvent 是整个配置刷新流程的开端。
 
-<img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210225234033567.png" alt="image-20210225234033567" style="zoom:50%;" />
+![image-20210225234033567](assets/image-20210225234033567.png)
 
 发出的 RefreshEvent 包含此时此时的应用上下文，并由 RefreshEventListener 接收：
 
-<img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210225234127932.png" alt="image-20210225234127932" style="zoom:50%;" />
+![image-20210225234127932](assets/image-20210225234127932.png)
 
 接收方法中，直接调用了 ContextRefresher#refresh() 方法，在这之前判断的 ready 变量是在 ApplicationReadyEvent 的事件处理中置为 true 的。
 
-<img src="https://chenqwwq-img.oss-cn-beijing.aliyuncs.com/img/image-20210225234316580.png" alt="image-20210225234316580" style="zoom:50%;" />
+![image-20210225234316580](assets/image-20210225234316580.png)
 
 先是刷新 Environment。
 

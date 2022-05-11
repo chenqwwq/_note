@@ -83,6 +83,30 @@ static class Demo {
 
 ## 数组相关
 
+| 方法名                                | 方法作用                     |
+| :------------------------------------ | :--------------------------- |
+| arrayBaseOffset(Class<?> arrayClass)  | 获取数组第一个元素的偏移地址 |
+| arrayIndexScale(Class<?> arrayClass); | 获取单个元素的偏移           |
+
+（Unsafe 中另外可以使用 Unsafe.ARRAY_LONG_BASE_OFFSET 和 Unsafe.ARRAY_INT_INDEX_SCALE 保存各类型的偏移。
+
+```java
+int[] nums = new int[10];
+// 这里是 Disruptor 的工具类，用来获取 Unsafe 的
+Unsafe unsafe = Util.getUnsafe();
+// 获取数组头节点的偏移量
+int offset = Unsafe.ARRAY_LONG_BASE_OFFSET;
+// 获取单个节点的偏移量
+int scale = Unsafe.ARRAY_INT_INDEX_SCALE;
+// 设置第三个元素为2
+unsafe.putInt(nums, offset + 3L * scale, 2);
+// print: 0 0 0 2 0 0 0 0 0 0 
+```
+
+
+
+
+
 
 
 ## 线程调度相关
