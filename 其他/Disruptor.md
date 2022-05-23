@@ -8,12 +8,17 @@
 
 ## Introduction
 
-Disruptor 是 LMAX 开源的内存队列，相对于 JDK 的 BlockingQueue，Disruptor 有更好的性能表现以及更多的消费模式。
+Disruptor 类似于一套本地的 MQ（Message Queue，消息队列），也是一种生产者/消费者模型，包含了 Producer，Consumer 以及中间的队列（不单单是一个事件队列。
 
-Disruptor 有以下几种优化：
+Disruptor 支持单生产者和多生产者两种模式，默认支持多消费者，并且消费者之间不共享消费进度（每个事件会被分发给所有的消费者。
 
-1. 对象池（Disruptor 所有的事件都通过 RingBuffer 保存，RingBuffer 就是一个对象池，所有的数据都需要塞到对应的对象池中
-2. 填充缓存行，消除伪共享（伪共享是多个 CPU 的缓存行中包含同一段数据，双方各自的修改都会使缓存行失效而重新从主内存中读取，
+Disruptor 使用 RingBuffer 作为事件队列，RingBuffer 以环形队列的形式实现，并且在初始化的时候就会实例化所有的对象（类似一个对象池，所以事件发布的流程就是填充对象数据并且发布。
+
+Disruptor 使用 Sequence 控制生产和消费进度，生产者需要等待消费者的消费进度，不能超过所有消费者最慢的那个，消费者也不会超过生产进度，不然都会使用 WaitStartegy（等待策略）拉住。
+
+Disruptor 还支持带依赖的消费关系，消费者 A 只能消费被 B，C 都消费过的事件，此时消费者 A 就已经不依据生产者的进度消费了，而是依据 B，C 的消费进度。
+
+<br>
 
 
 
@@ -21,7 +26,9 @@ Disruptor 有以下几种优化：
 
 ### RingBuffer 
 
-Disruptor 的存储组件，临时保存产生的事件，使用环形数组保存所有数据，RingBuffer 底层就是一个数组，维护了写入和读取两个游标，以此形成一个环。
+Disruptor 的存储组件，保存发布的事件，使用环形数组保存所有数据。
+
+RingBuffer 底层就是一个数组，维护了写入和读取两个游标，以此形成一个环，游标就是下文的 Sequence，控制游标的就是 Sequencer。
 
 
 
@@ -37,15 +44,17 @@ Disruptor 的存储组件，临时保存产生的事件，使用环形数组保�
 
 ### Sequencer
 
-Sequence 的管理者，包含了生产者和消费者的（就是持有了生产者的写入指针和消费者的读取指针。
+Sequence 的管理者，包含了生产者和消费者的相关 Sequence（就是持有了生产者的写入指针和消费者的读取指针。
 
 根据生产者的个数分为 SingleProducerSequencer 和 MutilProducerSequencer。
+
+如果消费者有多个，Single 就是保存单生产者和消费者的关系，而 Mutil 保证的就是多生产者和消费者的关系，以及多生产者之间的并发安全。
 
 
 
 ### EventFactory
 
-Event 就是 RingBuffer 中保存的数据类型，EventFactory 就是用于创建这些实例，在创建 RingBuffer 的时候传入， 初始化的时候预创建所有的对象。
+Event 就是 RingBuffer 中保存的数据类型，EventFactory 的作用就是创建这些实例对象，在创建 RingBuffer 的时候传入， 初始化的时候预创建所有的对象。
 
 
 
@@ -113,15 +122,15 @@ private void updateGatingSequencesForNextInChain(final Sequence[] barrierSequenc
 }
 ```
 
-消费者最终的实例对象为 BatchEventProcessor。
+**消费者最终的实例对象为 BatchEventProcessor。**
 
-每个消费者都会将自身的 Sequence 添加到 ringBuffer（参考 kafka 的 offset，ringBuffer 中只有所有的消费者都消费过才会将数据清除。
+每个消费者都会将自身的 Sequence 保存到 ringBuffer 的 gatingSequences（参考 kafka 的 offset，ringBuffer 中只有所有的消费者都消费过才会将数据清除。
 
-Disruptor 通过 ConsumerRepository 来保存所有的 BatchEventProcessor（。
+Disruptor 通过 ConsumerRepository 来保存所有的 BatchEventProcessor。
 
+很关键的是，Disruptor 不允许在运行过程中添加消费者。
 
-
-
+<br>
 
 另外可以看一下 ConsumerRepository 的功能，ConsumerRepository 用于持有所有的 EventHandler 以及对应的 Sequence 信息（算是一个辅助类，用于完成一些相对独立的逻辑。
 
@@ -138,22 +147,22 @@ public void add(
   final SequenceBarrier barrier){
     // 将 EventProcessor，EventHandler，Barrier 打包成一个 EventProcessorInfo
     final EventProcessorInfo<T> consumerInfo = new EventProcessorInfo<>(eventprocessor, handler, barrier);
-    // 分别存了三份！！！索引加强吗？？
+    // 分别存了三份！！！应该有不同的获取需求吧
     eventProcessorInfoByEventHandler.put(handler, consumerInfo);
     eventProcessorInfoBySequence.put(eventprocessor.getSequence(), consumerInfo);
     consumerInfos.add(consumerInfo);
 }
 ```
 
-
-
-
+（暂时不是很清楚这个玩意儿的作用。
 
 
 
 ## 事件生产流程
 
 RingBuffer 回预先创建所有的事件对象，所以后续的发布流程就是获取指定对象，填充属性并且发布。
+
+过程中主要控制生产者的生产速度，不能把没消费完的事件覆盖了。
 
 
 
@@ -448,9 +457,59 @@ public long waitFor(final long sequence)
 
 
 
-### 消费者阻塞策略（Consumer Wait Strategy
+### 消费者等待策略（Consumer Wait Strategy
 
 消费速度大于生产速度的时候，消费者就需要阻塞等待生产者的事件生产（按照我看的源码，其实消费太慢的时候，生产者也在考虑使用 WaitStrategy 阻塞。
+
+WaitStrategy 是顶层的接口，定义了对应的等待策略：
+
+```java
+public interface WaitStrategy
+{
+    /**
+     * Wait for the given sequence to be available.  It is possible for this method to return a value
+     * less than the sequence number supplied depending on the implementation of the WaitStrategy.  A common
+     * use for this is to signal a timeout.  Any EventProcessor that is using a WaitStrategy to get notifications
+     * about message becoming available should remember to handle this case.  The {@link BatchEventProcessor} explicitly
+     * handles this case and will signal a timeout if required.
+     *
+     * @param sequence          to be waited on.
+     * @param cursor            the main sequence from ringbuffer. Wait/notify strategies will
+     *                          need this as it's the only sequence that is also notified upon update.
+     * @param dependentSequence on which to wait.
+     * @param barrier           the processor is waiting on.
+     * @return the sequence that is available which may be greater than the requested sequence.
+     * @throws AlertException       if the status of the Disruptor has changed.
+     * @throws InterruptedException if the thread is interrupted.
+     * @throws TimeoutException if a timeout occurs before waiting completes (not used by some strategies)
+     * 等待直到可以消费
+     */
+    long waitFor(long sequence, Sequence cursor, Sequence dependentSequence, SequenceBarrier barrier)
+        throws AlertException, InterruptedException, TimeoutException;
+
+    /**
+     * Implementations should signal the waiting {@link EventProcessor}s that the cursor has advanced.
+     * 唤醒所有等待的线程
+     */
+    void signalAllWhenBlocking();
+}
+
+```
+
+对应的子类实现有如下几种：
+
+| 实现类                          | 作用                                                    |
+| ------------------------------- | ------------------------------------------------------- |
+| BlockingWaitStrategy            | 使用 ReentrantLock$Condition#await 实现的阻塞等待       |
+| BusySpinWaitStrategy            | 调用 Thread#onSpinWait 实现等待（可能没有，那就是空轮训 |
+| LiteBlockingWaitStrategy        |                                                         |
+| LiteTimeoutBlockingWaitStrategy |                                                         |
+| PhasedBackoffWaitStrategy       |                                                         |
+| SleepingWaitStrategy            |                                                         |
+| TimeoutBlockingWaitStrategy     |                                                         |
+| YieldingWaitStrategy            |                                                         |
+
+（懒得看了，有空再写作用。
 
 
 
@@ -458,14 +517,59 @@ public long waitFor(final long sequence)
 
 如果消费者存在依赖关系，例如A只能消费B消费过的数据，这种时候需要做的就是 A 等待 B 的消费，A甚至不再需要等待生产者（不再直接等待。
 
+类似的依赖关系是通过 SequenceBarrier 来实现的，Barrier 中保存了依赖的消费者的 Sequence，通过对 Sequence 的比较来判断自己的消费下标。
+
+（最上层的消费者根据的是生产者的 Sequence 来判断自己的消费进度，如果存在依赖关系之后，下级的消费者只需要关注上级消费者的 Sequence 就好。
+
+
+
+ProcessingSequenceBarrier 中保存了 WaitStrategy 和依赖的所有消费者的 Sequence。
+
+```java
+// ProcessingSequenceBarrier 构造函数
+ProcessingSequenceBarrier(
+  final Sequencer sequencer,
+  final WaitStrategy waitStrategy,
+  final Sequence cursorSequence,
+  final Sequence[] dependentSequences){			// 依赖的所有 Sequence
+  this.sequencer = sequencer;
+  this.waitStrategy = waitStrategy;
+  this.cursorSequence = cursorSequence;
+  if (0 == dependentSequences.length){
+    dependentSequence = cursorSequence;
+  } else{
+    // 如果是多个会被包装成 Sequence
+    dependentSequence = new FixedSequenceGroup(dependentSequences);
+  }
+}
+```
+
+之后看如何实现的依赖关系：
+
+```java
+// ProcessingSequenceBarrier#waitFor
+// 传入的参数是下次希望消费的位置
+// 返回的是可以消费的位置，可能比传入的大
+public long waitFor(final long sequence)
+  throws AlertException, InterruptedException, TimeoutException{
+  checkAlert();
+  long availableSequence = waitStrategy.waitFor(sequence, cursorSequence, dependentSequence, this);
+  if (availableSequence < sequence){
+    return availableSequence;
+  }
+  return sequencer.getHighestPublishedSequence(sequence, availableSequence);
+}
+```
 
 
 
 
 
+## 总结
 
-## Others
+相对于依靠 BlockedQueue 实现的生产者消费者模型，Disruptor 有以下几种优化：
 
-Disruptor 是广播的实现，对于每个消费者都能获取到全部的 Event。
+1. 对象池（Disruptor 所有的事件都通过 RingBuffer 保存，RingBuffer 就是一个对象池，所有的数据都需要塞到对应的对象池中
+2. 填充缓存行，消除伪共享（伪共享是多个 CPU 的缓存行中包含同一段数据，双方各自的修改都会使缓存行失效而重新从主内存中读取
 
-Disruptor 在 start 之后不允许添加消费者，并且在创建的时候就需要单/多生产者场景。
+除了以上优化，就是 Disruptor 对生产者/消费者对控制，通过 sequence 来表示相对的速度。

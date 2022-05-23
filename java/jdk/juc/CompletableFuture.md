@@ -74,3 +74,13 @@ future.get();
 ## CompletionStage
 
 该接口表示异步计算中的一个步骤，在一个步骤完成后可以触发另外一个步骤，所以该接口就是用来编排各个异步的流程都（以流式调用的形式。
+
+
+
+
+
+
+
+## Reference
+
+- [CompletableFuture原理与实践-外卖商家端API的异步化](https://mp.weixin.qq.com/s/GQGidprakfticYnbVYVYGQ)

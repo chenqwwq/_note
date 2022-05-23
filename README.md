@@ -27,17 +27,14 @@
 - [Java Unsafe](java/jdk/juc/Unsafe.md) - 2022/04/22
 - [LongAdder（对原子类递增的优化](java/jdk/juc/LongAdder.md) -  2022/04/24
 - [MySQL 主从（包含在残酷学习里面了](数据库/mysql/MySQL.md) - 2022/04/25
-- 
+- [Disruptor 实现原理](其他/Disruptor.md) - 2022/05/11（还有些细节，不过总体应该会了
 
 
 
 ## Ing
 
 - [CompletableFuture源码分析]()
-- [ForkJoinPool]()
-- [Disruptor 实现原理](其他/Disruptor.md)
-
-
+- [ForkJoinPool]()（这是写给人看的？
 
 ## Todo
 
