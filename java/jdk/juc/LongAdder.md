@@ -1,4 +1,4 @@
-# LongAdder
+# LongAdder 源码
 
 ---
 
@@ -8,20 +8,20 @@
 
 ## Introduce
 
-LongAdder 是对 Atomic 的优化，更适用于高并发情况下的累加器实现，基本原理还是基于 CAS 实现并发安全的加减操作。
+LongAdder 是对 Atomic 的优化，更适用于高并发情况下的累加器实现，但基本原理还是基于 CAS 实现并发安全的加减操作。
 
-Atomic 使用 CAS + 自旋来保证累加的正确性，但是针对于同一个共享变量的频繁修改会有如下问题：
+Atomic 使用 **CAS + 自旋来保证累加的正确性**，但是针对于同一个共享变量的并发修改会有如下问题：
 
 1. 大并发情况下，争用激烈会导致部分线程长时间自旋
-2. 对单个共享变量的修改会导致缓存行频繁失效
+2. 对单个共享变量的修改会导致缓存行频繁失效，出现伪共享
+
+LongAdder 就是对这两个方面进行的优化。
+
+**LongAdder 继承了 Striped64 类，在 Striped64 中使用数组分流的方式解决了第一个问题（emm，一定程度上优化了第二个问题。**
 
 
 
-LongAdder 继承了 Striped64 类，在 Striped64 中使用**数组分流**的方式解决了第一个问题（emm，缓存行的问题可能影响不大吧。
-
-
-
-## Striped64
+## Striped64 实现
 
 在该类中主要包含以下两种属性：
 
@@ -46,9 +46,9 @@ final boolean casBase(long cmp, long val) {
 
 
 
-### Cell 
+### Striped64$Cell 
 
-Cell 就是基础的自增类。
+Cell 就是基础的自增类，在 base 更新失败的情况下会立即选择一个 Cell 进行更新。
 
 ```java
 static final class Cell {
@@ -105,10 +105,12 @@ public void add(long x) {
 
 <br>
 
+base 递增失败之后跳到了 Striped64#longAccumulate 进行处理：
 
+### Striped64#longAccumulate
 
 ```java
-
+// Striped64#longAccumulate
 final void longAccumulate(long x, LongBinaryOperator fn,
                           boolean wasUncontended) {
   int h;
@@ -199,17 +201,13 @@ final void longAccumulate(long x, LongBinaryOperator fn,
                                   fn.applyAsLong(v, x))))
       break;                          // Fall back on using base
   }
-
-
 ```
-
-
-
-
 
 cells 数组长度初始为 2，每次递增为2次幂，使用 Thread#threadLocalRandomProbe 属性作为 Hash 值确定下标。
 
+总体逻辑还是随机一个 Cell 下标并累加。
 
+<br>
 
 ## 获取统计值
 
@@ -230,3 +228,16 @@ public long sum() {
 ```
 
 LongAdder 的统计总和等于基础值 base 加上 cells 数组的各个值。
+
+（总体上类似 ConcurrentHashMap 的记数实现，emmm 就是一同个人写的
+
+
+
+## 总结
+
+LongAdder 是专注于累加的接口，所以并不保证操作的顺序性。
+
+对于上述所说的 Atomic 的两个缺点，**LongAdder 采用分散冲突的方式来优化**
+
+在更新 base 出现冲突之后会使用 ThreadLocalRandom 来确定需要累加的 Cell，不同的线程选择不同的 Cell 就大大减少了冲突。
+

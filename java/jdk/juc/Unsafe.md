@@ -18,9 +18,15 @@ Unsafe 属于 sum.misc 包下的工具类，提供一些低级别，不安全的
 
 
 
+Unsafe 中的一些方法涉及的底层知识太多，好像并不能很好的掌握，就先看个大概吧。
+
+// TODO 方法详察
+
+
+
 ## 使用示例
 
-Unsafe 在普通权限的类中是无法通过 Unsafe#getUnsafe 方法获取的。
+Unsafe 在普通权限的类中是无法通过 Unsafe#getUnsafe 方法获取的，因为会有 Domain 的判断。
 
 ```java
 @CallerSensitive
@@ -75,7 +81,10 @@ static class Demo {
 
 ## CAS
 
-
+| 方法名 | 方法作用 |
+| :----- | :------- |
+|        |          |
+|        |          |
 
 ## 内存相关
 
@@ -175,8 +184,6 @@ unsafe.putInt(nums, offset + 3L * scale, 2);
 | loadFence  | 相当于 LoadLoad、LoadStore 屏障，保证前面的 Load 操作都是完成的 |
 | storeFence | 相当于 StoreLoad、StoreStore 屏障，保证前面的 Store 操作都是完成的 |
 | fullFence  | 全屏障，相当于 volatile                                      |
-
-
 
 
 
