@@ -34,4 +34,4 @@ jmap -heap [pid] 查看整个堆的情形
 
 jmap -histo [pid] 可以查看堆中存活的对象及其大小
 
-jmap -histo:live [pid] 可以查看堆中 
+jmap -histo:live [pid] 可以查看堆中存活的对象大小（会触发 Full GC

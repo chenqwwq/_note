@@ -6,27 +6,31 @@
 
 XXL - JOB 属于分布式调度平台。
 
-整个系统可以分为两个部分，Executor（执行器） 和 Scheduler（调度程序）。
+分布式调度平台的作用就是方便管理多节点执行的任务，包括任务下发、执行状态监控以及执行日志的收集等等。
 
-调度程序就是统一的定时器，任务注册之后由调度程序进行统一的定时调度，由 Scheduler 指定 Executor 执行，并拉取执行的日志。
+<br>
 
-## 相关配置属性
+整个系统可以分为两个部分，**Executor（执行器） 和 Scheduler（调度中心）。**
 
-### XXL-Job 的忙碌策略
+Scheduler（调度中心）就是统一的定时器，调度程序不负责任何的任务逻辑，只负责发起任务执行请求。
 
-XXL-Job 
-
-
+Executor（执行器） 持有真实的业务逻辑，负责接收调度请求并执行 JobHandler。
 
 
 
-
-
-## XXL-Job 相关概念
+![XXL-JOB结构图 v2.1.0](https://www.xuxueli.com/doc/static/xxl-job/images/img_Qohm.png)
 
 
 
-### IJobHandler
+**整体的逻辑就是执行器向调度中心注册，调度中心持有所有的执行器连接之后，由本地的定时器触发任务调度，选择执行器发送任务请求，然后在执行完毕之后收集结果和日志。**
+
+---
+
+##  XXL-JOB 的源码实现
+
+### XXL-Job 相关概念
+
+#### IJobHandler
 
 每个 IJobHandler 对应的一个需要处理的任务，不同类型的任务有不同的实现类。
 
@@ -36,11 +40,7 @@ XXL-Job
 | GlueJobHandler   |                                                              |
 | ScriptJobHandler |                                                              |
 
-
-
-
-
-### JobThread 
+#### JobThread 
 
 用于处理调度的定时任务，每个 JobThraed 会绑定一个 IJobHandler。
 
@@ -51,35 +51,43 @@ XXL-Job
 1. JobId - JobId 和具体执行的线程绑定（JobThread），JobThread 中还包含正在执行的 IJobHandler
 2. 
 
-
-
-## Executor - 执行器的执行流程 
+### Executor - 执行器 
 
 > 以 Spring 的客户端，MethodJobHandler 为例。
 
+#### 执行器的扫描和注册
+
+SpringBoot 中通过 **@XxlJob** 声明执行器，包含执行器的名称，初始化方法以及销毁方法。
+
+执行器通过 **XxlJobSpringExecutor** 扫描（该类继承了 **SmartInitializingSingleton#afterSingletonsInstantiated**
+
+该类的初始化方法里获取容器中的所有 Bean 对象，并扫描 Bean 中标注了 **@XxlJob** 的方法，**针对单个执行器方法包装并注册对应类型的 IJobHandler**。
+
+（例如对于方法的执行器就是 MtehodJobHandler，**另外就是要求必须声明为 Bean 对象，才能被扫描到**。
+
+> 扫描所有类的所有方法是否效率过低？可以使用 Type 范围的注解声明必要参数吧
+
+**IJobHandler** 的类型有许多种，每种都有不同的执行方式，MethodJobHandler 的执行就是**反射调用方法**（另外还有 GlueJobHandler。
 
 
-### 执行器的扫描和注册
-
-SpringBoot 中通过 @XxlJob 指定执行器，包含执行器的名称，初始化方法以及销毁方法。
-
-执行器通过 XxlJobSpringExecutor 扫描（该类继承了 SmartInitializingSingleton#afterSingletonsInstantiated。
-
-该类的初始化方法里获取容器中的所有 Bean 对象，并扫描 Bean 中标注了 @XxlJob 的方法，**针对单个执行器方法包装并注册 IJobHandler**（例如对于方法的执行器就是 MtehodJobHandler，**另外就是要求必须声明为 Bean 对象，才能被扫描到**。
-
-> 扫描所有类的所有方法是否效率过低？
-
-MethodJobHandler 的执行就是**反射调用方法**。
 
 ![MethodJobHandler#executr](assets/image-20220117163552053.png)
 
-（因此，调度的时候也无法传入任何参数，类似分片信息都需要通过另外的方式获取。
 
 
+**（因此，调度的时候也无法传入任何参数，类似分片信息都需要通过另外的方式获取。**
 
-### 启动本地服务
+<br>
+
+#### 启动本地服务
+
+本地服务的作用就是连接调度中心，并且接受调度中心的任务请求。
 
 **Xxl-Job 是通过本地 Http 服务端接收命令的执行请求的，**因此在客户端启动时还会开启一个 Http 服务（EmbedServer，默认绑定最大200个线程的线程池执行调度任务。
+
+（既然是 Netty 起的任务，任务逻辑之际看 ChannelHandler 就好了，忽略其他配置。
+
+
 
 ![image-20220117170837089](assets/image-20220117170837089.png)
 
@@ -91,11 +99,51 @@ MethodJobHandler 的执行就是**反射调用方法**。
 >
 > NIO 在极少量连接的情况下性能也超过 BIO 吗？
 
+<br>
 
 
-### 本地任务响应
 
-XXL-JOB 使用 Netty 建立的 Http 的服务端，所以请求处理也在 ChannelHandler 里，**XXL-JOB 客户端只响应 POST 请求，并根据请求的 URI 做调度。**
+#### 执行器注册
+
+在本地服务起来之后会向调度中心注册自身，是在上述的 Netty 服务启动之后开始的。
+
+
+
+#### 本地任务响应
+
+EmbedHttpServerHandler#channelRead0 包含了所有的执行请求处理逻辑：
+
+```java
+@Override
+protected void channelRead0(final ChannelHandlerContext ctx, FullHttpRequest msg) throws Exception {
+	// 获取请求参数
+  String requestData = msg.content().toString(CharsetUtil.UTF_8);
+  // 获取请求地址
+  String uri = msg.uri();
+  // 获取请求方式
+  HttpMethod httpMethod = msg.method();
+  // 为什么要判断是否保活
+  boolean keepAlive = HttpUtil.isKeepAlive(msg);
+  // 从请求头获取 Token
+  // XXL-JOB 根据 Header 中的 AccessToken 来鉴权
+  String accessTokenReq = msg.headers().get(XxlJobRemotingUtil.XXL_JOB_ACCESS_TOKEN);
+  // 通过线程池异步执行调度任务
+  bizThreadPool.execute(new Runnable() {
+    @Override
+    public void run() {
+      // 具体执行
+      Object responseObj = process(httpMethod, uri, requestData, accessTokenReq);
+      String responseJson = GsonTool.toJson(responseObj);
+      // 回写响应
+      writeResponse(ctx, keepAlive, responseJson);
+    }
+  });
+}
+```
+
+通过 bizThreadPool 线程池异步的添加调度任务，接口性能拉满。
+
+
 
 ```java
 // EmbedServer$EmbedHttpServerHandler#process
@@ -105,35 +153,34 @@ private Object process(HttpMethod httpMethod, String uri, String requestData, St
   if (HttpMethod.POST != httpMethod) {
     return new ReturnT<String>(ReturnT.FAIL_CODE, "invalid request, HttpMethod not support.");
   }
-  // xxl 会根据 URI 做任务调度
+  // xxl 会根据 URI 做任务调度，所以会检查 uri 不允许为空
   if (uri==null || uri.trim().length()==0) {
     return new ReturnT<String>(ReturnT.FAIL_CODE, "invalid request, uri-mapping empty.");
   }
-  // 检查 accessToken
-  if (accessToken!=null
-      && accessToken.trim().length()>0
-      && !accessToken.equals(accessTokenReq)) {
+  // 检查 accessToken，这里的就是直接对比
+  if (accessToken!=null && accessToken.trim().length()>0 && !accessToken.equals(accessTokenReq)) {
     return new ReturnT<String>(ReturnT.FAIL_CODE, "The access token is wrong.");
   }
   // services mapping
-  // 检测消息类型
+  // 检测消息类型，根据请求的 uri 匹配执行
+  // http:{ip:port}/beat 执行的就是心跳检测
   try {
     // 心跳发送
     if ("/beat".equals(uri)) {
       return executorBiz.beat();
-    // 检查是否空闲
+      // 检查是否空闲
     } else if ("/idleBeat".equals(uri)) {
       IdleBeatParam idleBeatParam = GsonTool.fromJson(requestData, IdleBeatParam.class);
       return executorBiz.idleBeat(idleBeatParam);
-    // 任务调度
+      // 任务调度
     } else if ("/run".equals(uri)) {
       TriggerParam triggerParam = GsonTool.fromJson(requestData, TriggerParam.class);
       return executorBiz.run(triggerParam);
-    // 任务终止
+      // 任务终止
     } else if ("/kill".equals(uri)) {
       KillParam killParam = GsonTool.fromJson(requestData, KillParam.class);
       return executorBiz.kill(killParam);
-    // 日志拉取
+      // 日志拉取
     } else if ("/log".equals(uri)) {
       LogParam logParam = GsonTool.fromJson(requestData, LogParam.class);
       return executorBiz.log(logParam);
@@ -141,21 +188,38 @@ private Object process(HttpMethod httpMethod, String uri, String requestData, St
       return new ReturnT<String>(ReturnT.FAIL_CODE, "invalid request, uri-mapping("+ uri +") not found.");
     }
   } catch (Exception e) {
-    logger.error(e.getMessage(), e);
-    return new ReturnT<String>(ReturnT.FAIL_CODE, "request error:" + ThrowableUtil.toString(e));
+  	// 异常处理
   }
 }
 ```
 
-类似 Netty 的 ChannelHandler，XXL-JOB 也有自己的业务处理接口 ExecutorBiz，客户端的具体实现就是 ExecutorBizImpl。
+ExecutorBiz 就是执行器的所有业务处理，不同的 uri 对应的就是不同的 ExcutorBiz 的方法。
 
 
 
 ![image-20220118140419963](assets/image-20220118140419963.png)
 
-### 任务执行流程
 
-接口中包含了所有的业务逻辑方法，先来看执行方法 run()：
+
+（感觉这个调度逻辑可以收到 ExecutorBiz 里面，可能代码会更加清爽一点。
+
+所以调度中心到执行器的请求类型可以分为以下五种，在 ExecutorBizImpl 中各有实现：
+
+| uri      | 具体功能 | 对应方法                |
+| -------- | -------- | ----------------------- |
+| beat     | 心跳检查 | beat                    |
+| idleBeat | 空闲检查 | idleBeat(IdleBeatParam) |
+| run      | 任务执行 | run(TriggerParam)       |
+| Kill     | 任务中断 | kill(KillParam)         |
+| Log      | 拉取日志 | log(LogParam)           |
+
+
+
+<br>
+
+#### 任务执行流程
+
+
 
 ```java
 @Override
