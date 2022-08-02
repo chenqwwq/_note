@@ -24,11 +24,17 @@ Executor（执行器） 持有真实的业务逻辑，负责接收调度请求�
 
 **整体的逻辑就是执行器向调度中心注册，调度中心持有所有的执行器连接之后，由本地的定时器触发任务调度，选择执行器发送任务请求，然后在执行完毕之后收集结果和日志。**
 
+
+
 ---
+
+
 
 ##  XXL-JOB 的源码实现
 
 ### XXL-Job 相关概念
+
+
 
 #### IJobHandler
 
@@ -37,63 +43,90 @@ Executor（执行器） 持有真实的业务逻辑，负责接收调度请求�
 | 实现类名称       | 任务类型                                                     |
 | ---------------- | ------------------------------------------------------------ |
 | MethodJobHandler | 用于执行 Bean 类型的任务，包含对象（Object）和方法（Method） |
-| GlueJobHandler   |                                                              |
-| ScriptJobHandler |                                                              |
+| GlueJobHandler   | 用于执行任意脚本？                                           |
+
+
 
 #### JobThread 
 
-用于处理调度的定时任务，每个 JobThraed 会绑定一个 IJobHandler。
+用于处理调度的定时任务，每个 JobThraed 会绑定一个 IJobHandler，是执行器里的线程模型。
 
-客户端执行的线程模型。
 
-执行参数包含如下内容：
 
-1. JobId - JobId 和具体执行的线程绑定（JobThread），JobThread 中还包含正在执行的 IJobHandler
-2. 
+
 
 ### Executor - 执行器 
 
 > 以 Spring 的客户端，MethodJobHandler 为例。
 
-#### 执行器的扫描和注册
-
-SpringBoot 中通过 **@XxlJob** 声明执行器，包含执行器的名称，初始化方法以及销毁方法。
-
-执行器通过 **XxlJobSpringExecutor** 扫描（该类继承了 **SmartInitializingSingleton#afterSingletonsInstantiated**
-
-该类的初始化方法里获取容器中的所有 Bean 对象，并扫描 Bean 中标注了 **@XxlJob** 的方法，**针对单个执行器方法包装并注册对应类型的 IJobHandler**。
-
-（例如对于方法的执行器就是 MtehodJobHandler，**另外就是要求必须声明为 Bean 对象，才能被扫描到**。
-
-> 扫描所有类的所有方法是否效率过低？可以使用 Type 范围的注解声明必要参数吧
-
-**IJobHandler** 的类型有许多种，每种都有不同的执行方式，MethodJobHandler 的执行就是**反射调用方法**（另外还有 GlueJobHandler。
-
-
-
-![MethodJobHandler#executr](assets/image-20220117163552053.png)
-
-
-
-**（因此，调度的时候也无法传入任何参数，类似分片信息都需要通过另外的方式获取。**
-
 <br>
 
 #### 启动本地服务
 
-本地服务的作用就是连接调度中心，并且接受调度中心的任务请求。
+（本地服务的作用就是连接调度中心，并且接受调度中心的任务请求，因此也需要一个服务来接收调度中心的请求。
 
-**Xxl-Job 是通过本地 Http 服务端接收命令的执行请求的，**因此在客户端启动时还会开启一个 Http 服务（EmbedServer，默认绑定最大200个线程的线程池执行调度任务。
+**Xxl-Job 是通过 Netty 框架启动的  HTTP 服务（EmbedServer）来接收命令的执行请求的，默认绑定最大200个线程的线程池执行调度任务。**
 
-（既然是 Netty 起的任务，任务逻辑之际看 ChannelHandler 就好了，忽略其他配置。
+既然是 Netty 起的任务，任务逻辑之际看 ChannelHandler 就好了，忽略其他配置。
 
+（这里感觉上可以使用自定义的协议，进一步优化调度的效率。
 
+```java
+// EmbedServer#start
+public void start(final String address, final int port, final String appname, final String accessToken) {
+  executorBiz = new ExecutorBizImpl();
+  thread = new Thread(new Runnable() {
+    @Override
+    public void run() {
+      // param，使用默认的线程组策略
+      EventLoopGroup bossGroup = new NioEventLoopGroup();
+      EventLoopGroup workerGroup = new NioEventLoopGroup();
+      // 定义业务线程池，线程数最大为 200
+      ThreadPoolExecutor bizThreadPool = new ThreadPoolExecutor(
+        0,
+        200,
+        60L,
+        TimeUnit.SECONDS,
+        new LinkedBlockingQueue<Runnable>(2000),
+        new ThreadFactory() {
+           // 直接创建新线程
+        },
+        // 直接拒绝的策略，如果任务过多则直接抛出异常
+        new RejectedExecutionHandler() {
+          @Override
+          public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+            throw new RuntimeException("xxl-job, EmbedServer bizThreadPool is EXHAUSTED!");
+          }
+        });
+      try {
+        // .... 忽略 HTTP 和心跳相关的 Handelr
+        				// 添加实际的业务处理器
+                .addLast(new EmbedHttpServerHandler(executorBiz, accessToken, bizThreadPool));
+            }
+          })
+          .childOption(ChannelOption.SO_KEEPALIVE, true);
 
-![image-20220117170837089](assets/image-20220117170837089.png)
+        // 绑定端口并且开启服务
+        ChannelFuture future = bootstrap.bind(port).sync();
+        // start registry
+        // 向调度中心注册自身
+        startRegistry(appname, address);
+        // 启动
+        // wait util stop
+        future.channel().closeFuture().sync();
+    // ....
+    }
+  });
+  // 守护线程
+  thread.setDaemon(true);    // daemon, service jvm, user thread leave >>> daemon leave >>> jvm leave
+  // 开启 HTTP 服务也是异步的，并不卡着主线程
+  thread.start();
+}
+```
 
+启动过程中不仅开启了本地的 HTTP 服务而且还会向调度中心注册自身。
 
-
-在 EmbedHttpServerHandler 中响应 Scheduler 的任务调度。
+另外就是对 HTTP 相关请求的处理，XXL-JOB 是在 EmbedHttpServerHandler 中响应 Scheduler 的任务调度的。
 
 > 额外说一句，Executor 似乎并不需要和很多个 Scheduler 连接，为什么采用 NIO 呢？
 >
@@ -101,15 +134,90 @@ SpringBoot 中通过 **@XxlJob** 声明执行器，包含执行器的名称，�
 
 <br>
 
-
-
 #### 执行器注册
 
 在本地服务起来之后会向调度中心注册自身，是在上述的 Netty 服务启动之后开始的。
 
+```java
+// EmbedSever#startRegistry
+public void startRegistry(final String appname, final String address) {
+  // start registry
+  // 看这意思是开启一个新的线程专门用于注册
+  ExecutorRegistryThread.getInstance().start(appname, address);
+}
+```
 
+ExecutorRegistryThread 就是注册线程，单个线程专门用于向调度中心注册。
+
+**注册线程的任务就是轮询向调度中心注册自身（充当 Client 侧的心跳包），并且在本地服务关闭后向调度中心移除自身。**
+
+```java
+public void start(final String appname, final String address){
+  registryThread = new Thread(new Runnable() {
+    @Override
+    public void run() {
+      // registry
+      // 使用的类变量来保存当前服务是否关闭
+      while (!toStop) {
+        try {
+          // 构造注册参数
+          RegistryParam registryParam = new RegistryParam(RegistryConfig.RegistType.EXECUTOR.name(), appname, address);
+          // 获取所有的注册中心列表，遍历注册
+          for (AdminBiz adminBiz: XxlJobExecutor.getAdminBizList()) {
+            try {
+              ReturnT<String> registryResult = adminBiz.registry(registryParam);
+              // 有一个注册成功就算成功（注册可能是入库的过程，所以单点注册成功就好
+              if (registryResult!=null && ReturnT.SUCCESS_CODE == registryResult.getCode()) {
+                registryResult = ReturnT.SUCCESS;
+                break;
+              }
+            } catch (Exception e) {}
+          }
+        } catch (Exception e) {}
+
+        try {
+          if (!toStop) {
+            // 停顿心跳间隔
+            TimeUnit.SECONDS.sleep(RegistryConfig.BEAT_TIMEOUT);
+          }
+        } catch (InterruptedException e) {}
+      }
+
+      // registry remove
+      try {
+        // 向注册中心取消注册
+        RegistryParam registryParam = new RegistryParam(RegistryConfig.RegistType.EXECUTOR.name(), appname, address);
+        for (AdminBiz adminBiz: XxlJobExecutor.getAdminBizList()) {
+          try {
+            ReturnT<String> registryResult = adminBiz.registryRemove(registryParam);
+            if (registryResult!=null && ReturnT.SUCCESS_CODE == registryResult.getCode()) {
+              registryResult = ReturnT.SUCCESS;
+              break;
+            }
+          } catch (Exception e) {}
+
+        }
+      } catch (Exception e) {  }
+      }
+    }
+  });
+  registryThread.setDaemon(true);
+  registryThread.setName("xxl-job, executor ExecutorRegistryThread");
+  registryThread.start();
+}
+```
+
+开启本地的 HTTP 服务是异步完成的，之后的注册心跳也是异步的。
+
+（XXL-JOB 的源码最明显的特点就是各类线程定义，会有很明确的定义，每个线程会有不同的分工。
+
+此处就直接忽略了 RPC 的封装逻辑了。
+
+<br>
 
 #### 本地任务响应
+
+ 本地服务启动完成之后就是就会等待调度中心的执行请求的。
 
 EmbedHttpServerHandler#channelRead0 包含了所有的执行请求处理逻辑：
 
@@ -142,8 +250,6 @@ protected void channelRead0(final ChannelHandlerContext ctx, FullHttpRequest msg
 ```
 
 通过 bizThreadPool 线程池异步的添加调度任务，接口性能拉满。
-
-
 
 ```java
 // EmbedServer$EmbedHttpServerHandler#process
@@ -217,82 +323,53 @@ ExecutorBiz 就是执行器的所有业务处理，不同的 uri 对应的就是
 
 <br>
 
-#### 任务执行流程
-
-
+##### 任务执行流程
 
 ```java
 @Override
 public ReturnT<String> run(TriggerParam triggerParam) {
     // load old：jobHandler + jobThread
     // 获取执行线程，根据 jobId
-    // XxlJobExeutor 中保存了 JobThreadRepository(JobId,JobThread 的映射)，表明当前任务是否在执行
+    // XxlJobExeutor 中保存了 JobThreadRepository(JobId -> JobThread 的映射)，表明当前任务是否在执行
     JobThread jobThread = XxlJobExecutor.loadJobThread(triggerParam.getJobId());
     // 获取线程绑定的执行器 JobHandler
     IJobHandler jobHandler = jobThread!=null?jobThread.getHandler():null;
     String removeOldReason = null;
     // valid：jobHandler + jobThread
+    // 任务类型
     GlueTypeEnum glueTypeEnum = GlueTypeEnum.match(triggerParam.getGlueType());
+    // Bean 形式执行的任务类型
     if (GlueTypeEnum.BEAN == glueTypeEnum) {
-        // new jobhandler
+        // 获取新的 JobHandler
         IJobHandler newJobHandler = XxlJobExecutor.loadJobHandler(triggerParam.getExecutorHandler());
-        // valid old jobThread
-        if (jobThread!=null && jobHandler != newJobHandler) {
+				// 相同的 JobId 对应的 Handler？
+      	if (jobThread!=null && jobHandler != newJobHandler) {
             // change handler, need kill old thread
             removeOldReason = "change jobhandler or glue type, and terminate the old job thread.";
             jobThread = null;
             jobHandler = null;
         }
-        // valid handler
+      	// jobHandler 为空则赋值
+        // 此时就是确定了需要执行的 Handler
         if (jobHandler == null) {
             jobHandler = newJobHandler;
+            // 未获取到则返回异常，调度失败
             if (jobHandler == null) {
                 return new ReturnT<String>(ReturnT.FAIL_CODE, "job handler [" + triggerParam.getExecutorHandler() + "] not found.");
             }
         }
     } else if (GlueTypeEnum.GLUE_GROOVY == glueTypeEnum) {
-        // valid old jobThread
-        if (jobThread != null &&
-                !(jobThread.getHandler() instanceof GlueJobHandler
-                    && ((GlueJobHandler) jobThread.getHandler()).getGlueUpdatetime()==triggerParam.getGlueUpdatetime() )) {
-            // change handler or gluesource updated, need kill old thread
-            removeOldReason = "change job source or glue type, and terminate the old job thread.";
-
-            jobThread = null;
-            jobHandler = null;
-        }
-        // valid handler
-        if (jobHandler == null) {
-            try {
-                IJobHandler originJobHandler = GlueFactory.getInstance().loadNewInstance(triggerParam.getGlueSource());
-                jobHandler = new GlueJobHandler(originJobHandler, triggerParam.getGlueUpdatetime());
-            } catch (Exception e) {
-                logger.error(e.getMessage(), e);
-                return new ReturnT<String>(ReturnT.FAIL_CODE, e.getMessage());
-            }
-        }
+ 				// 暂时忽略
     } else if (glueTypeEnum!=null && glueTypeEnum.isScript()) {
-        // valid old jobThread
-        if (jobThread != null &&
-                !(jobThread.getHandler() instanceof ScriptJobHandler
-                        && ((ScriptJobHandler) jobThread.getHandler()).getGlueUpdatetime()==triggerParam.getGlueUpdatetime() )) {
-            // change script or gluesource updated, need kill old thread
-            removeOldReason = "change job source or glue type, and terminate the old job thread.";
-            jobThread = null;
-            jobHandler = null;
-        }
-        // valid handler
-        if (jobHandler == null) {
-            jobHandler = new ScriptJobHandler(triggerParam.getJobId(), triggerParam.getGlueUpdatetime(), triggerParam.getGlueSource(), GlueTypeEnum.match(triggerParam.getGlueType()));
-        }
+       	// 暂时忽略
     } else {
         return new ReturnT<String>(ReturnT.FAIL_CODE, "glueType[" + triggerParam.getGlueType() + "] is not valid.");
     }
-    // executor block strategy
+  
     // 执行阻塞策略
     if (jobThread != null) {
         ExecutorBlockStrategyEnum blockStrategy = ExecutorBlockStrategyEnum.match(triggerParam.getExecutorBlockStrategy(), null);
-      // 丢弃最晚的任务
+      		// 丢弃最晚的任务
         if (ExecutorBlockStrategyEnum.DISCARD_LATER == blockStrategy) {
             // discard when running
             if (jobThread.isRunningOrHasQueue()) {
@@ -322,7 +399,138 @@ public ReturnT<String> run(TriggerParam triggerParam) {
 }
 ```
 
-#### 总结
+
+
+整个任务的触发流程可以分为以下内容：
+
+1. 根据 JobId 获取当前正在执行的任务线程 JobThread
+2. 根据 glueType（任务类型）以及执行器名称（ executorHandler）获取需要执行的任务 IJobHandler
+3. 如果当前正在处理任务则需要处理阻塞逻辑
+   - 丢弃最晚的任务 - 直接返回执行失败，当前正在调度就是最晚的任务
+   - 覆盖之前的任务 - 中断正在执行的线程（Java 线程中断逻辑其实就是修改终端标志位），并新建线程处理当前任务
+   - 排队执行 - 直接添加到任务队列
+4. 注册 JobThread
+5. 添加本次执行任务到 JobThread
+
+<br>
+
+从执行流程的初始流程可知，每个 JobId 对应了一个 JobThread，而一个 executorHandler 对应了一个 IJobHandler。
+
+IJobHandler 就是本地具体执行任务，在本地扫描之后会向 XxlJobExecutor 注册。
+
+JobThread 则是具体的任务执行线程，也是使用 XxlJobExecutor 保存，如果存在表示当前已经有任务在执行。
+
+（JobId 是如何确定的，这个可能需要联系调度中心的逻辑理解？
+
+<br>
+
+并且 JobThread 中保存有任务队列，在阻塞的时候也可以排队执行（任务处理的形式就需要由 JobThread 中的执行逻辑和阻塞队列来决定了。
+
+<br>
+
+<br>
+
+##### 执行线程注册
+
+```java
+// XxlJobExecutor#registJobThread
+public static JobThread registJobThread(int jobId, IJobHandler handler, String removeOldReason){
+  // 开启新线程
+  JobThread newJobThread = new JobThread(jobId, handler);
+  newJobThread.start();
+
+  // 注册线程，如果存在就有线程会返回
+  JobThread oldJobThread = jobThreadRepository.put(jobId, newJobThread);	
+  if (oldJobThread != null) {
+    // 中断旧线程
+    oldJobThread.toStop(removeOldReason);
+    oldJobThread.interrupt();
+  }
+
+  return newJobThread;
+}
+```
+
+可以发现任务的注册的阻塞逻辑，如果需要覆盖之前任务的时候会直接发起中断。
+
+**所以真实的业务逻辑里面也需要考虑到任务阻塞的场景，如果使用覆盖执行则在处理逻辑中需要添加对中断标示位的处理。**
+
+（个人使用 XXL-JOB 实现过定时消息的发送，在遍历会话发送的 for 循环判断中会添加线程是否中断的判断，并进行后续的处理。
+
+
+
+#### 执行器的本地扫描
+
+在调度过程中，执行器需要根据调度参数获取 IJobHandler（XxlJobExecutor 中保存了本地的所有的 IJobHandler。
+
+```java
+IJobHandler newJobHandler = XxlJobExecutor.loadJobHandler(triggerParam.getExecutorHandler());
+```
+
+<br>
+
+SpringBoot 中通过 **@XxlJob** 声明执行器，包含执行器的名称，初始化方法以及销毁方法。
+
+执行器通过 **XxlJobSpringExecutor** 扫描（该类继承了 **SmartInitializingSingleton#afterSingletonsInstantiated**。
+
+（实际上，本地服务和向调度中心的注册都是通过该类触发的。
+
+**XxlJobSpringExecutor** 的初始化方法里获取容器中的所有 Bean 对象，并扫描 Bean 中标注了 **@XxlJob** 的方法，**针对单个执行器方法包装并注册对应类型的 IJobHandler**。
+
+
+
+```java
+private void initJobHandlerMethodRepository(ApplicationContext applicationContext) {
+  if (applicationContext == null) {
+    return;
+  }
+  // 获取所有的 Bean 对象
+  String[] beanDefinitionNames = applicationContext.getBeanNamesForType(Object.class, false, true);
+  for (String beanDefinitionName : beanDefinitionNames) {
+    // 获取该对象
+    Object bean = applicationContext.getBean(beanDefinitionName);
+    Map<Method, XxlJob> annotatedMethods = null;   // referred to ：org.springframework.context.event.EventListenerMethodProcessor.processBean
+    try {
+      // 找到被 XxlJob 标注的，返回的对象是 Method - Annotation 的映射
+      annotatedMethods = MethodIntrospector.selectMethods(bean.getClass(),
+                                                          new MethodIntrospector.MetadataLookup<XxlJob>() {
+                                                            @Override
+                                                            public XxlJob inspect(Method method) {
+                                                              return AnnotatedElementUtils.findMergedAnnotation(method, XxlJob.class);
+                                                            }
+                                                          });
+    } catch (Throwable ex) {}
+    if (annotatedMethods==null || annotatedMethods.isEmpty()) {
+      continue;
+    }
+		// 处理单个类中多个方法的
+    for (Map.Entry<Method, XxlJob> methodXxlJobEntry : annotatedMethods.entrySet()) {
+      // 获取对应方法
+      Method executeMethod = methodXxlJobEntry.getKey();
+      // 获取对应的注解信息
+      XxlJob xxlJob = methodXxlJobEntry.getValue();
+      // 实际注册
+      registJobHandler(xxlJob, bean, executeMethod);
+    }
+  }
+}
+```
+
+
+
+（扫描所有类的所有方法是否效率过低？可以使用 Type 范围的注解声明必要参数吧
+
+实际的注册流程就是将 XxlJob#value - Method 的 Entry 保存到 XxlJobExecutor，
+
+**IJobHandler** 的类型有许多种，每种都有不同的执行方式，MethodJobHandler 的执行就是**反射调用方法**（另外还有 GlueJobHandler。
+
+
+
+![MethodJobHandler#executr](assets/image-20220117163552053.png)
+
+
+
+**（因此，调度的时候也无法传入任何参数，类似分片信息都需要通过另外的方式获取。**
 
 
 
@@ -330,15 +538,13 @@ public ReturnT<String> run(TriggerParam triggerParam) {
 
 
 
-## Scheduler - 调度器的调度流程
+
+
+### Scheduler - 调度器
 
 > 具体的流程在 JobScheduleHelper 中，其中包括了 scheduleThread 和 ringThraed。
 
-
-
-
-
-### scheduleThread - 调度线程
+#### scheduleThread - 调度线程
 
 ```java
 scheduleThread = new Thread(new Runnable() {
@@ -469,11 +675,7 @@ scheduleThread = new Thread(new Runnable() {
 3. 如果任务过期时间在5s之内，直接调度一次，并修改下次时间，下次时间仍然在本次调度范围，直接添加到 ringThread
 4. 任务没有过期，直接添加到 ringThread
 
-
-
-
-
-### 添加到 ringData
+#### 添加到 ringData
 
 XXL-Job 的调度模块非常简单，并不是和 Netty 的时间轮一样使用的环形数组之类的，而是直接用 Map 保存，**Key 就是执行的时间在当前分钟内的秒**。
 
@@ -498,9 +700,7 @@ private void pushTimeRing(int ringSecond, int jobId) {
 }
 ```
 
-
-
-### ringThread - 时间轮处理流程
+#### ringThread - 时间轮处理流程
 
 ```java
 // ring thread
@@ -557,11 +757,7 @@ ringThread = new Thread(new Runnable() {
 >
 > 因此 ringThread 只需要每秒中轮询当前秒数的任务并且调度。
 
-
-
-
-
-### 时间轮任务触发流程
+#### 时间轮任务触发流程
 
 
 
@@ -624,13 +820,7 @@ public void addTrigger(final int jobId,
 
 XXl-Job 中使用两个线程池来实现任务的触发，fastTriggerPool 和 slowTriggerPool，默认使用 fastTriggerPool 触发，但如果存在过多的超时（超过10次），则使用 slowTriggerPool 进行触发。
 
-
-
-
-
-
-
-### MisfireStrategy - 错误调度之后的任务处理
+#### MisfireStrategy - 错误调度之后的任务处理
 
 ```java
 public enum MisfireStrategyEnum {
