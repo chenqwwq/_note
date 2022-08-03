@@ -147,6 +147,8 @@ public void startRegistry(final String appname, final String address) {
 }
 ```
 
+
+
 ExecutorRegistryThread 就是注册线程，单个线程专门用于向调度中心注册。
 
 **注册线程的任务就是轮询向调度中心注册自身（充当 Client 侧的心跳包），并且在本地服务关闭后向调度中心移除自身。**
@@ -207,6 +209,8 @@ public void start(final String appname, final String address){
 }
 ```
 
+
+
 开启本地的 HTTP 服务是异步完成的，之后的注册心跳也是异步的。
 
 （XXL-JOB 的源码最明显的特点就是各类线程定义，会有很明确的定义，每个线程会有不同的分工。
@@ -250,6 +254,8 @@ protected void channelRead0(final ChannelHandlerContext ctx, FullHttpRequest msg
 ```
 
 通过 bizThreadPool 线程池异步的添加调度任务，接口性能拉满。
+
+
 
 ```java
 // EmbedServer$EmbedHttpServerHandler#process
@@ -298,6 +304,8 @@ private Object process(HttpMethod httpMethod, String uri, String requestData, St
   }
 }
 ```
+
+<br>
 
 ExecutorBiz 就是执行器的所有业务处理，不同的 uri 对应的就是不同的 ExcutorBiz 的方法。
 
@@ -399,7 +407,7 @@ public ReturnT<String> run(TriggerParam triggerParam) {
 }
 ```
 
-
+<br>
 
 整个任务的触发流程可以分为以下内容：
 
@@ -451,19 +459,22 @@ public static JobThread registJobThread(int jobId, IJobHandler handler, String r
 }
 ```
 
+<br>
+
 可以发现任务的注册的阻塞逻辑，如果需要覆盖之前任务的时候会直接发起中断。
 
 **所以真实的业务逻辑里面也需要考虑到任务阻塞的场景，如果使用覆盖执行则在处理逻辑中需要添加对中断标示位的处理。**
 
 （个人使用 XXL-JOB 实现过定时消息的发送，在遍历会话发送的 for 循环判断中会添加线程是否中断的判断，并进行后续的处理。
 
-
+<br>
 
 #### 执行器的本地扫描
 
 在调度过程中，执行器需要根据调度参数获取 IJobHandler（XxlJobExecutor 中保存了本地的所有的 IJobHandler。
 
 ```java
+// 根据调度参数 executorHandler 获取对应的 IJobHandler 实现
 IJobHandler newJobHandler = XxlJobExecutor.loadJobHandler(triggerParam.getExecutorHandler());
 ```
 
@@ -516,17 +527,74 @@ private void initJobHandlerMethodRepository(ApplicationContext applicationContex
 }
 ```
 
-
-
 （扫描所有类的所有方法是否效率过低？可以使用 Type 范围的注解声明必要参数吧
 
 实际的注册流程就是将 XxlJob#value - Method 的 Entry 保存到 XxlJobExecutor，
+
+```java
+protected void registJobHandler(XxlJob xxlJob, Object bean, Method executeMethod){
+  if (xxlJob == null) {
+    return;
+  }
+	// 获取执行器的名称，并且检查名称是否为空和重复
+  String name = xxlJob.value();
+  Class<?> clazz = bean.getClass();
+  String methodName = executeMethod.getName();
+  if (name.trim().length() == 0) {
+    throw new RuntimeException("xxl-job method-jobhandler name invalid, for[" + clazz + "#" + methodName + "] .");
+  }
+  if (loadJobHandler(name) != null) {
+    throw new RuntimeException("xxl-job jobhandler[" + name + "] naming conflicts.");
+  }
+	// 执行器的具体方法
+  executeMethod.setAccessible(true);
+	// 获取初始和销毁的方法
+  Method initMethod = null;
+  Method destroyMethod = null;
+  // 获取初始放啊
+  if (xxlJob.init().trim().length() > 0) {
+    try {
+      initMethod = clazz.getDeclaredMethod(xxlJob.init());
+      initMethod.setAccessible(true);
+    } catch (NoSuchMethodException e) {
+      throw new RuntimeException("xxl-job method-jobhandler initMethod invalid, for[" + clazz + "#" + methodName + "] .");
+    }
+  }
+  // 获取销毁方法
+  if (xxlJob.destroy().trim().length() > 0) {
+    try {
+      destroyMethod = clazz.getDeclaredMethod(xxlJob.destroy());
+      destroyMethod.setAccessible(true);
+    } catch (NoSuchMethodException e) {
+      throw new RuntimeException("xxl-job method-jobhandler destroyMethod invalid, for[" + clazz + "#" + methodName + "] .");
+    }
+  }
+
+  // 包装为 MethodJobHandler 注册
+  // 包含了 执行方法，初始化方法和注销方法
+  registJobHandler(name, new MethodJobHandler(bean, executeMethod, initMethod, destroyMethod));
+}
+```
+
+
+
+最终以 XxlJob 实现的执行器定义被注册为 MethodJobHandler。
 
 **IJobHandler** 的类型有许多种，每种都有不同的执行方式，MethodJobHandler 的执行就是**反射调用方法**（另外还有 GlueJobHandler。
 
 
 
-![MethodJobHandler#executr](assets/image-20220117163552053.png)
+```java
+@Override
+public void execute() throws Exception {
+  Class<?>[] paramTypes = method.getParameterTypes();
+  if (paramTypes.length > 0) {
+    method.invoke(target, new Object[paramTypes.length]);       // method-param can not be primitive-types
+  } else {
+    method.invoke(target);
+  }
+}
+```
 
 
 
@@ -536,13 +604,20 @@ private void initJobHandlerMethodRepository(ApplicationContext applicationContex
 
 
 
-
-
-
-
 ### Scheduler - 调度器
 
-> 具体的流程在 JobScheduleHelper 中，其中包括了 scheduleThread 和 ringThraed。
+在 XXL-JOB 中调度器的职责就是维护一个定时任务队列（或者时间轮，在定时任务到期的时候触发执行。
+
+（JDK 的延时队列和时间轮的区别: 延时队列使用简单的二叉搜索树维护任务的有序性，每次等待根节点的任务到期，而时间轮则是使用轮次+槽（链表）的概念，令起线程轮询对应槽的任务并执行。
+
+<br>
+
+在 XXL-Job 的实现中，调度器中线程的作用区分的更加清楚一点，包括如下几种：
+
+1. 调度线程（Schedule Thread） -   负责发起调度执行请求
+2. 定时线程（Ring Thread） -  
+
+
 
 #### scheduleThread - 调度线程
 
