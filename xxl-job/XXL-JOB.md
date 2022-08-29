@@ -4,7 +4,7 @@
 
 ## 概述
 
-XXL-JOB 属于分布式调度平台。
+XXL-JOB 是一款开源的分布式调度平台。
 
 分布式调度平台的作用就是方便管理多节点执行的任务，包括任务下发、执行状态监控以及执行日志的收集等功能。
 
@@ -32,7 +32,7 @@ Executor（执行器） 持有真实的业务逻辑，负责接收调度请求�
 
 ##  XXL-JOB 的源码实现
 
-### XXL-Job 相关概念
+### 相关概念
 
 | 相关接口    | 对应作用                                                     |
 | ----------- | ------------------------------------------------------------ |
@@ -47,24 +47,15 @@ Executor（执行器） 持有真实的业务逻辑，负责接收调度请求�
 
 执行器是在 XXL-JOB 中具体的执行某个定时任务的角色，所以它持有所需要的任务，接受调度器的调度请求，并执行对应任务。
 
-中间就会有几个问题：
-
-1. 执行期接受调度任务的方式
-2. 执行器注册的方式（如何想调度器注册自身
-3. 任务执行的各种场景，比如如何处理忙碌场景（调度来临时当前任务还在执行
-4. 执行器如何确定执行的任务，如何执行对应的方法
+执行器的实现重点就是关注如何响应调度请求并且执行各类任务。
 
 <br>
 
-#### 一、启动本地服务
+#### 一、开启本地服务
 
-（本地服务的作用就是连接调度中心，并且接受调度中心的任务请求，因此也需要一个服务来接收调度中心的请求。
+XXL-JOB 的执行器通过 Netty 框架启动本地  HTTP 服务（EmbedServer），来接收对应的调度请求。
 
-**Xxl-Job 是通过 Netty 框架启动的  HTTP 服务（EmbedServer）来接收命令的执行请求的，默认绑定最大200个线程的线程池执行调度任务。**
-
-既然是 Netty 起的任务，任务逻辑之际看 ChannelHandler 就好了，忽略其他配置。
-
-（这里感觉上可以使用自定义的协议，进一步优化调度的效率。
+如下的 EmbedServer 源码中可以看到：
 
 ```java
 // EmbedServer#start
@@ -119,23 +110,17 @@ public void start(final String address, final int port, final String appname, fi
 }
 ```
 
-启动过程中不仅开启了本地的 HTTP 服务而且还会向调度中心注册自身。
 
-另外就是对 HTTP 相关请求的处理，**XXL-JOB 是在 EmbedHttpServerHandler 中响应 Scheduler 的任务调度的**。
 
-> 额外说一句，Executor 似乎并不需要和很多个 Scheduler 连接，为什么采用 NIO 呢？
->
-> NIO 在极少量连接的情况下性能也超过 BIO 吗？
+基于 Netty 实现的服务，所以对于请求的处理可以直接关注到 EmbedHttpServerHandler 类，另外在启动完成之后，会调用 startRegistry 方法发起注册流程（注册就是向调度中心注册自身。
 
-<br>
 
-**XXL-JOB 中执行器和调度器的通信方式是基于 Netty 实现的  HTTP 协议（长链接）。**
 
 <br>
 
 #### 二、执行器注册
 
-在本地服务起来之后会向调度中心注册自身，是在上述的 Netty 服务启动之后开始的（在上面代码块1中。
+
 
 ```java
 // EmbedSever#startRegistry
@@ -148,9 +133,9 @@ public void startRegistry(final String appname, final String address) {
 
 <br>
 
-**ExecutorRegistryThread** 就是注册线程，单个线程专门用于向调度中心注册。
+**ExecutorRegistryThread** 就是注册线程，单个线程专门用于向调度中心注册（这种单个线程专注于一件事情的设计在后面会非常常见。
 
-**注册线程的任务就是轮询向调度中心注册自身（充当 Client 侧的心跳包），并且在本地服务关闭后向调度中心移除自身。**
+其源码如下：
 
 ```java
 public void start(final String appname, final String address){
@@ -160,7 +145,6 @@ public void start(final String appname, final String address){
       // registry
       // 使用的类变量来保存当前服务是否关闭
       while (!toStop) {
-        try {
           // 构造注册参数
           RegistryParam registryParam = new RegistryParam(RegistryConfig.RegistType.EXECUTOR.name(), appname, address);
           // 获取所有的注册中心列表，遍历注册
@@ -201,23 +185,21 @@ public void start(final String appname, final String address){
 
 <br>
 
-开启本地的 HTTP 服务是异步完成的，此时的注册以及心跳也是异步的，并且由单个线程负责。
-
-此处就直接忽略了 RPC 的封装逻辑了（其实也是通过 HTTP 请求删除的注册信息。
+**注册线程的任务就是轮询向调度中心注册自身（同时充当 Client 侧的心跳包），并且在本地服务关闭后向调度中心移除自身**（此处就直接忽略了 RPC 的封装逻辑了（其实也是通过 HTTP 请求删除的注册信息。
 
 <br>
 
-对于向调度器注册自身（执行器）的动作，XXL-JOB 开启了一个单独的线程专门负责（这也是我觉得 XXL-JOB 实现中最明显的特点的，分线程完成单独任务。
-
-另外执行器像调度器注册的时候只传递了**本地应用名称和地址。**
+另外执行器像调度器注册的时候只传递了**本地应用名称和地址，并不包含当前节点可以执行的任务列表。**
 
 <br>
 
+再向调度中心注册完成之后，就是等待调度中心的调度请求了，HTTP 请求拆装都由 Netty 完成，直接跳转到 EmbedHttpServerHandler 的任务处理阶段。
+
+（EmbedHttpServerHandler 继承了 Netty 的 ChannelHandler 是主要业务逻辑的实现。
+
 <br>
 
-#### 三、本地任务响应
-
-在向调度器注册完成之后就是就会等待调度中心的调度请求，调度请求由上文说的本地 HTTP 服务接受并处理。
+#### 三、调度请求响应
 
 EmbedHttpServerHandler#channelRead0 包含了所有的执行请求处理逻辑：
 
@@ -249,9 +231,13 @@ protected void channelRead0(final ChannelHandlerContext ctx, FullHttpRequest msg
 }
 ```
 
+<br>
+
 调度器和执行器之间使用请求头中携带的 ACCESS_TOKEN 来完成鉴权（通过下文可知就是直接对比。
 
-并且通过 bizThreadPool 线程池添加调度任务异步执行（任务是否执行成功就得提供后续的查询或者上报了。
+并且通过 bizThreadPool 线程池添加调度任务异步执行（这个时候请求成功就不等于执行成功了，任务执行的情况需要后续的查询或者上报来实现。
+
+<br>
 
 ```java
 // EmbedServer$EmbedHttpServerHandler#process
@@ -303,7 +289,7 @@ private Object process(HttpMethod httpMethod, String uri, String requestData, St
 
 <br>
 
-ExecutorBiz 就是执行器的所有业务处理，不同的 uri 对应的就是不同的 ExcutorBiz 的方法。
+ExecutorBiz 就是执行器的所有业务处理，**不同的 uri 对应的就是不同的 ExcutorBiz 的方法（调度请求的 uri 决定了请求的类型。**
 
 
 
@@ -317,7 +303,7 @@ ExecutorBiz 就是执行器的所有业务处理，不同的 uri 对应的就是
 
 | uri      | 具体功能 | 对应方法                |
 | -------- | -------- | ----------------------- |
-| beat     | 心跳检查 | beat                    |
+| beat     | 心跳检查 | beat()                  |
 | idleBeat | 空闲检查 | idleBeat(IdleBeatParam) |
 | run      | 任务执行 | run(TriggerParam)       |
 | Kill     | 任务中断 | kill(KillParam)         |
@@ -327,7 +313,7 @@ ExecutorBiz 就是执行器的所有业务处理，不同的 uri 对应的就是
 
 <br>
 
-##### 任务执行流程
+##### run() - 执行任务调度流程
 
 ```java
 @Override
@@ -410,15 +396,15 @@ public ReturnT<String> run(TriggerParam triggerParam) {
 1. 根据 JobId 获取当前正在执行的任务线程 JobThread（JobId 和 JobThread 是 1:1 的关系
 2. 根据 glueType（任务类型）以及执行器名称（ executorHandler）获取需要执行的任务 IJobHandler
 3. 如果当前正在处理任务则需要处理阻塞逻辑
-   - 丢弃最晚的任务 - 直接返回执行失败，当前正在调度就是最晚的任务
-   - 覆盖之前的任务 - 中断正在执行的线程（Java 线程中断逻辑其实就是修改终端标志位），并新建线程处理当前任务
-   - 排队执行 - 直接添加到任务队列
+   - **丢弃最晚的任务 - 直接返回执行失败，当前正在调度就是最晚的任务**
+   - **覆盖之前的任务 - 中断正在执行的线程（Java 线程中断逻辑其实就是修改终端标志位），并新建线程处理当前任务**
+   - **排队执行 - 直接添加到任务队列**
 4. 注册 JobThread
 5. 添加本次执行任务到 JobThread
 
 <br>
 
-从执行流程的初始流程可知，每个 JobId 对应了一个 JobThread，而一个 executorHandler 对应了一个 IJobHandler。
+从执行流程的初始流程可知，每个 JobId 对应了一个 JobThread，而一个 TriggerParam#executorHandler 对应了一个 IJobHandler。
 
 IJobHandler 就是本地具体执行任务，在本地扫描之后会向 XxlJobExecutor 注册。
 
@@ -429,14 +415,6 @@ JobThread 则是具体的任务执行线程，也是使用 XxlJobExecutor 保存
 <br>
 
 并且 JobThread 中保存有任务队列，在阻塞的时候也可以排队执行（任务处理的形式就需要由 JobThread 中的执行逻辑和阻塞队列来决定了。
-
-<br>
-
-<br>
-
-##### 响应逻辑中需要关注的点
-
-> 在忙碌状态下，任务如果是覆盖之前的策略会直接中断当前的任务，所以对于实现的任务逻辑需要考虑中断状态的处理。
 
 <br>
 
@@ -467,13 +445,179 @@ public static JobThread registJobThread(int jobId, IJobHandler handler, String r
 
 可以发现任务的注册的阻塞逻辑，如果需要覆盖之前任务的时候会直接发起中断。
 
-**所以真实的业务逻辑里面也需要考虑到任务阻塞的场景，如果使用覆盖执行则在处理逻辑中需要添加对中断标示位的处理。**
+**所以真实的业务逻辑里面也需要考虑到任务阻塞的场景，如果使用覆盖执行则在处理逻辑中需要添加对中断逻辑的响应。**
 
 （个人使用 XXL-JOB 实现过定时消息的发送，在遍历会话发送的 for 循环判断中会添加线程是否中断的判断，并进行后续的处理。
 
 <br>
 
-#### 四、执行器的本地扫描
+#### 四、本地任务的执行流程
+
+上述调度请求的响应流程，最终的逻辑就是将响应参数添加到对应 JobThread 的任务队列里面中，因此任务的具体执行还得继续追踪到 JobThread。
+
+以下是 JobThread 的执行流程：
+
+```java
+@Override
+public void run() {
+  // 先有的一个初始化逻辑，每个 IJobHandler 都可以指定初始化和销毁的方法
+  handler.init();
+
+  // execute
+  // 带状态标识的自旋
+  while(!toStop){
+    running = false;
+    idleTimes++;
+
+    TriggerParam triggerParam = null;
+    try {
+      // 使用带超时时间的获取，不能使用 take() 因为还要检查 toStop 的标识
+      triggerParam = triggerQueue.poll(3L, TimeUnit.SECONDS);
+      if (triggerParam!=null) {
+        running = true;
+        idleTimes = 0;
+        // 日志的Id是添加到队列的时候加进入的
+        triggerLogIdSet.remove(triggerParam.getLogId());
+        // 生成对应的日志名称 like "logPath/yyyy-MM-dd/9999.log"
+        String logFileName = XxlJobFileAppender.makeLogFileName(new Date(triggerParam.getLogDateTime()), triggerParam.getLogId());
+        // 执行的上下文对象，保存执行所需要的内容
+        // BroadcastIndex 和 BroadcastTotal 就是分片广播的两个参数
+        XxlJobContext xxlJobContext = new XxlJobContext(
+          triggerParam.getJobId(),
+          triggerParam.getExecutorParams(),
+          logFileName,
+          triggerParam.getBroadcastIndex(),
+          triggerParam.getBroadcastTotal());
+
+        // 通过一个 InheritableThreadLocal 来保存上下文
+        XxlJobContext.setXxlJobContext(xxlJobContext);
+				// 添加日志
+        XxlJobHelper.log("<br>----------- xxl-job job execute start -----------<br>----------- Param:" + xxlJobContext.getJobParam());
+				// 有执行时间要求的，使用 FutureTask 完成带超时时间的执行
+        if (triggerParam.getExecutorTimeout() > 0) {
+          // limit timeout
+          Thread futureThread = null;
+          try {
+            // 使用 FutureTask
+            FutureTask<Boolean> futureTask = new FutureTask<Boolean>(new Callable<Boolean>() {
+              @Override
+              public Boolean call() throws Exception {
+								// 重新设置上下文
+                // ？？？不是可继承的 ThreadLocal 吗，为啥还需要设置一遍
+                XxlJobContext.setXxlJobContext(xxlJobContext);
+								// 执行方法
+                handler.execute();
+                // 直接返回 true 也是粗暴
+                return true;
+              }
+            });
+            // 直接新建一个线程执行任务，更加粗暴了
+            futureThread = new Thread(futureTask);
+            futureThread.start();
+						// 使用超时时间作为参数执行请求
+            Boolean tempResult = futureTask.get(triggerParam.getExecutorTimeout(), TimeUnit.SECONDS);
+          } catch (TimeoutException e) {
+            // 处理超时日志
+            XxlJobHelper.log("<br>----------- xxl-job job execute timeout");
+            XxlJobHelper.log(e);
+						// 处理超时结果，这里就是添加一下超时间日志
+            XxlJobHelper.handleTimeout("job execute timeout ");
+          } finally {
+            // 还要中断掉线程
+            futureThread.interrupt();
+          }
+        } else {
+					// ExecutorTimeout <= 0 表示没有超时时间，所以当前线程一直执行就好
+          // 所以单个任务是会出现卡死线程的情况的
+          // 所以不带超时时间的执行配合等待的忙碌策略会出现卡得死死的情况·
+          handler.execute();
+        }
+
+        // valid execute handle data
+        if (XxlJobContext.getXxlJobContext().getHandleCode() <= 0) {
+          XxlJobHelper.handleFail("job handle result lost.");
+        } else {
+          String tempHandleMsg = XxlJobContext.getXxlJobContext().getHandleMsg();
+          tempHandleMsg = (tempHandleMsg!=null&&tempHandleMsg.length()>50000)
+            ?tempHandleMsg.substring(0, 50000).concat("...")
+            :tempHandleMsg;
+          XxlJobContext.getXxlJobContext().setHandleMsg(tempHandleMsg);
+        }
+        XxlJobHelper.log("<br>----------- xxl-job job execute end(finish) -----------<br>----------- Result: handleCode="
+                         + XxlJobContext.getXxlJobContext().getHandleCode()
+                         + ", handleMsg = "
+                         + XxlJobContext.getXxlJobContext().getHandleMsg()
+                        );
+
+      } else {
+        // 如果空转30次没有获取到任务，也就是 30 * 3s 没有获取到任务
+        // 就删除当前的线程
+        if (idleTimes > 30) {
+          if(triggerQueue.size() == 0) {	// avoid concurrent trigger causes jobId-lost
+            XxlJobExecutor.removeJobThread(jobId, "excutor idel times over limit.");
+          }
+        }
+      }
+    } catch (Throwable e) {
+     // 日志处理
+    } finally {
+      if(triggerParam != null) {
+        // 处理回调方法（异步执行的任务还是需要回调来通知调度中心的
+        if (!toStop) {
+          // commonm
+          TriggerCallbackThread.pushCallBack(new HandleCallbackParam(
+            triggerParam.getLogId(),
+            triggerParam.getLogDateTime(),
+            XxlJobContext.getXxlJobContext().getHandleCode(),
+            XxlJobContext.getXxlJobContext().getHandleMsg() )
+                                            );
+        } else {
+          // is killed
+          TriggerCallbackThread.pushCallBack(new HandleCallbackParam(
+            triggerParam.getLogId(),
+            triggerParam.getLogDateTime(),
+            XxlJobContext.HANDLE_CODE_FAIL,
+            stopReason + " [job running, killed]" )
+                                            );
+        }
+      }
+    }
+  }
+
+  // callback trigger request in queue
+  while(triggerQueue !=null && triggerQueue.size()>0){
+    TriggerParam triggerParam = triggerQueue.poll();
+    if (triggerParam!=null) {
+      // is killed
+      TriggerCallbackThread.pushCallBack(new HandleCallbackParam(
+        triggerParam.getLogId(),
+        triggerParam.getLogDateTime(),
+        XxlJobContext.HANDLE_CODE_FAIL,
+        stopReason + " [job not executed, in the job queue, killed.]")
+                                        );
+    }
+  }
+
+  // destroy
+  try {
+    handler.destroy();
+  } catch (Throwable e) {
+    logger.error(e.getMessage(), e);
+  }
+
+  logger.info(">>>>>>>>>>> xxl-job JobThread stoped, hashCode:{}", Thread.currentThread());
+}
+```
+
+
+
+在任务执行的时候，使用 FutureTask + new Thread 的形式完成超时时间的设定。
+
+使用 XxlJobContext 来传递执行的上下文，包括获取分片信息（分片号和总分片数。
+
+<br>
+
+#### 五、执行器的本地扫描
 
 在调度过程中，执行器需要根据调度参数获取 IJobHandler（XxlJobExecutor 中保存了本地的所有的 IJobHandler。
 
