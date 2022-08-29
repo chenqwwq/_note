@@ -4,13 +4,13 @@
 
 ## 概述
 
-XXL - JOB 属于分布式调度平台。
+XXL-JOB 属于分布式调度平台。
 
-分布式调度平台的作用就是方便管理多节点执行的任务，包括任务下发、执行状态监控以及执行日志的收集等等。
+分布式调度平台的作用就是方便管理多节点执行的任务，包括任务下发、执行状态监控以及执行日志的收集等功能。
 
 <br>
 
-整个系统可以分为两个部分，**Executor（执行器） 和 Scheduler（调度中心）。**
+XXL-JOB 整个系统可以分为两个部分，**Executor（执行器） 和 Scheduler（调度中心）。**
 
 Scheduler（调度中心）就是统一的定时器，调度程序不负责任何的任务逻辑，只负责发起任务执行请求。
 
@@ -34,22 +34,10 @@ Executor（执行器） 持有真实的业务逻辑，负责接收调度请求�
 
 ### XXL-Job 相关概念
 
-
-
-#### IJobHandler
-
-每个 IJobHandler 对应的一个需要处理的任务，不同类型的任务有不同的实现类。
-
-| 实现类名称       | 任务类型                                                     |
-| ---------------- | ------------------------------------------------------------ |
-| MethodJobHandler | 用于执行 Bean 类型的任务，包含对象（Object）和方法（Method） |
-| GlueJobHandler   | 用于执行任意脚本？                                           |
-
-
-
-#### JobThread 
-
-用于处理调度的定时任务，每个 JobThraed 会绑定一个 IJobHandler，是执行器里的线程模型。
+| 相关接口    | 对应作用                                                     |
+| ----------- | ------------------------------------------------------------ |
+| IJobHandler | 每个 IJobHandler 对应的一个需要处理的任务，不同类型的任务有不同的实现类，例如 MethodJobHandler |
+| JobThread   | 用于处理调度的定时任务，每个 JobThraed 会绑定一个 IJobHandler，是执行器里的线程模型。 |
 
 
 
@@ -57,11 +45,18 @@ Executor（执行器） 持有真实的业务逻辑，负责接收调度请求�
 
 ### Executor - 执行器 
 
-> 以 Spring 的客户端，MethodJobHandler 为例。
+执行器是在 XXL-JOB 中具体的执行某个定时任务的角色，所以它持有所需要的任务，接受调度器的调度请求，并执行对应任务。
+
+中间就会有几个问题：
+
+1. 执行期接受调度任务的方式
+2. 执行器注册的方式（如何想调度器注册自身
+3. 任务执行的各种场景，比如如何处理忙碌场景（调度来临时当前任务还在执行
+4. 执行器如何确定执行的任务，如何执行对应的方法
 
 <br>
 
-#### 启动本地服务
+#### 一、启动本地服务
 
 （本地服务的作用就是连接调度中心，并且接受调度中心的任务请求，因此也需要一个服务来接收调度中心的请求。
 
@@ -109,7 +104,7 @@ public void start(final String address, final int port, final String appname, fi
         // 绑定端口并且开启服务
         ChannelFuture future = bootstrap.bind(port).sync();
         // start registry
-        // 向调度中心注册自身
+        // 1. 向调度中心注册自身
         startRegistry(appname, address);
         // 启动
         // wait util stop
@@ -126,7 +121,7 @@ public void start(final String address, final int port, final String appname, fi
 
 启动过程中不仅开启了本地的 HTTP 服务而且还会向调度中心注册自身。
 
-另外就是对 HTTP 相关请求的处理，XXL-JOB 是在 EmbedHttpServerHandler 中响应 Scheduler 的任务调度的。
+另外就是对 HTTP 相关请求的处理，**XXL-JOB 是在 EmbedHttpServerHandler 中响应 Scheduler 的任务调度的**。
 
 > 额外说一句，Executor 似乎并不需要和很多个 Scheduler 连接，为什么采用 NIO 呢？
 >
@@ -134,9 +129,13 @@ public void start(final String address, final int port, final String appname, fi
 
 <br>
 
-#### 执行器注册
+**XXL-JOB 中执行器和调度器的通信方式是基于 Netty 实现的  HTTP 协议（长链接）。**
 
-在本地服务起来之后会向调度中心注册自身，是在上述的 Netty 服务启动之后开始的。
+<br>
+
+#### 二、执行器注册
+
+在本地服务起来之后会向调度中心注册自身，是在上述的 Netty 服务启动之后开始的（在上面代码块1中。
 
 ```java
 // EmbedSever#startRegistry
@@ -147,9 +146,9 @@ public void startRegistry(final String appname, final String address) {
 }
 ```
 
+<br>
 
-
-ExecutorRegistryThread 就是注册线程，单个线程专门用于向调度中心注册。
+**ExecutorRegistryThread** 就是注册线程，单个线程专门用于向调度中心注册。
 
 **注册线程的任务就是轮询向调度中心注册自身（充当 Client 侧的心跳包），并且在本地服务关闭后向调度中心移除自身。**
 
@@ -166,41 +165,32 @@ public void start(final String appname, final String address){
           RegistryParam registryParam = new RegistryParam(RegistryConfig.RegistType.EXECUTOR.name(), appname, address);
           // 获取所有的注册中心列表，遍历注册
           for (AdminBiz adminBiz: XxlJobExecutor.getAdminBizList()) {
-            try {
               ReturnT<String> registryResult = adminBiz.registry(registryParam);
               // 有一个注册成功就算成功（注册可能是入库的过程，所以单点注册成功就好
               if (registryResult!=null && ReturnT.SUCCESS_CODE == registryResult.getCode()) {
                 registryResult = ReturnT.SUCCESS;
                 break;
               }
-            } catch (Exception e) {}
           }
-        } catch (Exception e) {}
-
-        try {
+       // ... catch
           if (!toStop) {
             // 停顿心跳间隔
             TimeUnit.SECONDS.sleep(RegistryConfig.BEAT_TIMEOUT);
           }
-        } catch (InterruptedException e) {}
-      }
-
+        }
+      // 在 toStop 被修改之后退出循环并且取消注册s
+      // ... catch
       // registry remove
-      try {
         // 向注册中心取消注册
         RegistryParam registryParam = new RegistryParam(RegistryConfig.RegistType.EXECUTOR.name(), appname, address);
         for (AdminBiz adminBiz: XxlJobExecutor.getAdminBizList()) {
-          try {
-            ReturnT<String> registryResult = adminBiz.registryRemove(registryParam);
-            if (registryResult!=null && ReturnT.SUCCESS_CODE == registryResult.getCode()) {
-              registryResult = ReturnT.SUCCESS;
-              break;
-            }
-          } catch (Exception e) {}
-
+          ReturnT<String> registryResult = adminBiz.registryRemove(registryParam);
+          if (registryResult!=null && ReturnT.SUCCESS_CODE == registryResult.getCode()) {
+            registryResult = ReturnT.SUCCESS;
+            break;
+          }
+          // ... catch
         }
-      } catch (Exception e) {  }
-      }
     }
   });
   registryThread.setDaemon(true);
@@ -209,19 +199,25 @@ public void start(final String appname, final String address){
 }
 ```
 
+<br>
 
+开启本地的 HTTP 服务是异步完成的，此时的注册以及心跳也是异步的，并且由单个线程负责。
 
-开启本地的 HTTP 服务是异步完成的，之后的注册心跳也是异步的。
-
-（XXL-JOB 的源码最明显的特点就是各类线程定义，会有很明确的定义，每个线程会有不同的分工。
-
-此处就直接忽略了 RPC 的封装逻辑了。
+此处就直接忽略了 RPC 的封装逻辑了（其实也是通过 HTTP 请求删除的注册信息。
 
 <br>
 
-#### 本地任务响应
+对于向调度器注册自身（执行器）的动作，XXL-JOB 开启了一个单独的线程专门负责（这也是我觉得 XXL-JOB 实现中最明显的特点的，分线程完成单独任务。
 
- 本地服务启动完成之后就是就会等待调度中心的执行请求的。
+另外执行器像调度器注册的时候只传递了**本地应用名称和地址。**
+
+<br>
+
+<br>
+
+#### 三、本地任务响应
+
+在向调度器注册完成之后就是就会等待调度中心的调度请求，调度请求由上文说的本地 HTTP 服务接受并处理。
 
 EmbedHttpServerHandler#channelRead0 包含了所有的执行请求处理逻辑：
 
@@ -253,9 +249,9 @@ protected void channelRead0(final ChannelHandlerContext ctx, FullHttpRequest msg
 }
 ```
 
-通过 bizThreadPool 线程池异步的添加调度任务，接口性能拉满。
+调度器和执行器之间使用请求头中携带的 ACCESS_TOKEN 来完成鉴权（通过下文可知就是直接对比。
 
-
+并且通过 bizThreadPool 线程池添加调度任务异步执行（任务是否执行成功就得提供后续的查询或者上报了。
 
 ```java
 // EmbedServer$EmbedHttpServerHandler#process
@@ -411,7 +407,7 @@ public ReturnT<String> run(TriggerParam triggerParam) {
 
 整个任务的触发流程可以分为以下内容：
 
-1. 根据 JobId 获取当前正在执行的任务线程 JobThread
+1. 根据 JobId 获取当前正在执行的任务线程 JobThread（JobId 和 JobThread 是 1:1 的关系
 2. 根据 glueType（任务类型）以及执行器名称（ executorHandler）获取需要执行的任务 IJobHandler
 3. 如果当前正在处理任务则需要处理阻塞逻辑
    - 丢弃最晚的任务 - 直接返回执行失败，当前正在调度就是最晚的任务
@@ -433,6 +429,14 @@ JobThread 则是具体的任务执行线程，也是使用 XxlJobExecutor 保存
 <br>
 
 并且 JobThread 中保存有任务队列，在阻塞的时候也可以排队执行（任务处理的形式就需要由 JobThread 中的执行逻辑和阻塞队列来决定了。
+
+<br>
+
+<br>
+
+##### 响应逻辑中需要关注的点
+
+> 在忙碌状态下，任务如果是覆盖之前的策略会直接中断当前的任务，所以对于实现的任务逻辑需要考虑中断状态的处理。
 
 <br>
 
@@ -469,7 +473,7 @@ public static JobThread registJobThread(int jobId, IJobHandler handler, String r
 
 <br>
 
-#### 执行器的本地扫描
+#### 四、执行器的本地扫描
 
 在调度过程中，执行器需要根据调度参数获取 IJobHandler（XxlJobExecutor 中保存了本地的所有的 IJobHandler。
 
@@ -912,6 +916,16 @@ public enum MisfireStrategyEnum {
 ```
 
 
+
+
+
+### 相关线程角色
+
+| 线程名称               | 作用                                                         |
+| ---------------------- | ------------------------------------------------------------ |
+| ExecutorRegistryThread | 在执行器端，用于在本地服务启动后向调度器端注册自身，并维持心跳 |
+|                        |                                                              |
+|                        |                                                              |
 
 
 

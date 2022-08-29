@@ -1,16 +1,3 @@
----
-title: MySQL 复习总结（残酷学习版
-index_img: https://chenqwwq.oss-cn-hangzhou.aliyuncs.com/note/assets/image-20220322%E4%B8%8B%E5%8D%8844525458.png
-banner_img: https://chenqwwq.oss-cn-hangzhou.aliyuncs.com/note/assets/image-20220322%E4%B8%8B%E5%8D%8844525458.png
-excerpt: MySQL 重要知识点整理，包含事务，索引，锁，日志，主从等
-date: 2022-03-18 11:24:35
-categories:
-- 复习总结
-- 数据库
-tags:
-- MySQL
----
-
 # MySQL（残酷学习版
 
 [TOC]
