@@ -461,6 +461,7 @@ public static JobThread registJobThread(int jobId, IJobHandler handler, String r
 @Override
 public void run() {
   // 先有的一个初始化逻辑，每个 IJobHandler 都可以指定初始化和销毁的方法
+  // 省略了 try-catch 的逻辑
   handler.init();
 
   // execute
@@ -486,16 +487,15 @@ public void run() {
           triggerParam.getJobId(),
           triggerParam.getExecutorParams(),
           logFileName,
-          triggerParam.getBroadcastIndex(),
+          triggerParam.getBroadcastIndex(),	// XxlJobContext 携带了分片信息
           triggerParam.getBroadcastTotal());
 
         // 通过一个 InheritableThreadLocal 来保存上下文
         XxlJobContext.setXxlJobContext(xxlJobContext);
 				// 添加日志
-        XxlJobHelper.log("<br>----------- xxl-job job execute start -----------<br>----------- Param:" + xxlJobContext.getJobParam());
+        XxlJobHelper.log("...");
 				// 有执行时间要求的，使用 FutureTask 完成带超时时间的执行
         if (triggerParam.getExecutorTimeout() > 0) {
-          // limit timeout
           Thread futureThread = null;
           try {
             // 使用 FutureTask
@@ -533,7 +533,7 @@ public void run() {
           handler.execute();
         }
 
-        // valid execute handle data
+				// 验证处理结果,handleCode 表示最后的执行结果 默认200表示执行成功
         if (XxlJobContext.getXxlJobContext().getHandleCode() <= 0) {
           XxlJobHelper.handleFail("job handle result lost.");
         } else {
@@ -543,12 +543,7 @@ public void run() {
             :tempHandleMsg;
           XxlJobContext.getXxlJobContext().setHandleMsg(tempHandleMsg);
         }
-        XxlJobHelper.log("<br>----------- xxl-job job execute end(finish) -----------<br>----------- Result: handleCode="
-                         + XxlJobContext.getXxlJobContext().getHandleCode()
-                         + ", handleMsg = "
-                         + XxlJobContext.getXxlJobContext().getHandleMsg()
-                        );
-
+        XxlJobHelper.log("...");
       } else {
         // 如果空转30次没有获取到任务，也就是 30 * 3s 没有获取到任务
         // 就删除当前的线程
@@ -564,21 +559,18 @@ public void run() {
       if(triggerParam != null) {
         // 处理回调方法（异步执行的任务还是需要回调来通知调度中心的
         if (!toStop) {
-          // commonm
           TriggerCallbackThread.pushCallBack(new HandleCallbackParam(
             triggerParam.getLogId(),
             triggerParam.getLogDateTime(),
             XxlJobContext.getXxlJobContext().getHandleCode(),
-            XxlJobContext.getXxlJobContext().getHandleMsg() )
-                                            );
+            XxlJobContext.getXxlJobContext().getHandleMsg()));
         } else {
           // is killed
           TriggerCallbackThread.pushCallBack(new HandleCallbackParam(
             triggerParam.getLogId(),
             triggerParam.getLogDateTime(),
             XxlJobContext.HANDLE_CODE_FAIL,
-            stopReason + " [job running, killed]" )
-                                            );
+            stopReason + " [job running, killed]" ));
         }
       }
     }
@@ -598,22 +590,24 @@ public void run() {
     }
   }
 
-  // destroy
+  // 所有任务执行完毕之后执行销毁方法
   try {
     handler.destroy();
   } catch (Throwable e) {
     logger.error(e.getMessage(), e);
   }
-
-  logger.info(">>>>>>>>>>> xxl-job JobThread stoped, hashCode:{}", Thread.currentThread());
 }
 ```
 
 
 
-在任务执行的时候，使用 FutureTask + new Thread 的形式完成超时时间的设定。
+实际的任务执行会绑定单个工作线程，线程中包含对应的任务队列，并且在启动后轮询并执行其中任务。
 
-使用 XxlJobContext 来传递执行的上下文，包括获取分片信息（分片号和总分片数。
+因为任务还带有超时时间，**在任务执行时，XXL-JOB 使用 FutureTask + new Thread 的形式完成超时时间的设定。**
+
+使用 XxlJobContext 来传递执行的上下文，包括获取分片信息（分片号和总分片数，和调度参数。
+
+在完成任务之后会进行回调，因为任务是异步执行的。
 
 <br>
 
@@ -750,6 +744,22 @@ public void execute() throws Exception {
 
 
 
+### 执行器部分
+
+XXL-JOB 的实现中最大的特点就是各类异步化操作，并且使用特定的线程去进行对应的操作。
+
+执行器中使用 HTTP 接收调度请求，完成简单的认证之后根据 JobId 定位当前任务线程，进一步判断是否有正在执行的任务（细点说是 JobThread#running 状态 ），然后根据当前的忙碌策略决定后续逻辑：
+
+- 抛弃最晚的任务 - 此时最晚的任务就是正在调度的任务，所以判断正在执行的情况下就直接退出了
+- 覆盖之前的任务 - 对当前 JobThread 进行中断，然后会添加新的线程（因为当前线程会被中断，所以任务中也需要注意中断状态的处理
+- 等待执行 - 直接添加到 JobThread 的任务队列中
+
+JonThread 中使用循环轮询任务队列，取出任务并执行，任务如果带有超时属性则会使用 FutureTask 来实现，另外的调度的相关参数都会使用 XxlJobContext（继承自  InherentThreadLocal）保存。
+
+
+
+// TODO 目前没有完整看日志处理的部分，两边的交互都是 HTTP，调度中心如何从执行器拉取日志的呢。
+
 
 
 ### Scheduler - 调度器
@@ -763,9 +773,9 @@ public void execute() throws Exception {
 在 XXL-Job 的实现中，调度器中线程的作用区分的更加清楚一点，包括如下几种：
 
 1. 调度线程（Schedule Thread） -   负责发起调度执行请求
-2. 定时线程（Ring Thread） -  
+2. 定时线程（Ring Thread） -  负责轮询定时任务
 
-
+<br>
 
 #### scheduleThread - 调度线程
 
@@ -773,16 +783,8 @@ public void execute() throws Exception {
 scheduleThread = new Thread(new Runnable() {
   @Override
   public void run() {
-    // 停顿五秒
-    try {
-      TimeUnit.MILLISECONDS.sleep(5000 - System.currentTimeMillis()%1000 );
-    } catch (InterruptedException e) {
-      if (!scheduleThreadToStop) {
-        logger.error(e.getMessage(), e);
-      }
-    }
-    logger.info(">>>>>>>>> init xxl-job admin scheduler success.");
-
+    // 间隔5s执行一次（并且首次就会停顿
+    TimeUnit.MILLISECONDS.sleep(5000 - System.currentTimeMillis()%1000 );
     // pre-read count: treadpool-size * trigger-qps (each trigger cost 50ms, qps = 1000/50 = 20)
     // 每次读去的数量
     int preReadCount = (XxlJobAdminConfig.getAdminConfig().getTriggerPoolFastMax() + XxlJobAdminConfig.getAdminConfig().getTriggerPoolSlowMax()) * 20;
@@ -794,11 +796,14 @@ scheduleThread = new Thread(new Runnable() {
       PreparedStatement preparedStatement = null;
       boolean preReadSuc = true;
       try {
+        // 获取数据库连接
         conn = XxlJobAdminConfig.getAdminConfig().getDataSource().getConnection();
         connAutoCommit = conn.getAutoCommit();
         conn.setAutoCommit(false);
         // for update 作为分布式锁
+        // lock_name （可以属于唯一键约束，单次任务上锁
         preparedStatement = conn.prepareStatement(  "select * from xxl_job_lock where lock_name = 'schedule_lock' for update" );
+        // 获取锁资源
         preparedStatement.execute();
         // tx start
         // 1、pre read
@@ -809,18 +814,18 @@ scheduleThread = new Thread(new Runnable() {
           // 2、push time-ring
           for (XxlJobInfo jobInfo: scheduleList) {
             // time-ring jump
-            // 已经过期，并且过期时间大于5s
+            // 当前时间已经大于执行时间五分钟
             if (nowTime > jobInfo.getTriggerNextTime() + PRE_READ_MS) {
               // 2.1、trigger-expire > 5s：pass && make next-trigger-time
-              logger.warn(">>>>>>>>>>> xxl-job, schedule misfire, jobId = " + jobInfo.getId());
               // 1、misfire match
               // 获取在错过调度之后的处理策略
+              // 目前支持的两种策略是什么都不做和直接执行一次
               MisfireStrategyEnum misfireStrategyEnum = MisfireStrategyEnum.match(jobInfo.getMisfireStrategy(), MisfireStrategyEnum.DO_NOTHING);
               // 立马执行一次任务调度
               if (MisfireStrategyEnum.FIRE_ONCE_NOW == misfireStrategyEnum) {
-                // FIRE_ONCE_NOW 》 trigger
+                // FIRE_ONCE_NOW > trigger
+                // 触法任务执行，此时带着 JobId 的
                 JobTriggerPoolHelper.trigger(jobInfo.getId(), TriggerTypeEnum.MISFIRE, -1, null, null, null);
-                logger.debug(">>>>>>>>>>> xxl-job, schedule push trigger : jobId = " + jobInfo.getId() );
               }
               // 2、fresh next
               // 刷新下次的调度时间
@@ -831,7 +836,6 @@ scheduleThread = new Thread(new Runnable() {
               // 直接调度一次
               // 1、trigger
               JobTriggerPoolHelper.trigger(jobInfo.getId(), TriggerTypeEnum.CRON, -1, null, null, null);
-              logger.debug(">>>>>>>>>>> xxl-job, schedule push trigger : jobId = " + jobInfo.getId() );
               // 2、fresh next
               // 更新下一次调度时间
               refreshNextValidTime(jobInfo, new Date());
@@ -858,8 +862,7 @@ scheduleThread = new Thread(new Runnable() {
           }
           // 3、update trigger info
           // 更新调度任务 ->   ??? 为什么不批量更新呢
-          for (XxlJobInfo jobInfo: scheduleList) {
-            XxlJobAdminConfig.getAdminConfig().getXxlJobInfoDao().scheduleUpdate(jobInfo);
+          for (XxlJobInfo jobInfo: scheduleList) {XxlJobAdminConfig.getAdminConfig().getXxlJobInfoDao().scheduleUpdate(jobInfo);
           }
         } else {
           preReadSuc = false;
@@ -887,18 +890,20 @@ scheduleThread = new Thread(new Runnable() {
     });
 ```
 
-**scheduleThread 的主要作用是将数据库中的任务读取出来并添加到 ringThread 中。**
+**scheduleThread 的主要作用是将数据库中的任务读取出来并添加到 ringData 中。**
 
-线程每秒执行一次调度任务，调度流程如下：
+线程每5秒执行一次调度任务，调度流程如下：
 
-1. 获取数据库中当前时间 +5s 之前的所有任务，并且遍历调度
-2. 如果任务过期，并且超过5s，根据过期的策略执行后续流程，调度完成后修改下次执行时间
+1. 获取数据库中当前时间 +5s 之内的所有任务，并且遍历调度
+2. 如果任务过期，并且超过5s，根据过期策略执行后续流程，调度完成后修改下次执行时间
    - DO_NOTHING - 直接跳过此次调度
    - FIRE_ONCE_NOW - 立马触发一次任务
-3. 如果任务过期时间在5s之内，直接调度一次，并修改下次时间，下次时间仍然在本次调度范围，直接添加到 ringThread
+3. 如果任务过期时间在5s之内，直接调度一次，并修改下次时间，下次时间仍然在本次调度范围，直接添加到 ringData
 4. 任务没有过期，直接添加到 ringThread
 
-#### 添加到 ringData
+
+
+##### 添加到 ringData
 
 XXL-Job 的调度模块非常简单，并不是和 Netty 的时间轮一样使用的环形数组之类的，而是直接用 Map 保存，**Key 就是执行的时间在当前分钟内的秒**。
 
@@ -906,12 +911,16 @@ XXL-Job 的调度模块非常简单，并不是和 Netty 的时间轮一样使�
 
 <br>
 
-```
-// 计算任务执行时间
+```java
+// XXL-Job 的时间轮实现
+// 使用的 ConcurrentHashMap，在 scheduleThread 和 ringThread 之间保证线程安全
+private volatile static Map<Integer, List<Integer>> ringData = new ConcurrentHashMap<>();
+
+// 计算任务执行时间，获取秒数并对60取余
 int ringSecond = (int) ((jobInfo.getTriggerNextTime() / 1000) % 60);
 
 // 添加到时间轮，ringSecond 就是上述公式计算出来的值
-// 方啊只是简单的添加到 Map。
+// 方法只是简单的添加到 Map。
 private void pushTimeRing(int ringSecond, int jobId) {
     // push async ring
     List<Integer> ringItemData = ringData.get(ringSecond);
@@ -923,6 +932,10 @@ private void pushTimeRing(int ringSecond, int jobId) {
 }
 ```
 
+
+
+
+
 #### ringThread - 时间轮处理流程
 
 ```java
@@ -931,13 +944,8 @@ ringThread = new Thread(new Runnable() {
   @Override
   public void run() {
     while (!ringThreadToStop) {
-      // align second
       // 1s 钟执行一次
-      try {
-        TimeUnit.MILLISECONDS.sleep(1000 - System.currentTimeMillis() % 1000);
-      } catch (InterruptedException e) {
-        // IGNORE EXCEPTION
-      }
+      TimeUnit.MILLISECONDS.sleep(1000 - System.currentTimeMillis() % 1000);
       try {
         // second data
         List<Integer> ringItemData = new ArrayList<>();
@@ -951,38 +959,49 @@ ringThread = new Thread(new Runnable() {
             ringItemData.addAll(tmpData);
           }
         }
-
-        // ring trigger
-        logger.debug(">>>>>>>>>>> xxl-job, time-ring beat : " + nowSecond + " = " + Arrays.asList(ringItemData));
         // 遍历触发
         if (ringItemData.size() > 0) {
-          // do trigger
           for (int jobId : ringItemData) {
+            // 触法任务
             JobTriggerPoolHelper.trigger(jobId, TriggerTypeEnum.CRON, -1, null, null, null);
           }
           // clear
           ringItemData.clear();
         }
-      } catch (Exception e) {
-        	// IGNORE EXCEPTION
-      }
     }
-    logger.info(">>>>>>>>>>> xxl-job, JobScheduleHelper#ringThread stop");
   }
 });
 ```
 
-时间轮的处理就是获取当前秒数的任务并且调度。
+ringThread 负责调度到期的任务，从 ringData 中读取调度的任务使用调度线程池异步调度任务。
 
-> XXL 的时间轮实现非常简单。
->
-> 整个 Map 保存的时间范围是1min，但是时间轮自己的调度线程（ScheduleThread）只会将5s内的任务添加到 Map。
+ringThread 的轮询机制有点粗暴，但是对于调度时间不是很精细的任务来说，完全可以接受，整体实现如下：
+
+> 整个 ConcurrntHashMap 保存的时间范围是1min 也就是 60s，但是时间轮相关的调度线程（ScheduleThread）只会将5s内的任务添加到 Map。
 >
 > 因此 ringThread 只需要每秒中轮询当前秒数的任务并且调度。
 
-#### 时间轮任务触发流程
 
 
+#### TriggerPool - 调度线程池
+
+在上文中 ringThrea 通过 `JobTriggerPoolHelper.trigger` 直接出发的任务，该方法实际实现如下：
+
+```java
+// jobId - 任务的 Id
+// triggerType - 触法类型（到期触发，手动触发，重拾触发，父子任务触发，通过 API 触发，以及过期触法
+// failRetryCount - 重试次数
+// executorShardingParam - 分片参数
+// executorParam - 执行参数
+// addressList - 需要调度的地址
+public static void trigger(int jobId, TriggerTypeEnum triggerType, int failRetryCount, String executorShardingParam, 
+                           String executorParam, String addressList) {
+  helper.addTrigger(jobId, triggerType, failRetryCount, executorShardingParam, executorParam, addressList);
+}
+
+```
+
+以一个静态方法包装对变量的调用，这操作好像也挺骚（有带来什么优化吗，以下就是实际的调度流程：
 
 ```java
 // JobTriggerPoolHelper#addTrigger 方法源码：
@@ -1006,17 +1025,14 @@ public void addTrigger(final int jobId,
   triggerPool_.execute(new Runnable() {
     @Override
     public void run() {
-
       long start = System.currentTimeMillis();
-
       try {
         // do trigger
-        // 真实调度
+        // 真实调度，最下层还是封装的HTTP请求
         XxlJobTrigger.trigger(jobId, triggerType, failRetryCount, executorShardingParam, executorParam, addressList);
       } catch (Exception e) {
         logger.error(e.getMessage(), e);
       } finally {
-
         // check timeout-count-map
         // 是否调度超时
         long minTim_now = System.currentTimeMillis()/60000;
@@ -1024,16 +1040,15 @@ public void addTrigger(final int jobId,
           minTim = minTim_now;
           jobTimeoutCountMap.clear();
         }
-
         // incr timeout-count-map
         long cost = System.currentTimeMillis()-start;
         if (cost > 500) {       // ob-timeout threshold 500ms
+          // 使用一个 Map 等级超时次数
           AtomicInteger timeoutCount = jobTimeoutCountMap.putIfAbsent(jobId, new AtomicInteger(1));
           if (timeoutCount != null) {
             timeoutCount.incrementAndGet();
           }
         }
-
       }
     }
   });
@@ -1041,7 +1056,51 @@ public void addTrigger(final int jobId,
 
 ```
 
-XXl-Job 中使用两个线程池来实现任务的触发，fastTriggerPool 和 slowTriggerPool，默认使用 fastTriggerPool 触发，但如果存在过多的超时（超过10次），则使用 slowTriggerPool 进行触发。
+使用了两个线程池来保证任务的触发 **fastTriggerPool** 和 **slowTriggerPool**，规则是：
+
+- 默认使用 fastTriggerPool 调度，但如果存在过多的超时（超过10次），则使用 slowTriggerPool 进行调度。
+
+这样分配的目的应该是防止部分响应慢的任务（因为执行器比较慢）拖慢了整体的掉絮效率，这个设计感觉蛮好的（考虑的真细啊。
+
+（接下来就是实际上的任务执行请求的发送。
+
+请求的发送过程并没有什么好解析的，异步的 HTTP 请求流程，但是 XXL-Job 在请求前会进行请求的路由，选择部分执行器来执行任务。
+
+所有的路由方法保存在在 ExecutorRouteStrategyEnum 中，有如下的几种方式：
+
+| 路由类型                     | 路由执行类                  | 路由作用                                                     |
+| ---------------------------- | --------------------------- | ------------------------------------------------------------ |
+| jobconf_route_first          | ExecutorRouteFirst          | 当前第一个注册的执行器执行任务。                             |
+| jobconf_route_last           | ExecutorRouteLast           | 当前最后一个注册的执行器执行任务。                           |
+| jobconf_route_round          | ExecutorRouteRound          | 轮询选择每一个执行器执行任务（但并不是很严谨的轮询，保证尽量均匀 |
+| jobconf_route_random         | ExecutorRouteRandom         | 随机选择一个执行器执行任务                                   |
+| jobconf_route_consistenthash | ExecutorRouteConsistentHash | 一致性 Hash 的实现方式                                       |
+| jobconf_route_lfu            | ExecutorRouteLFU            | LFU 的形式每次选择调用频率最小的执行器                       |
+| jobconf_route_lru            | ExecutorRouteLRU            | LRU 的形式每次选择                                           |
+| jobconf_route_failover       | ExecutorRouteFailover       |                                                              |
+| jobconf_route_busyover       | ExecutorRouteBusyover       |                                                              |
+
+
+
+```java
+public enum ExecutorRouteStrategyEnum {
+		// 首
+    FIRST(I18nUtil.getString("jobconf_route_first"), new ExecutorRouteFirst()),
+    LAST(I18nUtil.getString("jobconf_route_last"), new ExecutorRouteLast()),
+    ROUND(I18nUtil.getString("jobconf_route_round"), new ExecutorRouteRound()),
+    RANDOM(I18nUtil.getString("jobconf_route_random"), new ExecutorRouteRandom()),
+    CONSISTENT_HASH(I18nUtil.getString("jobconf_route_consistenthash"), new ExecutorRouteConsistentHash()),
+    LEAST_FREQUENTLY_USED(I18nUtil.getString("jobconf_route_lfu"), new ExecutorRouteLFU()),
+    LEAST_RECENTLY_USED(I18nUtil.getString("jobconf_route_lru"), new ExecutorRouteLRU()),
+    FAILOVER(I18nUtil.getString("jobconf_route_failover"), new ExecutorRouteFailover()),
+    BUSYOVER(I18nUtil.getString("jobconf_route_busyover"), new ExecutorRouteBusyover()),
+    SHARDING_BROADCAST(I18nUtil.getString("jobconf_route_shard"), null);
+
+```
+
+
+
+
 
 #### MisfireStrategy - 错误调度之后的任务处理
 
@@ -1063,29 +1122,46 @@ public enum MisfireStrategyEnum {
 
 
 
+## 总结
+
+
+
+### 分布式策略
+
+XXL-Job 的任务状态全部保存在数据库中，任务的执行也会使用相关表进行上锁，所以调度中心是可以集群部署的。
+
+（调度中心的集群不会分配任务调度，**调度的会是同一批任务**，但是可以互为备份在出现单点故障的情况下补充作为调度器。
+
+其中集群的分布式锁使用的是 SQL 中的 `for update` 语句
+
+```mysql
+select * from xxl_job_lock where lock_name = 'schedule_lock' for update
+```
+
+使用 MySQL 的分布式锁的好处就是不需要考虑上锁时间，如果出现宕机的情况，事务会随着 TCP 连接的断开而回滚，锁也会释放。
+
+
+
 ### 相关线程角色
 
 | 线程名称               | 作用                                                         |
 | ---------------------- | ------------------------------------------------------------ |
 | ExecutorRegistryThread | 在执行器端，用于在本地服务启动后向调度器端注册自身，并维持心跳 |
-|                        |                                                              |
-|                        |                                                              |
+| JobThread              | 具体任务的执行线程，根据 JobId 绑定                          |
+| ScheduleThread         | 负责从数据库获取获取任务，并将任务添加到时间轮中（应该可以称之为时间轮吧 |
+| RingThread             | 负责调度已经到期的任务                                       |
+| fastTriggerPool        | 默认的调度线程池                                             |
+| slowTriggerPool        | 在任务超时次数超过阈值之后选择该线程池                       |
 
 
 
-## 整理
-
-
-
-
-
-> XXL-Job 执行器的超时控制
+### XXL-Job 执行器的超时控制
 
 将任务包装为 FutureTask，并且带超时时间的获取。
 
 
 
-> XXL-Job 忙碌策略：
+### XXL-Job 忙碌策略：
 
 XXL-Job 的忙碌策略包含以下三种：
 
@@ -1095,9 +1171,9 @@ XXL-Job 的忙碌策略包含以下三种：
 
 
 
-> XXL-Job 的时间轮实现
+### XXL-Job 的时间轮实现
 
-XXL-Job 中定义的时间轮采用的 Map 实现，Key 表示需要执行的时间而 Value 表示需要执行的任务。
+XXL-Job 中定义的时间轮采用的 Map 实现，Key 表示需要执行的时间（秒）而 Value 表示需要执行的任务。
 
 额外定义了调度（scheduleThread）和触发（ringThread）两个线程。
 
@@ -1107,5 +1183,14 @@ ringThread 每秒执行一次，根据当前秒数获取任务并调度。
 
 <br>
 
-其中 Map 可以使用 数组重新实现。
+（其中 Map 可以使用 数组重新实现，反正是固定的60个
 
+
+
+
+
+## TODO
+
+1. 对于日志的处理（收集，上传
+2. 对于管理后台的实现（基本的CRUD之外
+3. 对于除了方法之外的任务类型的实现
