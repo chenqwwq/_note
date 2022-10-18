@@ -871,12 +871,11 @@ explain 的 Extra 字段中可能出现 filesort 标记，表示出现额外排�
 
 全链接查询最后的数据集只会保存驱动和被驱动表都匹配的数据。
 
-例如 select * from a,b where a.id = b.id。
+例如 `SELECT * FROM a,b WHERE a.id = b.id`，此时 a 和 b 的 id 在对方表中无匹配项的就不会被返回。
 
-此时 a 和 b 的 id 在对方表中无匹配项的就不会被返回。
+2. 左连接查询
 
-1. 左连接查询
-2. 右连接查询
+3. 右连接查询
 
 
 
@@ -890,17 +889,58 @@ explain 的 Extra 字段中可能出现 filesort 标记，表示出现额外排�
 
 
 
-### Index Nested-Loop Join
+### Simple  Nested-Loop Join（NLP，简单嵌套-循环
 
-TODO
+简单嵌套查询使用的是最简单的循环逻辑，会对驱动表进行遍历，复和条件的行则进一步在被驱动表匹配。
 
-### Simple  Nested-Loop Join
+比如对 t1，t2，t3 进行关联查询，使用伪代码表示逻辑如下：
 
-TODO
+```shell
+for each row in t1 matching range {	// n 行记录
+  for each row in t2 matching reference key {  // m 行记录
+    for each row in t3 {  // k 行记录
+      if row satisfies join conditions, send to client
+    }
+  }
+}
+```
 
-### Block Nested-Loop Join
+因为是最简单的嵌套递归，所以内层表会遍历很多遍，如上逻辑总共需要 n * m * k 次查询，具体查询逻辑如下：
 
-TODO
+![Index Nested-Loop Join 算法的执行流程](assets/d83ad1cbd6118603be795b26d38f8df6.jpg)
+
+此时驱动表先扫描出符合条件的行记录，然后使用联表字段走索引树查询被驱动表项，合并成为结果集。
+
+整个查询流程如下：
+
+1. 对 t1 进行查询，得到所有符合条件的行记录
+2. 对于每一条行记录通过联表字段进一步查询 t2
+
+此时 t1，t2 的 WHERE 包括联表字段都可以走索引完成，存储引擎会根据 where 之后的记录数做依据，选择行数较少的表作为驱动表。
+
+### Block Nested-Loop Join（块式嵌套-循环
+
+![Block Nested-Loop Join 算法的执行流程](assets/15ae4f17c46bf71e8349a8f2ef70d573.jpg)
+
+此时的查询流程会先把 t1 的数据查询并保存到 join_buffer，然后使用 t2 每一行匹配 join_buffer 中的数据。
+
+
+
+![Block Nested-Loop Join -- 两段](assets/695adf810fcdb07e393467bcfd2f6ac4.jpg)
+
+
+
+[Nested-Loop Join Algorithms（官方文档](https://dev.mysql.com/doc/refman/5.7/en/nested-loop-joins.html#nested-loop-join-algorithm)
+
+### 特殊语法
+
+#### straight_join
+
+可以强行指定联表操作的驱动和被驱动表。
+
+例如，`select * from t1 straight_join t2 on (t1.a=t2.a);`。
+
+在这个语句里，t1 是驱动表，t2是被驱动表。
 
 
 
@@ -919,6 +959,21 @@ TODO
 TODO
 
 
+
+
+
+## 回表问题
+
+Innodb 所有的次级索引树节点中保存的都是当前行记录的主键 Id，因此如果 SELECT 的语句中包含其他字段的时候就需要进行回表。
+
+回表的目的是查询需要的其他字段，或返回，或进一步判断。
+
+值得注意的是，MySQL 中回表是单条执行的，如果你通过次级索引树查询到100个主键，会分别查询 100 次来获取数据，因此回表也是非常影响性能的因素之一。
+
+避免回表的几个方法：
+
+1. 使用索引覆盖原则，使用复合索引的时候 Innodb 可以进一步使用索引中的字段值进行判断或者返回，可以避免回表
+2. 使用父子查询避免（待确认。
 
 
 
@@ -1078,6 +1133,28 @@ key_len 肯定是越小越好，类型上 int 的匹配优于字符串匹配。
 |                       |                                                              |                                        |
 
 [MySQL - explain output format](https://dev.mysql.com/doc/refman/5.6/en/explain-output.html)
+
+
+
+## 特殊语法
+
+### insert ... on duplicate key update 
+
+栗子如下：
+
+```mysql
+INSERT INTO t_test (id,name,age) VALUES(1,"chen",18) ON DUPLICATE KEY UPDATE name = CONCAT(name,now());
+```
+
+在出现主键冲突或者唯一性冲突的时候会取消 INSERT 转而 UPDATE 当前行记录。
+
+（该语句为 MYSQL 独有，可能 MariaDB 也支持，但不是标准 SQL 语法。
+
+该语句的上锁逻辑是先共享锁（确定是否存在唯一性冲突）后再是独占锁（更新），因此两条语句并发更新同一条行记录可能会出现死锁。
+
+使用的时候应该避免相关插入字段中存在多个唯一索引字段。
+
+[insert-on-duplicate(MySQL 8.0)]( https://dev.mysql.com/doc/refman/8.0/en/insert-on-duplicate.html)
 
 
 

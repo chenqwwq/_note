@@ -6,33 +6,89 @@
 
 ---
 
+## Example
+
+```java
+/**
+     * 定义的事件类型
+     */
+static class DateEvent {
+  private Date value;
+
+  public void setValue(Date value) {
+    this.value = value;
+  }
+
+  public static EventFactory<DateEvent> factory() {
+    return DateEvent::new;
+  }
+
+  @Override
+  public String toString() {
+    return "DateEvent{" +
+      "value=" + value +
+      '}';
+  }
+}
+
+/**
+     * 事件处理器
+     */
+static class LongEventHandler implements EventHandler<DateEvent> {
+
+  @Override
+  public void onEvent(DateEvent event, long sequence, boolean endOfBatch) throws Exception {
+    System.out.println("Event:" + event + ",sequence:" + sequence + ",endOfBatch:" + endOfBatch);
+  }
+
+}
+
+public static void main(String[] args) throws InterruptedException {
+  Disruptor<DateEvent> disruptor = new Disruptor<>(DateEvent.factory(), 4, DaemonThreadFactory.INSTANCE);
+  disruptor.handleEventsWith(new LongEventHandler());
+  // 需要开启整个队列
+  disruptor.start();
+  for(int i= 0;i < 100;i++){
+    TimeUnit.SECONDS.sleep(3);
+    //	创建 Event 的时候也可以获取到 sequence
+    disruptor.publishEvent((event, sequence) -> event.setValue(new Date()));
+  }
+}
+```
+
+
+
 ## Introduction
 
-Disruptor 类似于一套本地的 MQ（Message Queue，消息队列），也是一种生产者/消费者模型，包含了 Producer，Consumer 以及中间的队列（不单单是一个事件队列。
+以下是 Disruptor 官网的介绍图，其中包含了所有的相关对象和概念：
 
-Disruptor 支持单生产者和多生产者两种模式，默认支持多消费者，并且消费者之间不共享消费进度（每个事件会被分发给所有的消费者。
+![models](assets/models.png)
 
-Disruptor 使用 RingBuffer 作为事件队列，RingBuffer 以环形队列的形式实现，并且在初始化的时候就会实例化所有的对象（类似一个对象池，所以事件发布的流程就是填充对象数据并且发布。
 
-Disruptor 使用 Sequence 控制生产和消费进度，生产者需要等待消费者的消费进度，不能超过所有消费者最慢的那个，消费者也不会超过生产进度，不然都会使用 WaitStartegy（等待策略）拉住。
 
-Disruptor 还支持带依赖的消费关系，消费者 A 只能消费被 B，C 都消费过的事件，此时消费者 A 就已经不依据生产者的进度消费了，而是依据 B，C 的消费进度。
+（Disruptor 最开始听说的是一个高性能无锁队列，但是实际上它不仅仅是队列。
+
+Disruptor 类似于一套本地的 MQ 系统（Message Queue，消息队列），也可以看做是一套生产者/消费者模型，它包含了 Producer，Consumer 以及 Queue（中间队列），在创建的时候就会创建消费者以及中间队列。
+
+Disruptor 支持**单生产者和多生产者两种模式**，默认支持多消费者，并且消费者之间不共享消费进度（**每个事件会被分发给所有的消费者**。
 
 <br>
 
+### 相关组件对象
+
+#### RingBuffer 
+
+Disruptor 的存储组件，保存发布的事件，使用**环形数组**保存所有数据。
+
+RingBuffer 在 Disruptor 创建的时候就指定好大小，并且在之后的流程中固定不变。
+
+所谓的环形数组底层就是一个普通数组，**维护了读写两个游标**以此形成一个环，从写游标开始写，从读游标开始读。
+
+（游标就是下文的 Sequence，控制游标的就是 Sequencer。
 
 
-## Disruptor 的组件
 
-### RingBuffer 
-
-Disruptor 的存储组件，保存发布的事件，使用环形数组保存所有数据。
-
-RingBuffer 底层就是一个数组，维护了写入和读取两个游标，以此形成一个环，游标就是下文的 Sequence，控制游标的就是 Sequencer。
-
-
-
-### Sequence 
+#### Sequence 
 
 （相当于是一个并发安全的 Long 类型。
 
@@ -573,3 +629,9 @@ public long waitFor(final long sequence)
 2. 填充缓存行，消除伪共享（伪共享是多个 CPU 的缓存行中包含同一段数据，双方各自的修改都会使缓存行失效而重新从主内存中读取
 
 除了以上优化，就是 Disruptor 对生产者/消费者对控制，通过 sequence 来表示相对的速度。
+
+Disruptor 使用 RingBuffer 作为事件队列，RingBuffer 以环形队列的形式实现，并且在初始化的时候就会预实例化所有的对象（以对象池的形式实现，事件发布的流程就是填充对象数据并且发布。
+
+Disruptor 使用 Sequence 控制生产和消费进度，生产者需要等待消费者的消费进度，不能超过所有消费者最慢的那个，消费者也不会超过生产进度，不然都会使用 WaitStartegy（等待策略）拉住。
+
+Disruptor 还支持带依赖的消费关系，消费者 A 只能消费被 B，C 都消费过的事件，此时消费者 A 就已经不依据生产者的进度消费了，而是依据 B，C 的消费进度。
