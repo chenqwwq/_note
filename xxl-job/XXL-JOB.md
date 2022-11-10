@@ -10,15 +10,15 @@ XXL-JOB 是一款开源的分布式调度平台。
 
 <br>
 
+![XXL-JOB 架构图](assets/img_Qohm.png)
+
+
+
 XXL-JOB 整个系统可以分为两个部分，**Executor（执行器） 和 Scheduler（调度中心）。**
 
 Scheduler（调度中心）就是统一的定时器，调度程序不负责任何的任务逻辑，只负责发起任务执行请求。
 
 Executor（执行器） 持有真实的业务逻辑，负责接收调度请求并执行 JobHandler。
-
-
-
-![XXL-JOB结构图 v2.1.0](https://www.xuxueli.com/doc/static/xxl-job/images/img_Qohm.png)
 
 
 
@@ -28,8 +28,6 @@ Executor（执行器） 持有真实的业务逻辑，负责接收调度请求�
 
 ---
 
-
-
 ##  XXL-JOB 的源码实现
 
 ### 相关概念
@@ -38,8 +36,6 @@ Executor（执行器） 持有真实的业务逻辑，负责接收调度请求�
 | ----------- | ------------------------------------------------------------ |
 | IJobHandler | 每个 IJobHandler 对应的一个需要处理的任务，不同类型的任务有不同的实现类，例如 MethodJobHandler |
 | JobThread   | 用于处理调度的定时任务，每个 JobThraed 会绑定一个 IJobHandler，是执行器里的线程模型。 |
-
-
 
 
 
@@ -306,8 +302,8 @@ ExecutorBiz 就是执行器的所有业务处理，**不同的 uri 对应的就�
 | beat     | 心跳检查 | beat()                  |
 | idleBeat | 空闲检查 | idleBeat(IdleBeatParam) |
 | run      | 任务执行 | run(TriggerParam)       |
-| Kill     | 任务中断 | kill(KillParam)         |
-| Log      | 拉取日志 | log(LogParam)           |
+| kill     | 任务中断 | kill(KillParam)         |
+| log      | 拉取日志 | log(LogParam)           |
 
 
 

@@ -10,19 +10,16 @@
 
 ```java
 /**
-     * 定义的事件类型
-     */
+ * 定义的事件类型
+ */
 static class DateEvent {
   private Date value;
-
   public void setValue(Date value) {
     this.value = value;
   }
-
   public static EventFactory<DateEvent> factory() {
     return DateEvent::new;
   }
-
   @Override
   public String toString() {
     return "DateEvent{" +
@@ -30,10 +27,9 @@ static class DateEvent {
       '}';
   }
 }
-
 /**
-     * 事件处理器
-     */
+ * 事件处理器
+ */
 static class LongEventHandler implements EventHandler<DateEvent> {
 
   @Override
@@ -56,6 +52,8 @@ public static void main(String[] args) throws InterruptedException {
 }
 ```
 
+（ Disruptor 在创建的时候就需要指定时间类型以及队列大小，后续指定消费者之后，还需要手动开启。
+
 
 
 ## Introduction
@@ -68,7 +66,7 @@ public static void main(String[] args) throws InterruptedException {
 
 （Disruptor 最开始听说的是一个高性能无锁队列，但是实际上它不仅仅是队列。
 
-Disruptor 类似于一套本地的 MQ 系统（Message Queue，消息队列），也可以看做是一套生产者/消费者模型，它包含了 Producer，Consumer 以及 Queue（中间队列），在创建的时候就会创建消费者以及中间队列。
+Disruptor 类似于一套本地的 MQ 系统（Message Queue，消息队列），也可以看做是一套生产者/消费者模型，它包含了 Producer，Consumer 以及 Queue（中间队列），在开始前（调用 start() 前）就需要指定创建消费者以及中间队列。
 
 Disruptor 支持**单生产者和多生产者两种模式**，默认支持多消费者，并且消费者之间不共享消费进度（**每个事件会被分发给所有的消费者**。
 
@@ -78,9 +76,7 @@ Disruptor 支持**单生产者和多生产者两种模式**，默认支持多消
 
 #### RingBuffer 
 
-Disruptor 的存储组件，保存发布的事件，使用**环形数组**保存所有数据。
-
-RingBuffer 在 Disruptor 创建的时候就指定好大小，并且在之后的流程中固定不变。
+Disruptor 的存储组件，保存发布的事件，使用**环形数组**保存所有数据，RingBuffer 在 Disruptor 创建的时候就指定好大小，并且在之后的流程中保持不变。
 
 所谓的环形数组底层就是一个普通数组，**维护了读写两个游标**以此形成一个环，从写游标开始写，从读游标开始读。
 
@@ -110,7 +106,31 @@ Sequence 的管理者，包含了生产者和消费者的相关 Sequence（就�
 
 ### EventFactory
 
-Event 就是 RingBuffer 中保存的数据类型，EventFactory 的作用就是创建这些实例对象，在创建 RingBuffer 的时候传入， 初始化的时候预创建所有的对象。
+Event 就是 RingBuffer 中保存的数据类型，EventFactory 的作用就是创建这些实例对象。
+
+在创建 RingBuffer 的时候传入， 初始化的时候预创建所有的对象。
+
+```java
+// RingBufferFields 是 RingBuffer 的父类
+// 单独定义了 RingBuffer 的内部属性
+RingBufferFields(EventFactory<E> eventFactory,Sequencer sequencer)
+{
+  this.sequencer = sequencer;
+  this.bufferSize = sequencer.getBufferSize();
+	// 相关属性校验
+  // 创建待填充的固定大小的数组
+  this.entries = new Object[sequencer.getBufferSize() + 2 * BUFFER_PAD];
+  // 填充对应数组
+  fill(eventFactory);
+}
+
+private void fill(EventFactory<E> eventFactory){
+  for (int i = 0; i < bufferSize; i++){
+    // 最开始的两个对象不做赋值
+    entries[BUFFER_PAD + i] = eventFactory.newInstance();
+  }
+}
+```
 
 
 
@@ -128,6 +148,7 @@ Event 就是 RingBuffer 中保存的数据类型，EventFactory 的作用就是�
 // Disruptor#handleEventsWith
 public final EventHandlerGroup<T> handleEventsWith(final EventHandler<? super T>... handlers){
   // 直接创建 EventProcessor
+  // 初始化一个 Sequence 的作用
   return createEventProcessors(new Sequence[0], handlers);
 }
 
@@ -136,7 +157,7 @@ public final EventHandlerGroup<T> handleEventsWith(final EventHandler<? super T>
 // 参数包含 barrierSequence，是他依赖的上层消费者，当前消费者只能消费上层已经全部消费过的数据
 // 例如，当前依赖的三个上层消费者的 offset [1,10,10]，那么此时只能消费 1 的数据
 EventHandlerGroup<T> createEventProcessors(final Sequence[] barrierSequences,final EventHandler<? super T>[] eventHandlers){
-  // 只能在未注册的时候添加消费者
+  // 只能在未开始的时候添加消费者
   checkNotStarted();
 	// 每个 Handler 对应一个 Sequence
   final Sequence[] processorSequences = new Sequence[eventHandlers.length];
