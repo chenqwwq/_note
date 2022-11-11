@@ -865,6 +865,10 @@ explain 的 Extra 字段中可能出现 filesort 标记，表示出现额外排�
 
 
 
+
+
+
+
 联表查询包含如下几种形式：
 
 1. 全连接/内连接查询
@@ -873,9 +877,13 @@ explain 的 Extra 字段中可能出现 filesort 标记，表示出现额外排�
 
 例如 `SELECT * FROM a,b WHERE a.id = b.id`，此时 a 和 b 的 id 在对方表中无匹配项的就不会被返回。
 
-2. 左连接查询
+2. 左连接查询（LEFT JOIN
 
-3. 右连接查询
+此时左边为驱动表，并且 ON 中的条件不管是否成立左表数据都会进入最终的结果集。
+
+3. 右连接查询（RIGHT JOIN
+
+此时右表为驱动表，并且 ON 中的条件不管是否成立右表数据都会进入最终的结果集。
 
 
 
@@ -885,9 +893,78 @@ explain 的 Extra 字段中可能出现 filesort 标记，表示出现额外排�
 
 
 
-**联表查询的时候应该是小表作为驱动，小表的判断依据是单个表执行完 WHERE 语句之后剩余的数据集。**
+**联表查询的时候应该是小表作为驱动，小表的判断依据是单个表执行完 ON 语句之后剩余的数据集。**
+
+### ON 和 WHERE 的区别
+
+```text
+# 摘自 MYSQL 官方文档 
+# https://dev.mysql.com/doc/refman/8.0/en/join.html
+The search_condition used with ON is any conditional expression of the form that can be used in a WHERE clause. Generally, the ON clause serves for conditions that specify how to join tables, and the WHERE clause restricts which rows to include in the result set.
+```
+
+首先，ON 中可以写任何类似 WHERE 的条件语句，总的来说，ON 语句决定哪些可以参与 JOIN（联表），而 WHERE 语句是对 JOIN 之后的结果集的过滤。
+
+**（ON 的执行优先于 WHERE。**
+
+> 对于 INNER JOIN 来说，条件语句在 ON 和 WHERE没有任何区别。
+>
+> 但是对于 LEFT JOIN 和 RIGHT JOIN 来说就有很大的不同，ON 中的条件决定了 LEFT / RIGHT 表哪些数据可以参数联表。
+
+例如对于以下两个表：
+
+```mysql
+# 表 A
+CREATE table TEST_A (
+    a int primary key,
+    b int,
+    c int);
+# 包含四组数据:
+# 1,1,1
+# 2,2,2
+# 3,3,3
+# 4,4,4
+    
+# 表 B
+CREATE table TEST_B (
+    d int primary key,
+    e int,
+    f int);
+# 5,5,5
+# 6,6,6
+# 7,7,7
+# 8,8,8
+```
+
+对于如下语句：
+
+```mysql
+# 语句 1
+SELECT * FROM TEST_A A LEFT JOIN TEST_B B ON a = 1;
+```
+
+返回的结果是：
+
+![image-20221111下午42618080](assets/image-20221111下午42618080.png)
+
+左表中的所有数据都进入了结果集，但是只有满足 `a = 1` 的行参与了联表。
+
+再比如以下语句：
+
+```mysql
+# 语句 2
+SELECT * FROM TEST_A A LEFT JOIN TEST_B B ON d = 5;
+```
+
+返回结果为：
+
+![image-20221111下午42757337](assets/image-20221111下午42757337.png)
+
+左边全部进入了结果集，右表只有满足 `d = 5` 的行参与了联表。
 
 
+
+两张表的关联关系很容易分析，但是三表以上就会有不同的算法，如下：
 
 ### Simple  Nested-Loop Join（NLP，简单嵌套-循环
 
