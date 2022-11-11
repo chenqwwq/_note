@@ -1,0 +1,2360 @@
+
+<!DOCTYPE HTML>
+<html lang="" >
+    <head>
+        <meta charset="UTF-8">
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <title>SpringBoot 的启动流程 · GitBook</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 3.2.3">
+        
+        
+        
+
+    
+    <link rel="stylesheet" href="../../gitbook/style.css">
+
+    
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-intopic-toc/style.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-chapter-fold/chapter-fold.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-splitter/splitter.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-expandable-chapters/expandable-chapters.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-back-to-top-button/plugin.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-anchor-navigation-ex/style/plugin.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-mermaid-v8/mermaid/mermaid.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-highlight/website.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-search/search.css">
+                
+            
+                
+                <link rel="stylesheet" href="../../gitbook/gitbook-plugin-fontsettings/website.css">
+                
+            
+        
+
+    
+
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+
+
+
+        
+    
+    
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../../gitbook/images/apple-touch-icon-precomposed-152.png">
+    <link rel="shortcut icon" href="../../gitbook/images/favicon.ico" type="image/x-icon">
+
+    
+    <link rel="next" href="SpringBoot的工厂加载模式.html" />
+    
+    
+    <link rel="prev" href="SpringBoot的事件模型 .html" />
+    
+
+    </head>
+    <body>
+        
+<div class="book">
+    <div class="book-summary">
+        
+            
+<div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search" />
+</div>
+
+            
+                <nav role="navigation">
+                
+
+
+<ul class="summary">
+    
+    
+
+    
+
+    
+        
+        
+    
+        <li class="chapter " data-level="1.1" data-path="../../">
+            
+                <a href="../../">
+            
+                    
+                    Introduction
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2" >
+            
+                <span>
+            
+                    
+                    知识脑图
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.2.1" >
+            
+                <a target="_blank" href="https://www.processon.com/view/link/6064961d6376891a06bbe35e">
+            
+                    
+                    Java 虚拟机相关
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3" data-path="../../java/">
+            
+                <a href="../../java/">
+            
+                    
+                    Java
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.3.1" >
+            
+                <span>
+            
+                    
+                    JDK 源码分析
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.3.1.1" >
+            
+                <span>
+            
+                    
+                    JUC
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.3.1.1.1" data-path="../../java/jdk/juc/AbstractQueuedSynchronizer.html">
+            
+                <a href="../../java/jdk/juc/AbstractQueuedSynchronizer.html">
+            
+                    
+                    AbstractQueueSynchronized 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.1.2" data-path="../../java/jdk/juc/ConcurrentHashMap.html">
+            
+                <a href="../../java/jdk/juc/ConcurrentHashMap.html">
+            
+                    
+                    ConcurrentHashMap 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.1.3" data-path="../../java/jdk/juc/FutureTask.html">
+            
+                <a href="../../java/jdk/juc/FutureTask.html">
+            
+                    
+                    FutureTask 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.1.4" data-path="../../java/jdk/juc/ReetrantLock.html">
+            
+                <a href="../../java/jdk/juc/ReetrantLock.html">
+            
+                    
+                    ReetrantLocak 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.1.5" data-path="../../java/jdk/juc/ThreadPoolExecutor.html">
+            
+                <a href="../../java/jdk/juc/ThreadPoolExecutor.html">
+            
+                    
+                    ThreadPoolExecutor 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.1.6" data-path="../../java/jdk/juc/BlockingQueue.html">
+            
+                <a href="../../java/jdk/juc/BlockingQueue.html">
+            
+                    
+                    BlockingQueue 类族
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.1.7" data-path="../../java/jdk/juc/SynchronousQueue.html">
+            
+                <a href="../../java/jdk/juc/SynchronousQueue.html">
+            
+                    
+                    SynchronousQueue
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.1.8" data-path="../../java/jdk/juc/CountDownLatch.html">
+            
+                <a href="../../java/jdk/juc/CountDownLatch.html">
+            
+                    
+                    CountDownLatch 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.1.9" data-path="../../java/jdk/juc/CyclicBarrier.html">
+            
+                <a href="../../java/jdk/juc/CyclicBarrier.html">
+            
+                    
+                    CyclicBarrier 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.1.10" data-path="../../java/jdk/juc/CopyOnWriteArrayList.html">
+            
+                <a href="../../java/jdk/juc/CopyOnWriteArrayList.html">
+            
+                    
+                    CopyOnWriteArrayList 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.1.11" data-path="../../java/jdk/juc/CopyOnWriteArraySet.html">
+            
+                <a href="../../java/jdk/juc/CopyOnWriteArraySet.html">
+            
+                    
+                    CopyOnWriteArraySet 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.1.12" data-path="../../java/jdk/juc/ConcurrentSkipListMap.html">
+            
+                <a href="../../java/jdk/juc/ConcurrentSkipListMap.html">
+            
+                    
+                    ConcurrentSkipListMap 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.1.13" data-path="../../java/jdk/juc/ScheduledThreadPoolExecutor.html">
+            
+                <a href="../../java/jdk/juc/ScheduledThreadPoolExecutor.html">
+            
+                    
+                    ScheduledThreadPoolExecutor 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.1.14" data-path="../../java/jdk/juc/Semaphore.html">
+            
+                <a href="../../java/jdk/juc/Semaphore.html">
+            
+                    
+                    Semaphore 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.2" >
+            
+                <span>
+            
+                    
+                    Java 集合框架
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.3.1.2.1" data-path="../../java/jdk/collection/HashMap源码阅读.html">
+            
+                <a href="../../java/jdk/collection/HashMap源码阅读.html">
+            
+                    
+                    HashMap 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.2.2" data-path="../../java/jdk/collection/HashMap.html">
+            
+                <a href="../../java/jdk/collection/HashMap.html">
+            
+                    
+                    HashMap 原理(文字表述)
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.2.3" data-path="../../java/jdk/collection/LinkedHashMap源码阅读.html">
+            
+                <a href="../../java/jdk/collection/LinkedHashMap源码阅读.html">
+            
+                    
+                    LinkedHashMap 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.2.4" data-path="../../java/jdk/collection/ArrayList.html">
+            
+                <a href="../../java/jdk/collection/ArrayList.html">
+            
+                    
+                    ArrayList 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.2.5" data-path="../../java/collection/jdk/LinkedList源码阅读.md">
+            
+                <span>
+            
+                    
+                    LinkedList 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.3" >
+            
+                <span>
+            
+                    
+                    其他
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.3.1.3.1" data-path="../../java/jdk/util/ThreadLocal.html">
+            
+                <a href="../../java/jdk/util/ThreadLocal.html">
+            
+                    
+                    ThreadLocal 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.1.3.2" data-path="../../java/jdk/util/Stream.html">
+            
+                <a href="../../java/jdk/util/Stream.html">
+            
+                    
+                    Stream 分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2" >
+            
+                <span>
+            
+                    
+                    [JVM（Java 虚拟机）]
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.3.2.1" data-path="../../java/jvm/关键字.html">
+            
+                <a href="../../java/jvm/关键字.html">
+            
+                    
+                    Java 关键字整理
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.2" data-path="../../java/jvm/引用类型.html">
+            
+                <a href="../../java/jvm/引用类型.html">
+            
+                    
+                    Java 中的引用类型
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.3" data-path="../../java/jvm/元空间和永久代.html">
+            
+                <a href="../../java/jvm/元空间和永久代.html">
+            
+                    
+                    元空间和永久代
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.4" data-path="../../java/jvm/synchronized.html">
+            
+                <a href="../../java/jvm/synchronized.html">
+            
+                    
+                    synchronized 关键字
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.5" data-path="../../java/jvm/JVM的类加载子系统.html">
+            
+                <a href="../../java/jvm/JVM的类加载子系统.html">
+            
+                    
+                    JVM 的类加载子系统
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.6" data-path="../../java/jvm/JVM的内存管理.md">
+            
+                <span>
+            
+                    
+                    JVM 的内存管理
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.7" data-path="../../java/jvm/垃圾收集器.html">
+            
+                <a href="../../java/jvm/垃圾收集器.html">
+            
+                    
+                    JVM 垃圾收集器
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.2.8" data-path="../../java/jvm/G1 垃圾收集器.html">
+            
+                <a href="../../java/jvm/G1 垃圾收集器.html">
+            
+                    
+                    G1 垃圾收集器(主要是摘抄)
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.3" >
+            
+                <span>
+            
+                    
+                    Guava 源码分析
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.3.3.1" data-path="../../java/guava/EventBus.html">
+            
+                <a href="../../java/guava/EventBus.html">
+            
+                    
+                    EventBus 相关源码解析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3.3.2" data-path="../../java/guava/RateLimiter.html">
+            
+                <a href="../../java/guava/RateLimiter.html">
+            
+                    
+                    RateLimiter 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4" >
+            
+                <span>
+            
+                    
+                    Netty
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.4.1" data-path="../../netty/netty逻辑流程/EventLoop的初始化.html">
+            
+                <a href="../../netty/netty逻辑流程/EventLoop的初始化.html">
+            
+                    
+                    EventLoop 的初始化流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.2" data-path="../../netty/netty逻辑流程/NIO服务端启动流程.html">
+            
+                <a href="../../netty/netty逻辑流程/NIO服务端启动流程.html">
+            
+                    
+                    NIO 服务端启动流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.3" data-path="../../netty/netty逻辑流程/ChannelPipeline的结构和初始化流程.html">
+            
+                <a href="../../netty/netty逻辑流程/ChannelPipeline的结构和初始化流程.html">
+            
+                    
+                    ChannelPipeline的结构和初始化流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.4" data-path="../../netty/netty逻辑流程/NioEventLoop的事件轮询.html">
+            
+                <a href="../../netty/netty逻辑流程/NioEventLoop的事件轮询.html">
+            
+                    
+                    NioEventLoop的事件轮询
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.5" data-path="../../netty/netty逻辑流程/服务端ACCEPT事件相关流程.md.md">
+            
+                <span>
+            
+                    
+                    客户端Channel的建立过程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.6" data-path="../../netty/netty逻辑流程/ChannelPipeline事件传递机制.html">
+            
+                <a href="../../netty/netty逻辑流程/ChannelPipeline事件传递机制.html">
+            
+                    
+                    ChannelPipeline事件传递机制
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.7" data-path="../../netty/netty逻辑流程/Netty中的编解码逻辑.html">
+            
+                <a href="../../netty/netty逻辑流程/Netty中的编解码逻辑.html">
+            
+                    
+                    Netty 中的编解码逻辑
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.8" data-path="../../netty/netty逻辑流程/Netty中写数据的逻辑.html">
+            
+                <a href="../../netty/netty逻辑流程/Netty中写数据的逻辑.html">
+            
+                    
+                    Netty 中写数据的逻辑
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.9" data-path="../../netty/netty逻辑流程/Netty中读数据的流程.html">
+            
+                <a href="../../netty/netty逻辑流程/Netty中读数据的流程.html">
+            
+                    
+                    Netty 中读数据的流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.10" data-path="../../netty/util/FastThreadLocal.md">
+            
+                <span>
+            
+                    
+                    FastThreadLocal 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.11" data-path="../../netty/util/ChannelPool.html">
+            
+                <a href="../../netty/util/ChannelPool.html">
+            
+                    
+                    ChannelPool 相关分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.12" data-path="../../netty/util/HashedWheelTimer源码分析.html">
+            
+                <a href="../../netty/util/HashedWheelTimer源码分析.html">
+            
+                    
+                    HashedWheelTimer 源码分析
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.13" data-path="../../netty/ChannelOption整理.html">
+            
+                <a href="../../netty/ChannelOption整理.html">
+            
+                    
+                    ChannelOption 整理
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4.14" data-path="../../netty/util/Recycler源码实现.html">
+            
+                <a href="../../netty/util/Recycler源码实现.html">
+            
+                    
+                    Recycler 源码实现
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5" >
+            
+                <span>
+            
+                    
+                    Spring
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.5.1" >
+            
+                <span>
+            
+                    
+                    Spring Core
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.5.1.1" data-path="../core/ioc/Bean对象的获取和创建流程.html">
+            
+                <a href="../core/ioc/Bean对象的获取和创建流程.html">
+            
+                    
+                    Bean 对象的获取和创建流程（究极简述
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5.1.2" data-path="../core/ioc/Bean对象的获取流程.html">
+            
+                <a href="../core/ioc/Bean对象的获取流程.html">
+            
+                    
+                    Bean 对象的获取流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5.1.3" data-path="../core/ioc/Spring循环依赖问题.html">
+            
+                <a href="../core/ioc/Spring循环依赖问题.html">
+            
+                    
+                    Spring 循环依赖问题
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5.1.4" data-path="../core/ioc/Resouce和Autowired.html">
+            
+                <a href="../core/ioc/Resouce和Autowired.html">
+            
+                    
+                    Resouce 和 Autowired
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5.1.5" data-path="../core/ioc/beanpostprocessor/BeanPostProcessor类族概述.html">
+            
+                <a href="../core/ioc/beanpostprocessor/BeanPostProcessor类族概述.html">
+            
+                    
+                    BeanPostProcessor 类族
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5.1.6" data-path="../core/aop/aop 概念.md">
+            
+                <span>
+            
+                    
+                    AOP 相关概念
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5.1.7" data-path="../core/aop/ProxyFactory.html">
+            
+                <a href="../core/aop/ProxyFactory.html">
+            
+                    
+                    ProxyFactory
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5.1.8" data-path="../core/aop/Aop实现的不同方式.html">
+            
+                <a href="../core/aop/Aop实现的不同方式.html">
+            
+                    
+                    Aop 实现的不同方式
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5.1.9" data-path="../core/module/async.md">
+            
+                <span>
+            
+                    
+                    Async 的实现原理
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5.1.10" data-path="../core/ioc/Bean对象的创建流程.html">
+            
+                <a href="../core/ioc/Bean对象的创建流程.html">
+            
+                    
+                    Bean 对象的创建流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5.2" >
+            
+                <span>
+            
+                    
+                    SpringBoot
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.5.2.1" data-path="SpringBoot的事件模型 .html">
+            
+                <a href="SpringBoot的事件模型 .html">
+            
+                    
+                    SpringBoot 的事件模型
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter active" data-level="1.5.2.2" data-path="SpringBoot的启动流程.html">
+            
+                <a href="SpringBoot的启动流程.html">
+            
+                    
+                    SpringBoot 的启动流程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5.2.3" data-path="SpringBoot的工厂加载模式.html">
+            
+                <a href="SpringBoot的工厂加载模式.html">
+            
+                    
+                    SpringBoot 的工厂加载模式
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5.3" >
+            
+                <span>
+            
+                    
+                    SpringCloud
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.5.3.1" data-path="../cloud/consul.html">
+            
+                <a href="../cloud/consul.html">
+            
+                    
+                    consul 简述
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5.3.2" data-path="../cloud/feign.html">
+            
+                <a href="../cloud/feign.html">
+            
+                    
+                    feign 简述
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5.3.3" data-path="../cloud/zuul.html">
+            
+                <a href="../cloud/zuul.html">
+            
+                    
+                    zuul 简述
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6" >
+            
+                <span>
+            
+                    
+                    数据库
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.6.1" data-path="../../数据库/mysql/MySQL.html">
+            
+                <a href="../../数据库/mysql/MySQL.html">
+            
+                    
+                    MySQL（残酷学习版）
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6.2" data-path="../../数据库/数据库优化.html">
+            
+                <a href="../../数据库/数据库优化.html">
+            
+                    
+                    数据库优化方案
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6.3" data-path="../../数据库/SQL语句.html">
+            
+                <a href="../../数据库/SQL语句.html">
+            
+                    
+                    SQL语法
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.7" >
+            
+                <span>
+            
+                    
+                    设计模式
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.7.1" data-path="../../系统设计/Gof设计模式.html">
+            
+                <a href="../../系统设计/Gof设计模式.html">
+            
+                    
+                    Gof 的设计模式
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.8" >
+            
+                <span>
+            
+                    
+                    中间件
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.8.1" data-path="../../消息队列/kafka/Kafka.html">
+            
+                <a href="../../消息队列/kafka/Kafka.html">
+            
+                    
+                    Kafka
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.8.2" data-path="../../消息队列/Rabbitmq/RabbitMQ.html">
+            
+                <a href="../../消息队列/Rabbitmq/RabbitMQ.html">
+            
+                    
+                    RabbitMQ
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.8.2.1" data-path="../../消息队列/Rabbitmq/RabbitMQ如何保证消息不丢失.html">
+            
+                <a href="../../消息队列/Rabbitmq/RabbitMQ如何保证消息不丢失.html">
+            
+                    
+                    RabbitMQ 如何保证消息不丢失
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.8.3" >
+            
+                <span>
+            
+                    
+                    Redis
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.8.3.1" data-path="../../redis/Redis的五种数据结构.md">
+            
+                <span>
+            
+                    
+                    Redis 的五种数据结构
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.8.3.2" data-path="../../redis/Redis的Sentinel模式.html">
+            
+                <a href="../../redis/Redis的Sentinel模式.html">
+            
+                    
+                    Redis 的哨兵模式
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.8.3.3" data-path="../../redis/Redis的主从复制模式.html">
+            
+                <a href="../../redis/Redis的主从复制模式.html">
+            
+                    
+                    Redis 的主从复制模式
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.9" >
+            
+                <span>
+            
+                    
+                    网络
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.9.1" >
+            
+                <span>
+            
+                    
+                    TCP
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.9.1.1" data-path="../../网络/tcp协议整理1.md">
+            
+                <span>
+            
+                    
+                    TCP 协议总结（一）
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.9.1.2" data-path="../../网络/tcp内核参数整理.html">
+            
+                <a href="../../网络/tcp内核参数整理.html">
+            
+                    
+                    Linux 中的相关 TCP 参数
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.9.2" data-path="../../网络/http.html">
+            
+                <a href="../../网络/http.html">
+            
+                    
+                    HTTP
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.9.3" data-path="../../网络/https.html">
+            
+                <a href="../../网络/https.html">
+            
+                    
+                    HTTPS
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.10" >
+            
+                <span>
+            
+                    
+                    系统设计
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.10.1" data-path="../../系统设计/如何设计TinyURL系统.html">
+            
+                <a href="../../系统设计/如何设计TinyURL系统.html">
+            
+                    
+                    如何设计 TinyURL 系统
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.11" >
+            
+                <span>
+            
+                    
+                    读书笔记
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.11.1" data-path="../../读书笔记/数据密集型应用.html">
+            
+                <a href="../../读书笔记/数据密集型应用.html">
+            
+                    
+                    数据密集型应用系统设计
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.12" >
+            
+                <span>
+            
+                    
+                    项目实现
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.12.1" >
+            
+                <span>
+            
+                    
+                    MIT 6.s081
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.12.1.1" data-path="../../operating_system/mit6.s081/lab1.html">
+            
+                <a href="../../operating_system/mit6.s081/lab1.html">
+            
+                    
+                    Lab1
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.13" >
+            
+                <span>
+            
+                    
+                    其他
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.13.1" data-path="../../分布式/zab/ZAB基础理解.html">
+            
+                <a href="../../分布式/zab/ZAB基础理解.html">
+            
+                    
+                    ZAB 协议
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.13.2" data-path="../../其他/Disruptor.html">
+            
+                <a href="../../其他/Disruptor.html">
+            
+                    
+                    Disruptor 实现原理
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+    
+
+    <li class="divider"></li>
+
+    <li>
+        <a href="https://www.gitbook.com" target="blank" class="gitbook-link">
+            Published with GitBook
+        </a>
+    </li>
+</ul>
+
+
+                </nav>
+            
+        
+    </div>
+
+    <div class="book-body">
+        
+            <div class="body-inner">
+                
+                    
+
+<div class="book-header" role="navigation">
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href="../.." >SpringBoot 的启动流程</a>
+    </h1>
+</div>
+
+
+
+
+                    <div class="page-wrapper" tabindex="-1" role="main">
+                        <div class="page-inner">
+                            
+<div id="book-search-results">
+    <div class="search-noresults">
+    
+                                <section class="normal markdown-section">
+                                
+                                <div id="anchor-navigation-ex-navbar"><i class="fa fa-navicon"></i><ul><li><span class="title-icon "></span><a href="#springboot&#x7684;&#x542F;&#x52A8;&#x6D41;&#x7A0B;&#x6982;&#x8FF0;"><b></b>SpringBoot&#x7684;&#x542F;&#x52A8;&#x6D41;&#x7A0B;&#x6982;&#x8FF0;</a></li><ul><li><span class="title-icon "></span><a href="#&#x4E0A;&#x5C42;&#x8C03;&#x7528;"><b></b>&#x4E0A;&#x5C42;&#x8C03;&#x7528;</a></li><li><span class="title-icon "></span><a href="#springapplication-&#x6784;&#x9020;&#x51FD;&#x6570;"><b></b>SpringApplication &#x6784;&#x9020;&#x51FD;&#x6570;</a></li><ul><li><span class="title-icon "></span><a href="#applicationcontextinitializer---&#x521D;&#x59CB;&#x5316;&#x5668;"><b></b>ApplicationContextInitializer - &#x521D;&#x59CB;&#x5316;&#x5668;</a></li><li><span class="title-icon "></span><a href="#applicationlistener---&#x76D1;&#x542C;&#x5668;"><b></b>ApplicationListener - &#x76D1;&#x542C;&#x5668;</a></li><li><span class="title-icon "></span><a href="#&#x63A8;&#x65AD;&#x4E3B;&#x7C7B;"><b></b>&#x63A8;&#x65AD;&#x4E3B;&#x7C7B;</a></li></ul><li><span class="title-icon "></span><a href="#run&#x65B9;&#x6CD5;"><b></b>Run()&#x65B9;&#x6CD5;</a></li><ul><li><span class="title-icon "></span><a href="#1&#x542F;&#x52A8;&#x8BA1;&#x65F6;&#x5668;"><b></b>1.&#x542F;&#x52A8;&#x8BA1;&#x65F6;&#x5668;</a></li><li><span class="title-icon "></span><a href="#2-&#x914D;&#x7F6E;-headless"><b></b>2. &#x914D;&#x7F6E; Headless</a></li><li><span class="title-icon "></span><a href="#3-&#x83B7;&#x53D6;&#x5E76;&#x542F;&#x52A8;&#x76D1;&#x542C;&#x5668;"><b></b>3. &#x83B7;&#x53D6;&#x5E76;&#x542F;&#x52A8;&#x76D1;&#x542C;&#x5668;</a></li><li><span class="title-icon "></span><a href="#3-&#x53D1;&#x5E03;-applicationstartingevent"><b></b>3. &#x53D1;&#x5E03; ApplicationStartingEvent</a></li><li><span class="title-icon "></span><a href="#4-&#x521B;&#x5EFA;&#x5E76;&#x51C6;&#x5907;&#x73AF;&#x5883;"><b></b>4. &#x521B;&#x5EFA;&#x5E76;&#x51C6;&#x5907;&#x73AF;&#x5883;</a></li><li><span class="title-icon "></span><a href="#5-&#x914D;&#x7F6E;&#x5FFD;&#x7565;&#x7684;bean&#x4FE1;&#x606F;"><b></b>5. &#x914D;&#x7F6E;&#x5FFD;&#x7565;&#x7684;Bean&#x4FE1;&#x606F;</a></li><li><span class="title-icon "></span><a href="#6-&#x8F93;&#x51FA;banner"><b></b>6. &#x8F93;&#x51FA;Banner</a></li><li><span class="title-icon "></span><a href="#7--&#x521B;&#x5EFA;&#x5E94;&#x7528;&#x4E0A;&#x4E0B;&#x6587;"><b></b>7.  &#x521B;&#x5EFA;&#x5E94;&#x7528;&#x4E0A;&#x4E0B;&#x6587;</a></li><li><span class="title-icon "></span><a href="#8-&#x83B7;&#x53D6;&#x5F02;&#x5E38;&#x7684;&#x62A5;&#x544A;&#x65B9;&#x6CD5;"><b></b>8. &#x83B7;&#x53D6;&#x5F02;&#x5E38;&#x7684;&#x62A5;&#x544A;&#x65B9;&#x6CD5;</a></li><li><span class="title-icon "></span><a href="#9-&#x51C6;&#x5907;&#x4E0A;&#x4E0B;&#x6587;"><b></b>9. &#x51C6;&#x5907;&#x4E0A;&#x4E0B;&#x6587;</a></li><li><span class="title-icon "></span><a href="#10&#x5237;&#x65B0;&#x5E94;&#x7528;&#x4E0A;&#x4E0B;&#x6587;"><b></b>10.&#x5237;&#x65B0;&#x5E94;&#x7528;&#x4E0A;&#x4E0B;&#x6587;</a></li><li><span class="title-icon "></span><a href="#11-&#x8BA1;&#x65F6;&#x7ED3;&#x675F;"><b></b>11. &#x8BA1;&#x65F6;&#x7ED3;&#x675F;</a></li><li><span class="title-icon "></span><a href="#12-&#x53D1;&#x5E03;applicationstartedevent"><b></b>12. &#x53D1;&#x5E03;ApplicationStartedEvent</a></li><li><span class="title-icon "></span><a href="#13-&#x8C03;&#x7528;&#x76F8;&#x5173;runner"><b></b>13. &#x8C03;&#x7528;&#x76F8;&#x5173;Runner</a></li></ul></ul></ul></div><h1 id="springboot&#x7684;&#x542F;&#x52A8;&#x6D41;&#x7A0B;&#x6982;&#x8FF0;"><a name="springboot&#x7684;&#x542F;&#x52A8;&#x6D41;&#x7A0B;&#x6982;&#x8FF0;" class="anchor-navigation-ex-anchor" href="#springboot&#x7684;&#x542F;&#x52A8;&#x6D41;&#x7A0B;&#x6982;&#x8FF0;"><i class="fa fa-link" aria-hidden="true"></i></a>SpringBoot&#x7684;&#x542F;&#x52A8;&#x6D41;&#x7A0B;&#x6982;&#x8FF0;</h1>
+<blockquote>
+<p>&#x5C3D;&#x91CF;&#x4E0D;&#x4F1A;&#x6709;&#x592A;&#x591A;&#x7684;&#x4EE3;&#x7801;&#xFF0C;&#x4EE5;&#x7406;&#x6E05;&#x695A;&#x6D41;&#x7A0B;&#x4E3A;&#x4E3B;&#xFF0C;&#x590D;&#x6742;&#x7684;&#x4EE3;&#x7801;&#x4F1A;&#x5355;&#x72EC;&#x4E00;&#x4E2A;&#x6587;&#x4EF6;&#x3002;</p>
+<p>&#x4EE5; SpringBoot Servlet Web &#x5E94;&#x7528;&#x4E3A;&#x57FA;&#x7840;&#x5206;&#x6790;.</p>
+<p>SpringBoot &#x7248;&#x672C;&#x4E3A; 2.2.6.RELEASE</p>
+</blockquote>
+<hr>
+<!-- more -->
+<p>[TOC]</p>
+<hr>
+<h2 id="&#x4E0A;&#x5C42;&#x8C03;&#x7528;"><a name="&#x4E0A;&#x5C42;&#x8C03;&#x7528;" class="anchor-navigation-ex-anchor" href="#&#x4E0A;&#x5C42;&#x8C03;&#x7528;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x4E0A;&#x5C42;&#x8C03;&#x7528;</h2>
+<pre><code class="lang-java"><span class="hljs-meta">@SpringBootApplication</span>
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MvcApplication</span> </span>{
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>{
+    SpringApplication.run(MvcApplication.class, args);
+  }
+}
+</code></pre>
+<p>&#x4EE5;&#x4E0A;&#x662F;&#x6700;&#x57FA;&#x7840;&#x7684; SpringBoot &#x5E94;&#x7528;&#x542F;&#x52A8;&#x4EE3;&#x7801;&#xFF0C;&#x8C03;&#x7528; SpringApplication &#x7684; run &#x9759;&#x6001;&#x65B9;&#x6CD5;&#x542F;&#x52A8; SpringBoot &#x7684;&#x6574;&#x4E2A;&#x5BB9;&#x5668;&#x3002;</p>
+<p><br></p>
+<h2 id="springapplication-&#x6784;&#x9020;&#x51FD;&#x6570;"><a name="springapplication-&#x6784;&#x9020;&#x51FD;&#x6570;" class="anchor-navigation-ex-anchor" href="#springapplication-&#x6784;&#x9020;&#x51FD;&#x6570;"><i class="fa fa-link" aria-hidden="true"></i></a>SpringApplication &#x6784;&#x9020;&#x51FD;&#x6570;</h2>
+<pre><code class="lang-java"><span class="hljs-comment">// SpringApplication</span>
+<span class="hljs-comment">// &#x5165;&#x53C2;&#x4E2D;&#x7684;&#x7684;PrimarySources&#x662F;&#x914D;&#x7F6E;&#x4E3B;&#x7C7B;,&#x4E5F;&#x5C31;&#x662F;MvcApplication.class.</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">SpringApplication</span><span class="hljs-params">(ResourceLoader resourceLoader, Class&lt;?&gt;... primarySources)</span> </span>{
+  <span class="hljs-comment">// &#x8D44;&#x6E90;&#x52A0;&#x8F7D;&#x5668;,&#x6B64;&#x5904;&#x4E3A;null</span>
+  <span class="hljs-keyword">this</span>.resourceLoader = resourceLoader;
+  Assert.notNull(primarySources, <span class="hljs-string">&quot;PrimarySources must not be null&quot;</span>);
+  <span class="hljs-comment">// &#x4E3B;&#x8981;&#x6570;&#x636E;&#x6E90;&#x96C6;&#x5408;</span>
+  <span class="hljs-keyword">this</span>.primarySources = <span class="hljs-keyword">new</span> LinkedHashSet&lt;&gt;(Arrays.asList(primarySources));
+  <span class="hljs-comment">// Web&#x5E94;&#x7528;&#x7C7B;&#x578B;</span>
+  <span class="hljs-keyword">this</span>.webApplicationType = WebApplicationType.deduceFromClasspath();
+  <span class="hljs-comment">// &#x8BBE;&#x7F6E;&#x521D;&#x59CB;&#x5316;&#x5668;,&#x5177;&#x4F53;&#x6709;&#x54EA;&#x4E9B;&#x770B;&#x4E0B;&#x6587;</span>
+  setInitializers(
+    (Collection)getSpringFactoriesInstances(ApplicationContextInitializer.class));
+  <span class="hljs-comment">// &#x8BBE;&#x7F6E;&#x76D1;&#x542C;&#x8005;</span>
+  setListeners((Collection) getSpringFactoriesInstances(ApplicationListener.class));
+  <span class="hljs-comment">// &#x63A8;&#x65AD;&#x5E94;&#x7528;&#x4E3B;&#x7C7B;&#xFF0C;&#x6B64;&#x5904;&#x4EE3;&#x7801;&#x6211;&#x611F;&#x89C9;&#x8FD8;&#x662F;&#x5F88;&#x65B0;&#x5947;&#x7684;</span>
+  <span class="hljs-keyword">this</span>.mainApplicationClass = deduceMainApplicationClass();
+}
+</code></pre>
+<h3 id="applicationcontextinitializer---&#x521D;&#x59CB;&#x5316;&#x5668;"><a name="applicationcontextinitializer---&#x521D;&#x59CB;&#x5316;&#x5668;" class="anchor-navigation-ex-anchor" href="#applicationcontextinitializer---&#x521D;&#x59CB;&#x5316;&#x5668;"><i class="fa fa-link" aria-hidden="true"></i></a>ApplicationContextInitializer - &#x521D;&#x59CB;&#x5316;&#x5668;</h3>
+<p><strong>&#x901A;&#x8FC7; spring.factories &#x6587;&#x4EF6;&#x7684; SPI &#x673A;&#x5236;&#x83B7;&#x53D6;&#x5230;&#x6240;&#x6709; ApplicationContextinitializer &#x7684;&#x5B9E;&#x73B0;&#x7C7B;&#x3002;</strong></p>
+<p><strong>ApplicationContextInitializer &#x4F5C;&#x4E3A;&#x5E94;&#x7528;&#x521D;&#x59CB;&#x5316;&#x5668;&#xFF0C;&#x5728; prepareContext &#x9636;&#x6BB5;&#x4E2D;&#x8C03;&#x7528;&#xFF0C;&#x7528;&#x6765;&#x5728;&#x5BB9;&#x5668;&#x542F;&#x52A8;&#x8FC7;&#x7A0B;&#x4E2D;&#x5BF9;&#x5E94;&#x7528;&#x7684;&#x4E0A;&#x4E0B;&#x6587;&#x8FDB;&#x884C;&#x81EA;&#x5B9A;&#x4E49;&#x914D;&#x7F6E;&#x3002;</strong></p>
+<p><img src="assets/image-20210301235004087.png" style="zoom:67%;"></p>
+<p>initialize(C applicationContext) &#x65B9;&#x6CD5;&#x5C31;&#x521D;&#x59CB;&#x5316;&#x65B9;&#x6CD5;&#xFF0C;&#x53C2;&#x6570;&#x4E3A;&#x6B63;&#x5728;&#x521B;&#x5EFA;&#x7684; ApplicationContext&#x3002;</p>
+<blockquote>
+<p>&#x5BF9;&#x4E8E; SpringCloud&#xFF0C;&#x6B64;&#x65F6;&#x8FD8;&#x4F1A;&#x6709; <strong>PropertySourceBootstrapConfiguration</strong> &#x7C7B;&#xFF0C;&#x8BE5;&#x7C7B;&#x7528;&#x4E8E;&#x83B7;&#x53D6;&#x8FDC;&#x7A0B;&#x914D;&#x7F6E;&#x4E2D;&#x5FC3;&#x7684;&#x6570;&#x636E;&#x3002;</p>
+</blockquote>
+<p><br></p>
+<h3 id="applicationlistener---&#x76D1;&#x542C;&#x5668;"><a name="applicationlistener---&#x76D1;&#x542C;&#x5668;" class="anchor-navigation-ex-anchor" href="#applicationlistener---&#x76D1;&#x542C;&#x5668;"><i class="fa fa-link" aria-hidden="true"></i></a>ApplicationListener - &#x76D1;&#x542C;&#x5668;</h3>
+<p>&#x901A;&#x8FC7; spring.factories &#x6587;&#x4EF6;&#x7684; SPI &#x673A;&#x5236;&#x83B7;&#x53D6;&#x5230;&#x6240;&#x6709; ApplicationListener &#x7684;&#x5B9E;&#x73B0;&#x7C7B;&#x3002;</p>
+<p>&#x8FD9;&#x91CC;&#x91C7;&#x7528;&#x7684;&#x662F;&#x89C2;&#x5BDF;&#x8005;&#x6A21;&#x5F0F;&#xFF0C;&#x6240;&#x4EE5;<strong>&#x88AB;&#x89C2;&#x5BDF;&#x8005; ApplicationCopntext</strong> &#x9700;&#x8981;&#x6301;&#x6709;&#x6240;&#x6709;<strong>&#x89C2;&#x5BDF;&#x8005; ApplicationListener</strong> &#x7684;&#x5F15;&#x7528;&#x3002;</p>
+<p><img src="assets/image-20210301235318332.png" style="zoom:67%;"></p>
+<p>ApplicationListener &#x7EE7;&#x627F;&#x4E0E; JDK &#x7684; EventListener &#x7C7B;&#xFF0C;&#x76D1;&#x542C;&#x67D0;&#x4E2A; ApplicationEvent&#x3002;</p>
+<blockquote>
+<p><strong>&#x5728;&#x5BB9;&#x5668;&#x521D;&#x59CB;&#x5316;&#x7684;&#x5404;&#x4E2A;&#x9636;&#x6BB5;&#x90FD;&#x4F1A;&#x53D1;&#x5E03;&#x4E0D;&#x540C;&#x7C7B;&#x578B;&#x7684;&#x4E8B;&#x4EF6;&#xFF0C;&#x501F;&#x52A9;&#x76D1;&#x542C;&#x5668;&#x53EF;&#x4EE5;&#x5728;&#x7279;&#x5B9A;&#x7684;&#x4E8B;&#x4EF6;&#x6267;&#x884C;&#x81EA;&#x5B9A;&#x4E49;&#x64CD;&#x4F5C;&#x3002;</strong></p>
+<p>SpringBoot &#x4E2D;&#x7684;&#x4E8B;&#x4EF6;&#x5206;&#x4E3A;&#x4E24;&#x79CD;&#xFF1A;SpringApplicationEvent&#xFF08;&#x4EE5; SpringApplication &#x4E3A;&#x4E8B;&#x4EF6;&#x6E90;&#xFF09; &#x548C; ApplicationContextEvent&#xFF08;&#x4EE5; ApplicationContext &#x4E3A;&#x4E8B;&#x4EF6;&#x6E90;&#xFF09;&#x3002;</p>
+</blockquote>
+<h3 id="&#x63A8;&#x65AD;&#x4E3B;&#x7C7B;"><a name="&#x63A8;&#x65AD;&#x4E3B;&#x7C7B;" class="anchor-navigation-ex-anchor" href="#&#x63A8;&#x65AD;&#x4E3B;&#x7C7B;"><i class="fa fa-link" aria-hidden="true"></i></a>&#x63A8;&#x65AD;&#x4E3B;&#x7C7B;</h3>
+<p>mainApplicationClass &#x7684;&#x63A8;&#x65AD;&#x8FC7;&#x7A0B;&#x5F88;&#x6709;&#x610F;&#x601D;&#xFF0C;&#x76F4;&#x63A5;&#x6784;&#x9020;&#x4E00;&#x4E2A; RuntimeException &#x7136;&#x540E;&#x904D;&#x5386;&#x5F02;&#x5E38;&#x7684;&#x5806;&#x6808;&#x4FE1;&#x606F;&#x67E5;&#x627E; main &#x65B9;&#x6CD5;&#xFF0C;&#x83B7;&#x53D6;&#x5F53;&#x524D;&#x4E3B;&#x7C7B;&#x3002;</p>
+<pre><code class="lang-java">...
+    <span class="hljs-keyword">try</span> {
+        StackTraceElement[] stackTrace = <span class="hljs-keyword">new</span> RuntimeException().getStackTrace();
+        <span class="hljs-keyword">for</span> (StackTraceElement stackTraceElement : stackTrace) {
+            <span class="hljs-keyword">if</span> (<span class="hljs-string">&quot;main&quot;</span>.equals(stackTraceElement.getMethodName())) {
+                <span class="hljs-keyword">return</span> Class.forName(stackTraceElement.getClassName());
+            }
+        }
+ ...
+</code></pre>
+<hr>
+<h2 id="run&#x65B9;&#x6CD5;"><a name="run&#x65B9;&#x6CD5;" class="anchor-navigation-ex-anchor" href="#run&#x65B9;&#x6CD5;"><i class="fa fa-link" aria-hidden="true"></i></a>Run()&#x65B9;&#x6CD5;</h2>
+<p>run &#x65B9;&#x6CD5;&#x662F;&#x542F;&#x52A8;&#x7684;&#x6838;&#x5FC3;&#x65B9;&#x6CD5;&#xFF0C;&#x5305;&#x542B;&#x4E86;&#x73AF;&#x5883;&#x51C6;&#x5907;&#xFF0C;&#x76D1;&#x542C;&#x4E8B;&#x4EF6;&#x7684;&#x53D1;&#x5E03;&#xFF0C;&#x4E0A;&#x4E0B;&#x6587;&#x7684;&#x5237;&#x65B0;&#x53CA;&#x540E;&#x7EED;&#x5904;&#x7406;&#x7B49;&#x7B49;&#x3002;</p>
+<p>&#x6267;&#x884C;&#x65B9;&#x6CD5;&#x7684;&#x7ED3;&#x679C;&#x5C31;&#x662F;&#x8FD4;&#x56DE;&#x4E00;&#x4E2A;&#x53EF;&#x4F7F;&#x7528;&#x7684; ConfigurationApplicationContext &#xFF0C;&#x4E5F;&#x53EF;&#x4EE5;&#x7406;&#x89E3;&#x4E3A;&#x5C31;&#x662F;<strong>&#x5E94;&#x7528;&#x4E0A;&#x4E0B;&#x6587;&#x7684;&#x88C5;&#x914D;&#x8FC7;&#x7A0B;&#x3002;</strong></p>
+<pre><code class="lang-java">    <span class="hljs-function"><span class="hljs-keyword">public</span> ConfigurableApplicationContext <span class="hljs-title">run</span><span class="hljs-params">(String... args)</span> </span>{
+        <span class="hljs-comment">// &#x7528;&#x4E8E;&#x8BB0;&#x5F55;&#x65F6;&#x95F4;&#xFF0C;&#x53EF;&#x4EE5;&#x5F53;&#x505A;&#x662F;&#x79D2;&#x8868;</span>
+        StopWatch stopWatch = <span class="hljs-keyword">new</span> StopWatch();
+        stopWatch.start();
+        <span class="hljs-comment">// &#x8FD9;&#x4E2A;&#x5C31;&#x662F;&#x6700;&#x7EC8;&#x8981;&#x8FD4;&#x56DE;&#x7684;&#x4E0A;&#x4E0B;&#x6587;&#x5BF9;&#x8C61; </span>
+        ConfigurableApplicationContext context = <span class="hljs-keyword">null</span>;
+        <span class="hljs-comment">// &#x5F02;&#x5E38;&#x62A5;&#x544A;&#x96C6;&#x5408;</span>
+        Collection&lt;SpringBootExceptionReporter&gt; exceptionReporters = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;();
+        <span class="hljs-comment">// Headless&#x76F8;&#x5173;&#x914D;&#x7F6E;</span>
+        configureHeadlessProperty();
+        <span class="hljs-comment">// &#x5DE5;&#x5382;&#x52A0;&#x8F7D;&#x673A;&#x5236;&#x83B7;&#x53D6;SpringApplicationRunListener&#xFF0C;&#x5E76;&#x5C01;&#x88C5;&#x4E3A;&#x4E00;&#x4E2A;&#x5BF9;&#x8C61;</span>
+        <span class="hljs-comment">// SpringApplicationRunListener &#x662F;&#x5E94;&#x7528;&#x542F;&#x52A8;&#x524D;&#x671F;&#x7684;&#x5E7F;&#x64AD;&#x5668;.</span>
+        SpringApplicationRunListeners listeners = getRunListeners(args)&#xFF1B;
+         <span class="hljs-comment">// &#x89E6;&#x53D1; ApplicationStartingEvent</span>
+        listeners.starting();
+        <span class="hljs-keyword">try</span> {
+                <span class="hljs-comment">// &#x5BF9;main&#x65B9;&#x6CD5;&#x7684;&#x5165;&#x53C2;&#x8FDB;&#x884C;&#x5305;&#x88C5;</span>
+                ApplicationArguments applicationArguments = <span class="hljs-keyword">new</span> DefaultApplicationArguments(args);
+                <span class="hljs-comment">// &#x51C6;&#x5907;&#x5BB9;&#x5668;&#x73AF;&#x5883;</span>
+                <span class="hljs-comment">// &#x4F1A;&#x89E6;&#x53D1;ApplicationEnvironmentPreparedEvent&#xFF0C;&#x8BFB;&#x53D6;&#x914D;&#x7F6E;&#x6587;&#x4EF6;&#x4E2D;&#x7684;&#x5185;&#x5BB9;</span>
+                <span class="hljs-comment">// &#x4F1A;&#x5C06;&#x73AF;&#x5883;&#x4E0E;&#x5F53;&#x524D;&#x7684;SpringApplication&#x7ED1;&#x5B9A;</span>
+                ConfigurableEnvironment environment = prepareEnvironment(listeners, applicationArguments);
+                <span class="hljs-comment">// &#x914D;&#x7F6E;&#x5FFD;&#x7565;&#x7684;Bean&#x4FE1;&#x606F;,`spring.beaninfo.ignore`&#x914D;&#x7F6E;&#x9879;</span>
+                configureIgnoreBeanInfo(environment);
+                <span class="hljs-comment">// &#x8F93;&#x51FA;Banner</span>
+                Banner printedBanner = printBanner(environment);
+                <span class="hljs-comment">// &#x521B;&#x5EFA;&#x5BF9;&#x5E94;&#x7684;&#x5E94;&#x7528;&#x4E0A;&#x4E0B;&#x6587;</span>
+                <span class="hljs-comment">// &#x5F53;&#x524D;&#x73AF;&#x5883;&#x7684;&#x4E0A;&#x4E0B;&#x6587;&#x4E3B;&#x7C7B;&#x662F;AnnotationConfigServletWebServerApplicationContext</span>
+                context = createApplicationContext();
+                <span class="hljs-comment">// &#x8FD8;&#x662F;&#x5DE5;&#x5382;&#x52A0;&#x8F7D;&#x6A21;&#x5F0F;&#xFF0C;&#x83B7;&#x53D6;&#x5F02;&#x5E38;&#x7684;&#x62A5;&#x544A;&#x4E4B;&#x7C7B;&#x7684;</span>
+                exceptionReporters = getSpringFactoriesInstances(SpringBootExceptionReporter.class,
+                        <span class="hljs-keyword">new</span> Class[] { ConfigurableApplicationContext.class }, context);
+                <span class="hljs-comment">// &#x51C6;&#x5907;&#x4E0A;&#x4E0B;&#x6587; </span>
+                <span class="hljs-comment">//  &#x8BE5;&#x9636;&#x6BB5;&#x4F1A;&#x8C03;&#x7528;&#x6784;&#x9020;&#x51FD;&#x6570;&#x4E2D;&#x83B7;&#x53D6;&#x7684;ApplicationContextInitializer</span>
+                <span class="hljs-comment">// &#x4E5F;&#x4F1A;&#x5C06;sources&#x4E2D;&#x7684;BeanDefinition&#x52A0;&#x8F7D;&#x8FDB;BeanFactory</span>
+                prepareContext(context, environment, listeners, applicationArguments, printedBanner);
+                <span class="hljs-comment">// &#x5237;&#x65B0;&#x4E0A;&#x4E0B;&#x6587;</span>
+                refreshContext(context);
+                <span class="hljs-comment">// &#x5237;&#x65B0;&#x4E0A;&#x4E0B;&#x6587;&#x4E4B;&#x540E;&#x7684;&#x64CD;&#x4F5C;</span>
+                <span class="hljs-comment">// Servlet Web&#x73AF;&#x5883;&#x4E0B;&#x5E76;&#x6CA1;&#x6709;&#x5B9E;&#x73B0;&#x8BE5;&#x65B9;&#x6CD5;</span>
+                afterRefresh(context, applicationArguments);
+                <span class="hljs-comment">// &#x8BA1;&#x65F6;&#x7ED3;&#x675F;</span>
+                stopWatch.stop();
+                <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.logStartupInfo) {
+                        <span class="hljs-keyword">new</span> StartupInfoLogger(<span class="hljs-keyword">this</span>.mainApplicationClass).logStarted(getApplicationLog(), stopWatch);
+                }
+                <span class="hljs-comment">// &#x5E7F;&#x64AD;ApplicationStartedEvent</span>
+                listeners.started(context);
+                callRunners(context, applicationArguments);
+        } <span class="hljs-keyword">catch</span> (Throwable ex) {
+                handleRunFailure(context, ex, exceptionReporters, listeners);
+                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalStateException(ex);
+        }
+
+        <span class="hljs-keyword">try</span> {
+                listeners.running(context);
+        } <span class="hljs-keyword">catch</span> (Throwable ex) {
+                handleRunFailure(context, ex, exceptionReporters, <span class="hljs-keyword">null</span>);
+                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalStateException(ex);
+        }
+        <span class="hljs-keyword">return</span> context;
+    }
+</code></pre>
+<h3 id="1&#x542F;&#x52A8;&#x8BA1;&#x65F6;&#x5668;"><a name="1&#x542F;&#x52A8;&#x8BA1;&#x65F6;&#x5668;" class="anchor-navigation-ex-anchor" href="#1&#x542F;&#x52A8;&#x8BA1;&#x65F6;&#x5668;"><i class="fa fa-link" aria-hidden="true"></i></a>1.&#x542F;&#x52A8;&#x8BA1;&#x65F6;&#x5668;</h3>
+<pre><code class="lang-java"><span class="hljs-comment">// SpringApplication</span>
+StopWatch stopWatch = <span class="hljs-keyword">new</span> StopWatch();
+stopWatch.start();
+
+<span class="hljs-comment">// StopWatch</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">start</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> IllegalStateException </span>{
+        start(<span class="hljs-string">&quot;&quot;</span>);
+}
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">start</span><span class="hljs-params">(String taskName)</span> <span class="hljs-keyword">throws</span> IllegalStateException </span>{
+        <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.currentTaskName != <span class="hljs-keyword">null</span>) {
+                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalStateException(<span class="hljs-string">&quot;Can&apos;t start StopWatch: it&apos;s already running&quot;</span>);
+        }
+        <span class="hljs-keyword">this</span>.currentTaskName = taskName;
+        <span class="hljs-comment">// &#x91C7;&#x7528;&#x672C;&#x5730;&#x7CFB;&#x7EDF;&#x65F6;&#x949F;</span>
+        <span class="hljs-keyword">this</span>.startTimeNanos = System.nanoTime();
+}
+</code></pre>
+<p>&#x4E0A;&#x949F;&#xFF0C;&#x8BA1;&#x65F6;&#x5F00;&#x59CB;&#x3002;</p>
+<h3 id="2-&#x914D;&#x7F6E;-headless"><a name="2-&#x914D;&#x7F6E;-headless" class="anchor-navigation-ex-anchor" href="#2-&#x914D;&#x7F6E;-headless"><i class="fa fa-link" aria-hidden="true"></i></a>2. &#x914D;&#x7F6E; Headless</h3>
+<pre><code class="lang-java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String SYSTEM_PROPERTY_JAVA_AWT_HEADLESS = <span class="hljs-string">&quot;java.awt.headless&quot;</span>;
+
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">configureHeadlessProperty</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-comment">// System&#x7684;&#x76F8;&#x5173;&#x914D;&#x7F6E; </span>
+        System.setProperty(SYSTEM_PROPERTY_JAVA_AWT_HEADLESS,
+                System.getProperty(SYSTEM_PROPERTY_JAVA_AWT_HEADLESS, Boolean.toString(<span class="hljs-keyword">this</span>.headless)));
+}
+</code></pre>
+<p>Headless &#x6A21;&#x5F0F;&#x662F;&#x5E94;&#x7528;&#x7684;&#x4E00;&#x79CD;&#x914D;&#x7F6E;&#x6A21;&#x5F0F;&#x3002;</p>
+<p>&#x5728;&#x670D;&#x52A1;&#x5668;&#x53EF;&#x80FD;&#x7F3A;&#x5C11;&#x663E;&#x793A;&#x8BBE;&#x5907;&#x3001;&#x952E;&#x76D8;&#x3001;&#x9F20;&#x6807;&#x7B49;&#x5916;&#x8BBE;&#x7684;&#x60C5;&#x51B5;&#x4E0B;&#x53EF;&#x4EE5;&#x4F7F;&#x7528;&#x8FD9;&#x79CD;&#x6A21;&#x5F0F;&#x3002;</p>
+<h3 id="3-&#x83B7;&#x53D6;&#x5E76;&#x542F;&#x52A8;&#x76D1;&#x542C;&#x5668;"><a name="3-&#x83B7;&#x53D6;&#x5E76;&#x542F;&#x52A8;&#x76D1;&#x542C;&#x5668;" class="anchor-navigation-ex-anchor" href="#3-&#x83B7;&#x53D6;&#x5E76;&#x542F;&#x52A8;&#x76D1;&#x542C;&#x5668;"><i class="fa fa-link" aria-hidden="true"></i></a>3. &#x83B7;&#x53D6;&#x5E76;&#x542F;&#x52A8;&#x76D1;&#x542C;&#x5668;</h3>
+<pre><code class="lang-java"><span class="hljs-comment">// SpringApplication</span>
+SpringApplicationRunListeners listeners = getRunListeners(args)&#xFF1B;
+
+<span class="hljs-function"><span class="hljs-keyword">private</span> SpringApplicationRunListeners <span class="hljs-title">getRunListeners</span><span class="hljs-params">(String[] args)</span> </span>{
+    Class&lt;?&gt;[] types = <span class="hljs-keyword">new</span> Class&lt;?&gt;[] { SpringApplication.class, String[].class };
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> SpringApplicationRunListeners(logger,
+                                             getSpringFactoriesInstances(SpringApplicationRunListener.class, types, <span class="hljs-keyword">this</span>, args));
+}
+</code></pre>
+<p>&#x8FD9;&#x91CC;&#x83B7;&#x53D6;&#x7684;&#x76D1;&#x542C;&#x5668;&#x548C;&#x4E4B;&#x524D;&#x6784;&#x9020;&#x51FD;&#x6570;&#x4E2D;&#x7684;&#x4E0D;&#x540C;&#xFF0C;&#x8FD9;&#x91CC;&#x83B7;&#x53D6;&#x7684;&#x662F; <strong>SpringApplicationRunListener</strong> &#x7684;&#x5B9E;&#x73B0;&#x7C7B;&#xFF0C;&#x5E76;&#x5305;&#x88C5;&#x4E3A; SpringApplicationRunListeners&#x3002;</p>
+<blockquote>
+<p>SpringApplicationRunListener &#x662F;&#x4E13;&#x95E8;&#x7684;&#x5BF9;&#x5BB9;&#x5668;&#x542F;&#x52A8;&#x65F6;&#x5404;&#x4E2A;&#x9636;&#x6BB5;&#x7684;&#x76D1;&#x542C;&#xFF0C;&#x4E00;&#x5B9A;&#x7A0B;&#x5EA6;&#x4E0A;&#x6765;&#x8BF4;&#x4E5F;&#x5B9A;&#x4E49;&#x4E86;&#x542F;&#x52A8;&#x7684;&#x5404;&#x4E2A;&#x9636;&#x6BB5;&#x3002;</p>
+</blockquote>
+<p><img src="../../pic/image-20200518230122762.png" alt="image-20200518230122762"></p>
+<p><strong>SpringApplicationRunListener &#x5176;&#x9ED8;&#x8BA4;&#x7684;&#x5B9E;&#x73B0;&#x53EA;&#x6709; EventPublishingRunListener</strong>&#xFF0C;&#x4EE5;&#x4E0B;&#x4E3A; EventPublishingRunListener &#x7684;&#x6784;&#x9020;&#x51FD;&#x6570;&#xFF1A;</p>
+<pre><code class="lang-java"><span class="hljs-comment">// EventPublishingRunListener&#x7684;&#x6784;&#x9020;&#x51FD;&#x6570;</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">EventPublishingRunListener</span><span class="hljs-params">(SpringApplication application, String[] args)</span> </span>{
+        <span class="hljs-keyword">this</span>.application = application;
+        <span class="hljs-keyword">this</span>.args = args;
+        <span class="hljs-keyword">this</span>.initialMulticaster = <span class="hljs-keyword">new</span> SimpleApplicationEventMulticaster();
+        <span class="hljs-comment">// &#x83B7;&#x53D6; SpringApplication &#x4E2D;&#x7684;&#x6240;&#x6709;&#x76D1;&#x542C;&#x5668;&#xFF0C;&#x5E76;&#x6DFB;&#x52A0;&#x5230;&#x5185;&#x90E8;&#x7684; Multicaster &#x4E2D;</span>
+        <span class="hljs-keyword">for</span> (ApplicationListener&lt;?&gt; listener : application.getListeners()) {
+                <span class="hljs-keyword">this</span>.initialMulticaster.addApplicationListener(listener);
+        }
+}
+</code></pre>
+<p><strong>EventPublishingRunListener &#x4F1A;&#x83B7;&#x53D6; SpringApplication &#x4E2D;&#x5DF2;&#x6709;&#x7684;&#x76D1;&#x542C;&#x5668;&#x3002;</strong></p>
+<p>EventPublishingRunListener &#x662F;&#x5E94;&#x7528;&#x542F;&#x52A8;&#x521D;&#x671F;&#x7684;&#x76D1;&#x542C;&#x8005;&#xFF0C;&#x4E5F;&#x662F;&#x501F;&#x52A9;&#x4E8E; SimpleApplicationEventMulticaster &#x5E7F;&#x64AD;&#x4E8B;&#x4EF6;&#xFF0C;&#x5B9E;&#x73B0;&#x5982;&#x4E0B;&#x56FE;&#xFF1A;</p>
+<p><img src="../../pic/image-20210302000737616.png" alt="image-20210302000737616" style="zoom:67%;"></p>
+<blockquote>
+<p>&#x53E6;&#x5916;&#x503C;&#x5F97;&#x6CE8;&#x610F;&#x7684;&#x662F;&#xFF0C;<strong>&#x5728; contextLoaded &#x4E8B;&#x4EF6;&#x4E4B;&#x540E;&#x4E8B;&#x4EF6;&#x7684;&#x53D1;&#x5E03;&#x53C8;&#x662F;&#x4F7F;&#x7528; ApplicationContext &#x6765;&#x5B8C;&#x6210;&#x7684;</strong>&#xFF0C;&#x56E0;&#x4E3A; ApplicationContext &#x4E2D;&#x7684;&#x4E8B;&#x4EF6;&#x53D1;&#x5E03;&#x5668;&#x5DF2;&#x7ECF;&#x5B8C;&#x6210;&#x521D;&#x59CB;&#x5316;&#x4E86;&#x4E86;&#x3002;</p>
+</blockquote>
+<p><img src="assets/image-20210813175138196.png" alt="EventPublishingRunListener&#x7684;&#x90E8;&#x5206;&#x65B9;&#x6CD5;"></p>
+<p>SpringBoot &#x7684;&#x542F;&#x52A8;&#x9636;&#x6BB5;&#xFF0C;&#x5404;&#x7C7B;&#x76D1;&#x542C;&#x5668;&#x8D77;&#x4E86;&#x975E;&#x5E38;&#x5173;&#x952E;&#x7684;&#x89D2;&#x8272;&#xFF0C;&#x5305;&#x62EC;<strong>&#x914D;&#x7F6E;&#x6587;&#x4EF6;&#x7684;&#x52A0;&#x8F7D;&#x90FD;&#x662F;&#x901A;&#x8FC7;&#x76D1;&#x542C;&#x5668;&#x5B8C;&#x6210;&#x7684;</strong>&#x3002;</p>
+<p>ApplicationContext &#x672C;&#x8EAB;&#x5C31;&#x662F;&#x4E00;&#x4E2A;&#x4E8B;&#x4EF6;&#x5E7F;&#x64AD;&#x5668;&#xFF0C;&#x4F46;&#x662F;&#x5728; SpringBoot &#x7684;&#x542F;&#x52A8;&#x9636;&#x6BB5;&#xFF0C;ApplicationContext &#x8FD8;&#x6CA1;&#x6709;&#x521D;&#x59CB;&#x5316;&#x597D;&#x7684;&#x65F6;&#x5019;&#x5C31;&#x9700;&#x8981;&#x5E7F;&#x64AD;&#x90E8;&#x5206;&#x4E8B;&#x4EF6;&#x3002;</p>
+<p>&#x6240;&#x4EE5;&#x51FA;&#x73B0;&#x4E86; SpringApplicationRunListener&#xFF0C;&#x5B83;&#x5B9A;&#x4E49;&#x4E86;&#x542F;&#x52A8;&#x6D41;&#x7A0B;&#x7684;&#x5404;&#x4E2A;&#x9636;&#x6BB5;&#xFF0C;&#x4E5F;&#x4F5C;&#x4E3A;&#x521D;&#x671F;&#x7684;&#x4E8B;&#x4EF6;&#x5E7F;&#x64AD;&#x5668;&#x3002;</p>
+<blockquote>
+<p>SpringApplicationRunListener &#x548C; ApplicationContext &#x5E7F;&#x64AD;&#x4E8B;&#x4EF6;&#x4E5F;&#x90FD;&#x662F;&#x901A;&#x8FC7; SimpleApplicationEventMulticaster &#x5B9E;&#x73B0;&#x7684;&#x3002;</p>
+</blockquote>
+<p>&#x5728; contextLoaded &#x4E2D;&#xFF0C;SpringApplicationRunListener &#x5C06;&#x5B83;&#x6301;&#x6709;&#x7684;&#x6240;&#x6709;&#x76D1;&#x542C;&#x8005;&#x5168;&#x90E8;&#x6DFB;&#x52A0;&#x5230;&#x4E86; ApplicationContext &#x4E2D;&#xFF0C;&#x6240;&#x4EE5;&#x540E;&#x7EED;&#x7684;&#x4E8B;&#x4EF6;&#x5E7F;&#x64AD;&#x53C8;&#x662F;&#x901A;&#x8FC7; ApplicationContext &#x81EA;&#x5DF1;&#x6765;&#x4E86;&#x3002;</p>
+<p><br></p>
+<h3 id="3-&#x53D1;&#x5E03;-applicationstartingevent"><a name="3-&#x53D1;&#x5E03;-applicationstartingevent" class="anchor-navigation-ex-anchor" href="#3-&#x53D1;&#x5E03;-applicationstartingevent"><i class="fa fa-link" aria-hidden="true"></i></a>3. &#x53D1;&#x5E03; ApplicationStartingEvent</h3>
+<p>NOOP&#x3002;</p>
+<h3 id="4-&#x521B;&#x5EFA;&#x5E76;&#x51C6;&#x5907;&#x73AF;&#x5883;"><a name="4-&#x521B;&#x5EFA;&#x5E76;&#x51C6;&#x5907;&#x73AF;&#x5883;" class="anchor-navigation-ex-anchor" href="#4-&#x521B;&#x5EFA;&#x5E76;&#x51C6;&#x5907;&#x73AF;&#x5883;"><i class="fa fa-link" aria-hidden="true"></i></a>4. &#x521B;&#x5EFA;&#x5E76;&#x51C6;&#x5907;&#x73AF;&#x5883;</h3>
+<pre><code class="lang-java"><span class="hljs-comment">// SpringApplication#prepareEnvironment </span>
+<span class="hljs-function"><span class="hljs-keyword">private</span> ConfigurableEnvironment <span class="hljs-title">prepareEnvironment</span><span class="hljs-params">(SpringApplicationRunListeners listeners,
+                                                   ApplicationArguments applicationArguments)</span> </span>{
+    <span class="hljs-comment">// &#x521B;&#x5EFA;&#x6216;&#x8005;&#x83B7;&#x53D6;&#x4E00;&#x4E2A; ConfigurationEnvironment &#x5BF9;&#x8C61;    </span>
+    ConfigurableEnvironment environment = getOrCreateEnvironment();
+    <span class="hljs-comment">// &#x914D;&#x7F6E; Profiles &#x548C; PropertySource</span>
+    configureEnvironment(environment, applicationArguments.getSourceArgs());
+    ConfigurationPropertySources.attach(environment);
+    <span class="hljs-comment">// &#x53D1;&#x5E03;&#x73AF;&#x5883;&#x51C6;&#x5907;&#x5C31;&#x7EEA;&#x7684;&#x4E8B;&#x4EF6;&#xFF0C;&#x8FDB;&#x4E00;&#x6B65;&#x52A0;&#x8F7D;&#x914D;&#x7F6E;</span>
+    listeners.environmentPrepared(environment);
+    bindToSpringApplication(environment);
+    <span class="hljs-keyword">if</span> (!<span class="hljs-keyword">this</span>.isCustomEnvironment) {
+        environment = <span class="hljs-keyword">new</span> EnvironmentConverter(getClassLoader()).convertEnvironmentIfNecessary(environment, deduceEnvironmentClass());
+    }
+    ConfigurationPropertySources.attach(environment);
+    <span class="hljs-keyword">return</span> environment;
+}
+</code></pre>
+<p>&#x8BE5;&#x65B9;&#x6CD5;&#x4E2D;&#x9996;&#x5148;<strong>&#x521B;&#x5EFA;&#x4E86; Environment</strong>&#xFF0C;&#x5E76;&#x4E14;&#x8FDB;&#x4E00;&#x6B65;<strong>&#x914D;&#x7F6E;&#x4E86;&#x90E8;&#x5206; PropertySources &#x4EE5;&#x53CA; Profile &#x5C5E;&#x6027;&#x3002;</strong></p>
+<ul>
+<li><p>profile &#x5C5E;&#x6027;&#x5C31;&#x53EA;&#x6D3B;&#x8DC3;&#x7684;&#x73AF;&#x5883;&#xFF0C;&#x4F8B;&#x5982;&#x9879;&#x76EE;&#x4E2D;&#x5F80;&#x5F80;&#x5B58;&#x5728; application-dev.yml &#x4EE5;&#x53CA; application-test.yml &#x4E24;&#x79CD;&#x73AF;&#x5883;&#x7684;&#x914D;&#x7F6E;&#x6587;&#x4EF6;&#x3002;</p>
+</li>
+<li><p>PropertySource &#x4E3B;&#x8981;&#x662F;&#x5BF9;&#x9879;&#x76EE;&#x542F;&#x52A8;&#x53C2;&#x6570;&#x7684;&#x5305;&#x88C5;&#xFF0C;&#x4EE5;&#x53CA;&#x5728;&#x521D;&#x59CB;&#x5316;&#x7684;&#x65F6;&#x5019;&#x5E26;&#x6709;&#x7684;&#x4E00;&#x4E9B;&#x7CFB;&#x7EDF;&#x7EA7;&#x7684; PropertySource</p>
+</li>
+</ul>
+<blockquote>
+<p>PropertySource &#x7B80;&#x5355;&#x6765;&#x8BF4;&#x5C31;&#x662F;&#x4E00;&#x4E2A; K/V &#x7684;&#x914D;&#x7F6E;&#x5C5E;&#x6027;&#x3002;</p>
+</blockquote>
+<p><br></p>
+<p>&#x7B80;&#x5355;&#x914D;&#x7F6E;&#x4E4B;&#x540E;&#x53D1;&#x5E03;&#x4E86; ApplicationEnvironmentPreparedEvent &#xFF0C;&#x76D1;&#x542C;&#x8BE5;&#x4E8B;&#x4EF6;&#x7684;&#x4E3B;&#x8981;&#x76D1;&#x542C;&#x5668;&#xFF1A;</p>
+<ul>
+<li><p>ConfigFileApplicationListener &#x4F1A;&#x76D1;&#x542C;&#x8BE5;&#x4E8B;&#x4EF6;&#x5E76;&#x8BFB;&#x53D6;&#x914D;&#x7F6E;&#x6587;&#x4EF6;&#xFF0C;Consul &#x7B49;&#x8FDC;&#x7A0B;&#x914D;&#x7F6E;&#x4E2D;&#x5FC3;&#x7684;&#x914D;&#x7F6E;&#x5E76;&#x4E0D;&#x4F1A;&#x5728;&#x8FD9;&#x662F;&#x8BFB;&#x53D6;&#x3002;</p>
+</li>
+<li><p>BootstrapApplicationListener &#x4F1A;&#x76D1;&#x542C;&#x8BE5;&#x4E8B;&#x4EF6;&#xFF0C;&#x63D2;&#x961F;&#x521B;&#x5EFA; SpringCloud &#x7684; bootstrap &#x5E94;&#x7528;&#x4E0A;&#x4E0B;&#x6587;&#x3002;</p>
+</li>
+</ul>
+<p><br></p>
+<h3 id="5-&#x914D;&#x7F6E;&#x5FFD;&#x7565;&#x7684;bean&#x4FE1;&#x606F;"><a name="5-&#x914D;&#x7F6E;&#x5FFD;&#x7565;&#x7684;bean&#x4FE1;&#x606F;" class="anchor-navigation-ex-anchor" href="#5-&#x914D;&#x7F6E;&#x5FFD;&#x7565;&#x7684;bean&#x4FE1;&#x606F;"><i class="fa fa-link" aria-hidden="true"></i></a>5. &#x914D;&#x7F6E;&#x5FFD;&#x7565;&#x7684;Bean&#x4FE1;&#x606F;</h3>
+<pre><code class="lang-java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String IGNORE_BEANINFO_PROPERTY_NAME = <span class="hljs-string">&quot;spring.beaninfo.ignore&quot;</span>;
+
+<span class="hljs-comment">// SpringApplication</span>
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">configureIgnoreBeanInfo</span><span class="hljs-params">(ConfigurableEnvironment environment)</span> </span>{
+        <span class="hljs-keyword">if</span> (System.getProperty(CachedIntrospectionResults.IGNORE_BEANINFO_PROPERTY_NAME) == <span class="hljs-keyword">null</span>) {
+    Boolean ignore = environment.getProperty(<span class="hljs-string">&quot;spring.beaninfo.ignore&quot;</span>, Boolean.class, Boolean.TRUE);
+    System.setProperty(CachedIntrospectionResults.IGNORE_BEANINFO_PROPERTY_NAME, ignore.toString());
+        }
+}
+</code></pre>
+<p>&#x65B9;&#x6CD5;&#x903B;&#x8F91;&#x5F88;&#x7B80;&#x5355;&#xFF0C;&#x5C31;&#x662F;&#x5728;&#x7CFB;&#x7EDF;&#x914D;&#x7F6E;&#x4E2D;&#x6CA1;&#x6709; spring.beaninfo.ignore &#x65F6;&#xFF0C;&#x5C06;&#x5F53;&#x524D;&#x73AF;&#x5883;&#x5BB9;&#x5668;&#x4E2D;&#x7684;&#x5BF9;&#x5E94;&#x5C5E;&#x6027;&#x585E;&#x8FDB;&#x53BB;&#x3002;</p>
+<p><todo> &#x5FFD;&#x7565;&#x7684; Bean &#x5177;&#x4F53;&#x662F;&#x5E72;&#x5565;&#x7684;&#x8FD8;&#x4E0D;&#x6E05;&#x695A;&#x3002;</todo></p>
+<h3 id="6-&#x8F93;&#x51FA;banner"><a name="6-&#x8F93;&#x51FA;banner" class="anchor-navigation-ex-anchor" href="#6-&#x8F93;&#x51FA;banner"><i class="fa fa-link" aria-hidden="true"></i></a>6. &#x8F93;&#x51FA;Banner</h3>
+<pre><code class="lang-java">Banner printedBanner = printBanner(environment);
+</code></pre>
+<p>&#x6253;&#x5370; Banner &#x7684;&#x3002;</p>
+<h3 id="7--&#x521B;&#x5EFA;&#x5E94;&#x7528;&#x4E0A;&#x4E0B;&#x6587;"><a name="7--&#x521B;&#x5EFA;&#x5E94;&#x7528;&#x4E0A;&#x4E0B;&#x6587;" class="anchor-navigation-ex-anchor" href="#7--&#x521B;&#x5EFA;&#x5E94;&#x7528;&#x4E0A;&#x4E0B;&#x6587;"><i class="fa fa-link" aria-hidden="true"></i></a>7.  &#x521B;&#x5EFA;&#x5E94;&#x7528;&#x4E0A;&#x4E0B;&#x6587;</h3>
+<p>&#x903B;&#x8F91;&#x5F88;&#x7B80;&#x5355;&#xFF0C;<strong>&#x6839;&#x636E;&#x4E0D;&#x540C;&#x7684;Web&#x5E94;&#x7528;&#x7C7B;&#x578B;&#x521B;&#x5EFA;&#x5BF9;&#x5E94;&#x7684;&#x4E0A;&#x4E0B;&#x6587;&#x7C7B;</strong>&#xFF0C;&#x5177;&#x4F53;&#x5BF9;&#x5E94;&#x5173;&#x7CFB;&#x5982;&#x4E0B;&#xFF1A;</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">&#x73AF;&#x5883;&#x7C7B;&#x578B;</th>
+<th style="text-align:center">&#x4E0A;&#x4E0B;&#x6587;&#x7C7B;</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">Default</td>
+<td style="text-align:center">AnnotationConfigApplicationContext</td>
+</tr>
+<tr>
+<td style="text-align:center">Servlet</td>
+<td style="text-align:center">AnnotationConfigServletWebServerApplicationContext</td>
+</tr>
+<tr>
+<td style="text-align:center">Reactive</td>
+<td style="text-align:center">AnnotationConfigReactiveWebServerApplicationContext</td>
+</tr>
+</tbody>
+</table>
+<p>&#x5E94;&#x7528;&#x7C7B;&#x578B;&#x662F;&#x5728; SpringApplication &#x7684;&#x6784;&#x9020;&#x51FD;&#x6570;&#x4E2D;&#x63A8;&#x65AD;&#x51FA;&#x6765;&#x7684;&#x3002;</p>
+<p><br></p>
+<h3 id="8-&#x83B7;&#x53D6;&#x5F02;&#x5E38;&#x7684;&#x62A5;&#x544A;&#x65B9;&#x6CD5;"><a name="8-&#x83B7;&#x53D6;&#x5F02;&#x5E38;&#x7684;&#x62A5;&#x544A;&#x65B9;&#x6CD5;" class="anchor-navigation-ex-anchor" href="#8-&#x83B7;&#x53D6;&#x5F02;&#x5E38;&#x7684;&#x62A5;&#x544A;&#x65B9;&#x6CD5;"><i class="fa fa-link" aria-hidden="true"></i></a>8. &#x83B7;&#x53D6;&#x5F02;&#x5E38;&#x7684;&#x62A5;&#x544A;&#x65B9;&#x6CD5;</h3>
+<pre><code class="lang-java">exceptionReporters = getSpringFactoriesInstances(SpringBootExceptionReporter.class,
+                                                 <span class="hljs-keyword">new</span> Class[] { ConfigurableApplicationContext.class }, context);
+</code></pre>
+<p>&#x901A;&#x8FC7;&#x5DE5;&#x5382;&#x52A0;&#x8F7D;&#x6A21;&#x5F0F;&#x83B7;&#x53D6; SpringBootExceptionReporter &#x5B9E;&#x73B0;&#x7C7B;&#xFF0C;&#x83B7;&#x53D6;&#x7684; exceptionReporters &#x4F1A;&#x5728; catch &#x7684;&#x903B;&#x8F91;&#x91CC;&#x4F7F;&#x7528;&#xFF0C;&#x6765;&#x62A5;&#x544A;&#x51FA;&#x73B0;&#x7684;&#x5F02;&#x5E38;&#x60C5;&#x51B5;&#x3002;</p>
+<p><br></p>
+<h3 id="9-&#x51C6;&#x5907;&#x4E0A;&#x4E0B;&#x6587;"><a name="9-&#x51C6;&#x5907;&#x4E0A;&#x4E0B;&#x6587;" class="anchor-navigation-ex-anchor" href="#9-&#x51C6;&#x5907;&#x4E0A;&#x4E0B;&#x6587;"><i class="fa fa-link" aria-hidden="true"></i></a>9. &#x51C6;&#x5907;&#x4E0A;&#x4E0B;&#x6587;</h3>
+<pre><code class="lang-java"><span class="hljs-comment">// SpringApplication# prepareContext</span>
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">prepareContext</span><span class="hljs-params">(ConfigurableApplicationContext context, ConfigurableEnvironment environment,SpringApplicationRunListeners listeners, ApplicationArguments applicationArguments, Banner printedBanner)</span> </span>{
+    <span class="hljs-comment">// &#x914D;&#x7F6E; Environment &#x5230;&#x5E94;&#x7528;&#x4E0A;&#x4E0B;&#x6587;</span>
+    context.setEnvironment(environment);
+    <span class="hljs-comment">// &#x914D;&#x7F6E;&#x4E00;&#x4E9B;&#x5FC5;&#x8981;&#x7684;Bean</span>
+    postProcessApplicationContext(context);
+    <span class="hljs-comment">// &#x5E94;&#x7528;&#x6240;&#x6709;&#x521D;&#x59CB;&#x5316;&#x5668;</span>
+    applyInitializers(context);
+    <span class="hljs-comment">// &#x53D1;&#x5E03;&#x4E0A;&#x4E0B;&#x6587;&#x51C6;&#x5907;&#x5C31;&#x7EEA;&#x4E8B;&#x4EF6;</span>
+    listeners.contextPrepared(context);
+    <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.logStartupInfo) {
+        logStartupInfo(context.getParent() == <span class="hljs-keyword">null</span>);
+        logStartupProfileInfo(context);
+    }
+    <span class="hljs-comment">// &#x6CE8;&#x518C;&#x76F8;&#x5173;Bean&#xFF0C;&#x8FD9;&#x4E9B;&#x4E3A;&#x4EC0;&#x4E48;&#x4E0D;&#x4E00;&#x8D77;&#x6254;&#x5230; postProcessApplicationContext &#x65B9;&#x6CD5;&#x5462;&#xFF1F;</span>
+    ConfigurableListableBeanFactory beanFactory = context.getBeanFactory();
+    beanFactory.registerSingleton(<span class="hljs-string">&quot;springApplicationArguments&quot;</span>, applicationArguments);
+    <span class="hljs-keyword">if</span> (printedBanner != <span class="hljs-keyword">null</span>) {
+        beanFactory.registerSingleton(<span class="hljs-string">&quot;springBootBanner&quot;</span>, printedBanner);
+    }
+    <span class="hljs-keyword">if</span> (beanFactory <span class="hljs-keyword">instanceof</span> DefaultListableBeanFactory) {
+        ((DefaultListableBeanFactory) beanFactory)
+        .setAllowBeanDefinitionOverriding(<span class="hljs-keyword">this</span>.allowBeanDefinitionOverriding);
+    }
+    <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.lazyInitialization) {
+        context.addBeanFactoryPostProcessor(<span class="hljs-keyword">new</span> LazyInitializationBeanFactoryPostProcessor());
+    }
+    <span class="hljs-comment">// Load the sources</span>
+    Set&lt;Object&gt; sources = getAllSources();
+    Assert.notEmpty(sources, <span class="hljs-string">&quot;Sources must not be empty&quot;</span>);
+    <span class="hljs-comment">// &#x52A0;&#x8F7D;&#x6240;&#x6709;&#x7684; BeanDefinition</span>
+    load(context, sources.toArray(<span class="hljs-keyword">new</span> Object[<span class="hljs-number">0</span>]));
+    <span class="hljs-comment">// &#x53D1;&#x5E03;&#x4E0A;&#x4E0B;&#x6587;&#x5DF2;&#x52A0;&#x8F7D;&#x5B8C;&#x6BD5;&#x4E8B;&#x4EF6;</span>
+    listeners.contextLoaded(context);
+}
+</code></pre>
+<p>&#x8BE5;&#x65B9;&#x6CD5;&#x9996;&#x5148;&#x914D;&#x7F6E;&#x4E86;&#x73AF;&#x5883;&#xFF0C;&#x800C;&#x540E;&#x8C03;&#x7528;&#x6240;&#x6709;&#x7684;&#x6240;&#x6709;&#x7684; ApplicationContextInitializer &#x5B9E;&#x73B0;&#x7C7B;&#xFF0C;&#x91CD;&#x70B9;&#x7684;&#x5B9E;&#x73B0;&#x5982;&#x4E0B;&#xFF1A;</p>
+<ul>
+<li><p><strong>BootstrapApplicationListener#AncestorInitializer</strong> &#x4F5C;&#x7528;&#x662F;&#x5C06; SpringCloud &#x7684; bootstrap &#x4E0A;&#x4E0B;&#x6587;&#x8BBE;&#x7F6E;&#x4E3A;&#x5F53;&#x524D;&#x7684;&#x7236;&#x4E0A;&#x4E0B;&#x6587;&#xFF0C;AncestorInitializer &#x4F1A;&#x8FDB;&#x4E00;&#x6B65;&#x521B;&#x5EFA; ParentContextApplicationContextInitializer &#x8FDB;&#x884C;&#x521D;&#x59CB;&#x5316;&#x3002;</p>
+</li>
+<li><p><strong>PropertySourceBootstrapConfiguration</strong> &#x4F5C;&#x7528;&#x662F;&#x52A0;&#x8F7D;&#x8FDC;&#x7A0B;&#x7684;&#x914D;&#x7F6E;&#x3002;</p>
+</li>
+<li><strong>DelegatingApplicationContextInitializer</strong> &#x4F1A;&#x8FDB;&#x4E00;&#x6B65;&#x6267;&#x884C; context.initializer.classes &#x914D;&#x7F6E;&#x4E0B;&#x7684; ApplicationContextInitializer &#x5B9E;&#x73B0;&#x7C7B;&#x3002;</li>
+<li><strong>ServletContextApplicationContextInitializer</strong> &#x4F1A;&#x8FDB;&#x4E00;&#x6B65;&#x914D;&#x7F6E; ServiceContext&#x3002;</li>
+</ul>
+<blockquote>
+<p>ApplicationContextInitializer &#x662F;&#x9644;&#x52A0;&#x7684;&#x5BF9; ApplicationContext &#x7684;&#x521D;&#x59CB;&#x5316;&#xFF0C;&#x5728; SpringBoot &#x4E2D;&#x7B97;&#x662F;&#x975E;&#x5E38;&#x91CD;&#x8981;&#x7684;&#x6269;&#x5C55;&#x70B9;&#x4E86;&#xFF0C;&#x56E0;&#x4E3A;&#x53C2;&#x6570;&#x4E2D;&#x5C31;&#x5C06; ApplicationContext &#x6574;&#x4E2A;&#x66B4;&#x9732;&#x51FA;&#x6765;&#x4E86;&#xFF0C;&#x968F;&#x4FBF;&#x64CD;&#x4F5C;&#x3002;</p>
+</blockquote>
+<p><br></p>
+<p>&#x4E4B;&#x540E;&#x662F;&#x8C03;&#x7528; load &#x52A0;&#x8F7D; BeanDefinition&#xFF0C;&#x5982;&#x4E0B;&#x56FE;&#x6240;&#x793A;&#xFF1A;</p>
+<p><img src="../../pic/image-20210303233808309.png" alt="image-20210303233808309" style="zoom: 50%;"></p>
+<p>&#x6240;&#x6709;&#x7684; BeanDefinition &#x90FD;&#x662F;&#x901A;&#x8FC7; BeanDefinitionLoader &#x83B7;&#x53D6;&#x7684;&#x3002;</p>
+<blockquote>
+<p><strong>&#x8FD9;&#x91CC;&#x7684; BeanDefinition &#x5E76;&#x4E0D;&#x4F1A;&#x5BF9; Import &#x7B49;&#x505A;&#x6269;&#x5C55;&#xFF0C;&#x4EC5;&#x4EC5;&#x6CE8;&#x518C;&#x4E86; Bootstrap &#x7C7B;&#x3002;</strong></p>
+</blockquote>
+<p><br></p>
+<h3 id="10&#x5237;&#x65B0;&#x5E94;&#x7528;&#x4E0A;&#x4E0B;&#x6587;"><a name="10&#x5237;&#x65B0;&#x5E94;&#x7528;&#x4E0A;&#x4E0B;&#x6587;" class="anchor-navigation-ex-anchor" href="#10&#x5237;&#x65B0;&#x5E94;&#x7528;&#x4E0A;&#x4E0B;&#x6587;"><i class="fa fa-link" aria-hidden="true"></i></a>10.&#x5237;&#x65B0;&#x5E94;&#x7528;&#x4E0A;&#x4E0B;&#x6587;</h3>
+<p><img src="assets/image-20210814232056137.png" alt="image-20210814232056137"></p>
+<p>refresh() &#x6700;&#x7EC8;&#x4F1A;&#x8C03;&#x7528;&#x5230; AbstractApplicationContext#refresh &#x65B9;&#x6CD5;&#xFF0C;&#x65B9;&#x6CD5;&#x6CE8;&#x91CA;&#x5982;&#x4E0B;&#x56FE;&#xFF1A;</p>
+<p><img src="assets/image-20210814232147274.png" alt="image-20210814232147274"></p>
+<blockquote>
+<p>&#x52A0;&#x8F7D;&#x6216;&#x8005;&#x5237;&#x65B0;&#x914D;&#x7F6E;&#x7684;&#x6301;&#x4E45;&#x5316;&#x8868;&#x793A;&#xFF0C;&#x53EF;&#x80FD;&#x4ECE; Java &#x7C7B;&#x3001;XML &#x6587;&#x4EF6;&#x3001;Properties &#x6587;&#x4EF6;&#xFF0C;&#x5173;&#x7CFB;&#x578B;&#x6570;&#x636E;&#x5E93;&#x7CFB;&#x7EDF;&#x6216;&#x8005;&#x522B;&#x7684;&#x683C;&#x5F0F;&#x3002;</p>
+<p>&#x4F5C;&#x4E3A;&#x4E00;&#x4E2A;&#x542F;&#x52A8;&#x65B9;&#x6CD5;&#xFF0C;&#x5982;&#x679C;&#x5931;&#x8D25;&#x4E4B;&#x540E;&#x4F1A;&#x9500;&#x6BC1;&#x6240;&#x6709;&#x5DF2;&#x7ECF;&#x521B;&#x5EFA;&#x7684;&#x5355;&#x4F8B;&#x5BF9;&#x8C61;&#xFF0C;&#x9632;&#x6B62;&#x8D44;&#x6E90;&#x7684;&#x60AC;&#x6302;&#x3002;</p>
+<p>&#x6216;&#x8005;&#x8BF4;&#xFF0C;<strong>&#x8C03;&#x7528;&#x8BE5;&#x65B9;&#x6CD5;&#x4F1A;&#x5B9E;&#x4F8B;&#x5316;&#x5168;&#x90E8;&#x7684;&#x5355;&#x4F8B;&#x5BF9;&#x8C61;&#x6216;&#x8005;&#x5168;&#x90E8;&#x4E0D;&#x5B9E;&#x4F8B;&#x5316;&#x3002;</strong></p>
+</blockquote>
+<p>&#x6E90;&#x7801;&#x5982;&#x4E0B;&#xFF1A;</p>
+<pre><code class="lang-java"><span class="hljs-meta">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">refresh</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> BeansException, IllegalStateException </span>{
+  <span class="hljs-keyword">synchronized</span> (<span class="hljs-keyword">this</span>.startupShutdownMonitor) {
+    <span class="hljs-comment">// Prepare this context for refreshing.</span>
+    prepareRefresh();
+
+    <span class="hljs-comment">// Tell the subclass to refresh the internal bean factory.</span>
+    ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
+
+    <span class="hljs-comment">// Prepare the bean factory for use in this context.</span>
+    prepareBeanFactory(beanFactory);
+
+    <span class="hljs-keyword">try</span> {
+      <span class="hljs-comment">// Allows post-processing of the bean factory in context subclasses.</span>
+      postProcessBeanFactory(beanFactory);
+
+      <span class="hljs-comment">// Invoke factory processors registered as beans in the context.</span>
+      <span class="hljs-comment">// &#x5E94;&#x7528;&#x6240;&#x6709;&#x7684; BeanFactoryPostProcessor</span>
+      invokeBeanFactoryPostProcessors(beanFactory);
+
+      <span class="hljs-comment">// Register bean processors that intercept bean creation.</span>
+      <span class="hljs-comment">// &#x6CE8;&#x518C;&#x6240;&#x6709;&#x7684; BeanPostProcessor</span>
+      registerBeanPostProcessors(beanFactory);
+
+      <span class="hljs-comment">// Initialize message source for this context.</span>
+      initMessageSource();
+
+      <span class="hljs-comment">// Initialize event multicaster for this context.</span>
+      initApplicationEventMulticaster();
+
+      <span class="hljs-comment">// Initialize other special beans in specific context subclasses.</span>
+      onRefresh();
+
+      <span class="hljs-comment">// Check for listener beans and register them.</span>
+      registerListeners();
+
+      <span class="hljs-comment">// Instantiate all remaining (non-lazy-init) singletons.</span>
+      finishBeanFactoryInitialization(beanFactory);
+
+      <span class="hljs-comment">// Last step: publish corresponding event.</span>
+      finishRefresh();
+    }
+
+    <span class="hljs-keyword">catch</span> (BeansException ex) {
+      <span class="hljs-keyword">if</span> (logger.isWarnEnabled()) {
+        logger.warn(<span class="hljs-string">&quot;Exception encountered during context initialization - &quot;</span> +
+                    <span class="hljs-string">&quot;cancelling refresh attempt: &quot;</span> + ex);
+      }
+
+      <span class="hljs-comment">// Destroy already created singletons to avoid dangling resources.</span>
+      destroyBeans();
+
+      <span class="hljs-comment">// Reset &apos;active&apos; flag.</span>
+      cancelRefresh(ex);
+
+      <span class="hljs-comment">// Propagate exception to caller.</span>
+      <span class="hljs-keyword">throw</span> ex;
+    }
+
+    <span class="hljs-keyword">finally</span> {
+      <span class="hljs-comment">// Reset common introspection caches in Spring&apos;s core, since we</span>
+      <span class="hljs-comment">// might not ever need metadata for singleton beans anymore...</span>
+      resetCommonCaches();
+    }
+  }
+</code></pre>
+<p>&#x6BCF;&#x884C;&#x65B9;&#x6CD5;&#x90FD;&#x6709;&#x6CE8;&#x91CA;&#xFF0C;&#x65B9;&#x6CD5;&#x7684;&#x4F5C;&#x7528;&#x5DF2;&#x7ECF;&#x5F88;&#x660E;&#x786E;&#x4E86;&#x3002;</p>
+<p>&#x8BE5;&#x65B9;&#x6CD5;&#x7684;&#x4E3B;&#x8981;&#x6D41;&#x7A0B;&#xFF1A;</p>
+<ol>
+<li>&#x8C03;&#x7528;&#x6240;&#x6709;&#x7684; BeanFactoryPostProcessor</li>
+</ol>
+<blockquote>
+<p>BeanFactoryPostProcessor &#x662F;&#x5BF9; BeanFactory &#x7684;&#x6269;&#x5C55;&#x70B9;&#xFF0C;&#x66B4;&#x9732;&#x521B;&#x5EFA;&#x7684; BeanFactory &#x5BF9;&#x8C61;&#xFF0C;&#x5141;&#x8BB8;&#x7528;&#x6237;&#x81EA;&#x5B9A;&#x4E49;&#x4FEE;&#x6539; BeanDefinition&#x3002;</p>
+</blockquote>
+<p>&#x4E3B;&#x8981;&#x7684; BeanFactoryPostProcessor </p>
+<ul>
+<li><p><strong>ConfigurationClassPostProcessor</strong> - &#x8BE5;&#x7C7B;&#x7528;&#x6765;&#x52A0;&#x8F7D;&#x6240;&#x6709;&#x7684;&#x914D;&#x7F6E;&#x7C7B;&#xFF0C;&#x4E5F;&#x52A0;&#x8F7D;&#x4E86;&#x5927;&#x591A;&#x6570;&#x7684; Bean &#x5BF9;&#x8C61;</p>
+</li>
+<li><p>RefreshSchpe - </p>
+</li>
+<li><p><strong>PropertySourcesPlaceholderConfigurer</strong> - &#x8BE5;&#x7C7B;&#x4E3B;&#x8981;&#x7528;&#x6765;&#x66FF;&#x6362; BeanDefinition &#x4E2D;&#x5C5E;&#x6027;&#x7684;&#x7684;&#x8868;&#x8FBE;&#x5F0F; <code>${}</code></p>
+</li>
+</ul>
+<p><br></p>
+<ol>
+<li>&#x6CE8;&#x518C; BeanPostProcessor</li>
+</ol>
+<blockquote>
+<p>BeanPostProcessor &#x662F; Spring &#x4E2D;&#x6700;&#x7EC8;&#x8981;&#x7684;&#x6269;&#x5C55;&#x70B9;&#xFF0C;&#x53EF;&#x4EE5;&#x4F7F;&#x7528;&#x8BE5;&#x6269;&#x5C55;&#x63D2;&#x624B; Bean &#x7684;&#x6240;&#x6709;&#x58F0;&#x660E;&#x5468;&#x671F;&#xFF0C;&#x5305;&#x62EC;&#x5B9E;&#x4F8B;&#x5316;&#x548C;&#x521D;&#x59CB;&#x5316;&#x3002;</p>
+</blockquote>
+<p>&#x6B64;&#x65F6;&#x9ED8;&#x8BA4;&#x52A0;&#x8F7D;&#x7684;&#x5185;&#x7F6E;&#x7C7B;&#xFF0C;&#x6709;&#x5982;&#x4E0B;&#x51E0;&#x79CD;&#xFF1A;</p>
+<ul>
+<li><strong>ConfigurationPropertiesBindingPostProcessor</strong> - &#x89E3;&#x6790; @ConfigurationProperties </li>
+<li><strong>CommonAnnotationBeanPostProcessor</strong> - &#x89E3;&#x6790; @Resource&#xFF0C;@PostConstruct&#xFF0C;@PreDestroy</li>
+<li><strong>AutowiredAnnotationBeanPostProcessor</strong> - &#x89E3;&#x6790; @Autowired&#xFF0C;@Inject</li>
+<li><strong>AnnotationAwareAspectJAutoProxyCreator</strong> - &#x6839;&#x636E;&#x6536;&#x96C6;&#x5230;&#x7684; Advisor&#xFF0C;&#x62E6;&#x622A;&#x5BF9;&#x8C61;&#x5E76;&#x521B;&#x5EFA;&#x4EE3;&#x7406;&#x3002;</li>
+<li><strong>MethodValidationPostProcessor</strong> - &#x5BF9; @Validdation &#x6CE8;&#x89E3;&#x7684;&#x89E3;&#x6790;&#xFF0C;&#x751F;&#x6210;&#x5224;&#x65AD;&#x7684;&#x4EE3;&#x7406;&#x7C7B;</li>
+<li><strong>ApplicationContextAwareProcessor</strong> - &#x89E3;&#x6790;&#x7C7B;&#x4F3C; ApplicationContextAware &#x548C; EnvironmentAware &#x63A5;&#x53E3;&#x7684;&#x5B9E;&#x73B0;&#x3002;</li>
+<li><strong>ImportAwareBeanPostProcessor</strong> - &#x89E3;&#x6790; ImportAware &#x63A5;&#x53E3;</li>
+</ul>
+<p><br></p>
+<ol>
+<li>&#x521D;&#x59CB;&#x5316;&#x4E8B;&#x4EF6;&#x5E7F;&#x64AD;&#x5668;</li>
+</ol>
+<p><img src="assets/image-20210815001659798.png" alt="image-20210815001659798"></p>
+<p>&#x4E8B;&#x4EF6;&#x5E7F;&#x64AD;&#x5668;&#x4E5F;&#x53EF;&#x4EE5;&#x81EA;&#x5B9A;&#x4E49;&#xFF0C;&#x53EA;&#x9700;&#x8981;<strong>&#x7EE7;&#x627F; ApplicationEventMulticaster &#x5E76;&#x4E14;&#x58F0;&#x660E;&#x4E3A; applicationEventMulticaster &#x7684; Bean &#x5BF9;&#x8C61;&#x3002;</strong></p>
+<p>&#x9ED8;&#x8BA4;&#x8FD8;&#x662F;&#x91C7;&#x7528;&#x7684; SimpleApplicationEventMulticaster &#x6765;&#x5E7F;&#x64AD;&#x4E8B;&#x4EF6;&#x3002;</p>
+<ol>
+<li><strong>finishBeanFactoryInitialization &#x521D;&#x59CB;&#x5316;&#x6240;&#x6709;&#x5355;&#x4F8B; Bean&#xFF08;&#x9664;&#x53BB;&#x61D2;&#x52A0;&#x8F7D;&#x90E8;&#x5206;&#xFF09;</strong></li>
+</ol>
+<p><img src="assets/image-20210815003208054.png" alt="image-20210815003208054"></p>
+<p>&#x5728;&#x6700;&#x540E;&#x7684;&#x65B9;&#x6CD5; beanFactor#preInstantiateSingletons &#x4E2D;&#xFF0C;&#x4F1A;&#x521D;&#x59CB;&#x5316;&#x6240;&#x6709;&#x975E;&#x61D2;&#x52A0;&#x8F7D;&#x7684;&#x5355;&#x4F8B; Bean &#x5BF9;&#x8C61;&#x3002;</p>
+<ol>
+<li>finishRefresh &#x521D;&#x59CB;&#x5316; LifecycleProcessor </li>
+</ol>
+<p>&#x200B;     <img src="assets/image-20210815001931060.png" alt="image-20210815001931060"></p>
+<blockquote>
+<p>&#x5982;&#x679C;&#x662F; Web &#x5BB9;&#x5668;&#x7684;&#x8BDD;&#xFF0C;&#x5728; onRefresh &#x65B9;&#x6CD5;&#x4E2D;&#x8FD8;&#x4F1A;&#x521B;&#x5EFA; ServletContext &#x5E76;&#x542F;&#x52A8;&#x3002;</p>
+</blockquote>
+<h3 id="11-&#x8BA1;&#x65F6;&#x7ED3;&#x675F;"><a name="11-&#x8BA1;&#x65F6;&#x7ED3;&#x675F;" class="anchor-navigation-ex-anchor" href="#11-&#x8BA1;&#x65F6;&#x7ED3;&#x675F;"><i class="fa fa-link" aria-hidden="true"></i></a>11. &#x8BA1;&#x65F6;&#x7ED3;&#x675F;</h3>
+<pre><code class="lang-java"><span class="hljs-comment">// SpringApplication</span>
+stopWatch.stop();
+
+<span class="hljs-comment">// StopWatch</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">stop</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> IllegalStateException </span>{
+  <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.currentTaskName == <span class="hljs-keyword">null</span>) {
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalStateException(<span class="hljs-string">&quot;Can&apos;t stop StopWatch: it&apos;s not running&quot;</span>);
+  }
+  <span class="hljs-comment">// &#x8BB0;&#x5F55;&#x5355;&#x8BCD;&#x7684;SpringApplication&#x542F;&#x52A8;&#x65F6;&#x95F4;</span>
+  <span class="hljs-keyword">long</span> lastTime = System.nanoTime() - <span class="hljs-keyword">this</span>.startTimeNanos;
+  <span class="hljs-comment">// &#x603B;&#x65F6;&#x95F4;</span>
+  <span class="hljs-keyword">this</span>.totalTimeNanos += lastTime;
+  <span class="hljs-comment">// &#x5F53;&#x524D;&#x4EFB;&#x52A1;&#x7684;&#x4FE1;&#x606F;</span>
+  <span class="hljs-keyword">this</span>.lastTaskInfo = <span class="hljs-keyword">new</span> TaskInfo(<span class="hljs-keyword">this</span>.currentTaskName, lastTime);
+  <span class="hljs-comment">// &#x662F;&#x5426;&#x4FDD;&#x5B58;&#x4EFB;&#x52A1;&#x5217;&#x8868;</span>
+  <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.keepTaskList) {
+    <span class="hljs-keyword">this</span>.taskList.add(<span class="hljs-keyword">this</span>.lastTaskInfo);
+  }
+  <span class="hljs-comment">// task&#x8BA1;&#x6570;+1</span>
+  ++<span class="hljs-keyword">this</span>.taskCount;
+  <span class="hljs-keyword">this</span>.currentTaskName = <span class="hljs-keyword">null</span>;
+}
+</code></pre>
+<p>&#x56E0;&#x4E3A;StopWatch&#x662F;&#x901A;&#x8FC7;new&#x5173;&#x952E;&#x5B57;&#x5728;run&#x65B9;&#x6CD5;&#x4E2D;&#x521B;&#x5EFA;&#x7684;&#xFF0C;&#x4E5F;&#x5E76;&#x6CA1;&#x6709;&#x4EC0;&#x4E48;&#x660E;&#x663E;&#x7684;&#x9003;&#x9038;&#x4EE3;&#x7801;&#x3002;</p>
+<p>&#x4E0D;&#x662F;&#x5F88;&#x61C2;&#x3002;</p>
+<p>&#x6240;&#x4EE5;&#x8FD9;&#x4E2A;&#x65F6;&#x95F4;&#x6307;&#x7684;&#x662F;run&#x65B9;&#x6CD5;&#x5F00;&#x59CB;&#x5230;&#x51C6;&#x5907;ApplicationContext&#x5B8C;&#x6210;&#x7684;&#x8FD9;&#x6BB5;&#x65F6;&#x95F4;&#x3002;</p>
+<h3 id="12-&#x53D1;&#x5E03;applicationstartedevent"><a name="12-&#x53D1;&#x5E03;applicationstartedevent" class="anchor-navigation-ex-anchor" href="#12-&#x53D1;&#x5E03;applicationstartedevent"><i class="fa fa-link" aria-hidden="true"></i></a>12. &#x53D1;&#x5E03;ApplicationStartedEvent</h3>
+<pre><code class="lang-java"><span class="hljs-comment">// SpringApplication</span>
+listeners.started(context);
+
+<span class="hljs-comment">//     EventPublishingRunListener</span>
+<span class="hljs-meta">@Override</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">started</span><span class="hljs-params">(ConfigurableApplicationContext context)</span> </span>{
+        context.publishEvent(<span class="hljs-keyword">new</span> ApplicationStartedEvent(<span class="hljs-keyword">this</span>.application, <span class="hljs-keyword">this</span>.args, context));
+}
+</code></pre>
+<p>&#x53EF;&#x4EE5;&#x770B;&#x5230;&#xFF0C;&#x5728;&#x5237;&#x65B0;&#x8FC7;&#x7A0B;&#x4E2D;&#x51C6;&#x5907;&#x597D;&#x4E0A;&#x4E0B;&#x6587;&#x4E2D;&#x7684;&#x4E8B;&#x4EF6;&#x53D1;&#x5E03;&#x5668;&#x4E4B;&#x540E;&#xFF0C;&#x4E8B;&#x4EF6;&#x53D1;&#x5E03;&#x5F00;&#x59CB;&#x7531;ApplicationContext&#x53D1;&#x5E03;&#x3002;</p>
+<h3 id="13-&#x8C03;&#x7528;&#x76F8;&#x5173;runner"><a name="13-&#x8C03;&#x7528;&#x76F8;&#x5173;runner" class="anchor-navigation-ex-anchor" href="#13-&#x8C03;&#x7528;&#x76F8;&#x5173;runner"><i class="fa fa-link" aria-hidden="true"></i></a>13. &#x8C03;&#x7528;&#x76F8;&#x5173;Runner</h3>
+<pre><code class="lang-java"><span class="hljs-comment">// SpringApplication#run</span>
+callRunners(context, applicationArguments);
+
+<span class="hljs-comment">// SpringApplication</span>
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">callRunners</span><span class="hljs-params">(ApplicationContext context, ApplicationArguments args)</span> </span>{
+  List&lt;Object&gt; runners = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;();
+  <span class="hljs-comment">// &#x4ECE;&#x4E0A;&#x4E0B;&#x6587;&#x4E2D;&#x83B7;&#x53D6;ApplicationRunner&#x548C;CommandLineRunner&#x7684;Bean&#x5BF9;&#x8C61;</span>
+  runners.addAll(context.getBeansOfType(ApplicationRunner.class).values());
+  runners.addAll(context.getBeansOfType(CommandLineRunner.class).values());
+  <span class="hljs-comment">// &#x6392;&#x5E8F;</span>
+  AnnotationAwareOrderComparator.sort(runners);
+  <span class="hljs-comment">// &#x904D;&#x5386;&#x8C03;&#x7528;run&#x65B9;&#x6CD5;</span>
+  <span class="hljs-keyword">for</span> (Object runner : <span class="hljs-keyword">new</span> LinkedHashSet&lt;&gt;(runners)) {
+    <span class="hljs-keyword">if</span> (runner <span class="hljs-keyword">instanceof</span> ApplicationRunner) {
+      callRunner((ApplicationRunner) runner, args);
+    }
+    <span class="hljs-keyword">if</span> (runner <span class="hljs-keyword">instanceof</span> CommandLineRunner) {
+      callRunner((CommandLineRunner) runner, args);
+    }
+  }
+}
+</code></pre>
+<p>&#x65B9;&#x6CD5;&#x903B;&#x8F91;&#x5F88;&#x7B80;&#x5355;&#xFF0C;&#x4ECE;&#x5F53;&#x524D;&#x4E0A;&#x4E0B;&#x6587;&#x4E2D;&#x83B7;&#x53D6;ApplicationRunner&#x548C;CommandLineRunner&#x7C7B;&#x578B;&#x7684;Bean&#x5BF9;&#x8C61;&#x3002;</p>
+<p>&#x7136;&#x540E;&#x6392;&#x5E8F;&#x5E76;&#x904D;&#x5386;&#x8C03;&#x7528;run&#x65B9;&#x6CD5;&#x3002;</p>
+<p>&#x8FD9;&#x4E2A;&#x6392;&#x5E8F;&#x9700;&#x8981;&#x6CE8;&#x610F;&#x7684;&#x662F;&#x53EA;&#x6709;Ordered&#x63A5;&#x53E3;&#x6216;&#x8005;@Order&#x3002;</p>
+
+<script>console.log("plugin-popup....");document.onclick = function(e){ e.target.tagName === "IMG" && window.open(e.target.src,e.target.src)}</script><style>img{cursor:pointer}</style>
+                                
+                                </section>
+                            
+    </div>
+    <div class="search-results">
+        <div class="has-results">
+            
+            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+            <ul class="search-results-list"></ul>
+            
+        </div>
+        <div class="no-results">
+            
+            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+            
+        </div>
+    </div>
+</div>
+
+                        </div>
+                    </div>
+                
+            </div>
+
+            
+                
+                <a href="SpringBoot的事件模型 .html" class="navigation navigation-prev " aria-label="Previous page: SpringBoot 的事件模型">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+                
+                
+                <a href="SpringBoot的工厂加载模式.html" class="navigation navigation-next " aria-label="Next page: SpringBoot 的工厂加载模式">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+                
+            
+        
+    </div>
+
+    <script>
+        var gitbook = gitbook || [];
+        gitbook.push(function() {
+            gitbook.page.hasChanged({"page":{"title":"SpringBoot 的启动流程","level":"1.5.2.2","depth":3,"next":{"title":"SpringBoot 的工厂加载模式","level":"1.5.2.3","depth":3,"path":"spring/boot/SpringBoot的工厂加载模式.md","ref":"spring/boot/SpringBoot的工厂加载模式.md","articles":[]},"previous":{"title":"SpringBoot 的事件模型","level":"1.5.2.1","depth":3,"path":"spring/boot/SpringBoot的事件模型 .md","ref":"spring/boot/SpringBoot的事件模型 .md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":["intopic-toc","chapter-fold","splitter","expandable-chapters","back-to-top-button","popup","anchor-navigation-ex","mermaid-v8"],"pluginsConfig":{"chapter-fold":{},"intopic-toc":{"isCollapsed":true,"isScrollspyActive":true,"label":"Catalogue","maxDepth":6,"mode":"nested","selector":".markdown-section h1, .markdown-section h2, .markdown-section h3, .markdown-section h4, .markdown-section h5, .markdown-section h6","visible":true},"mermaid-v8":{},"splitter":{},"search":{},"popup":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"highlight":{},"anchor-navigation-ex":{"associatedWithSummary":true,"float":{"floatIcon":"fa fa-navicon","level1Icon":"","level2Icon":"","level3Icon":"","showLevelIcon":false},"mode":"float","multipleH1":true,"pageTop":{"level1Icon":"","level2Icon":"","level3Icon":"","showLevelIcon":false},"printLog":false,"showGoTop":false,"showLevel":false},"back-to-top-button":{},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false},"expandable-chapters":{}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"spring/boot/SpringBoot的启动流程.md","mtime":"2022-11-11T08:34:09.412Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2022-11-11T08:34:53.518Z"},"basePath":"../..","book":{"language":""}});
+        });
+    </script>
+</div>
+
+        
+
+    <script src="../../gitbook/gitbook.js"></script>
+    <script src="../../gitbook/theme.js"></script>
+    
+        
+        <script src="../../gitbook/gitbook-plugin-intopic-toc/anchor.min.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-intopic-toc/gumshoe.polyfills.min.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-intopic-toc/plugin.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-chapter-fold/chapter-fold.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-splitter/splitter.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-expandable-chapters/expandable-chapters.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-back-to-top-button/plugin.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-mermaid-v8/book/plugin.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-search/search-engine.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-search/search.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-lunr/lunr.min.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-lunr/search-lunr.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-sharing/buttons.js"></script>
+        
+    
+        
+        <script src="../../gitbook/gitbook-plugin-fontsettings/fontsettings.js"></script>
+        
+    
+
+<script src="../../gitbook/gitbook-plugin-mermaid-v8/mermaid/mermaid.min.js"></script>
+
+    </body>
+</html>
+
