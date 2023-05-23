@@ -17,9 +17,14 @@ static class DateEvent {
   public void setValue(Date value) {
     this.value = value;
   }
+  
+  /**
+   *  创建事件工厂
+   */
   public static EventFactory<DateEvent> factory() {
     return DateEvent::new;
   }
+  
   @Override
   public String toString() {
     return "DateEvent{" +
@@ -52,7 +57,9 @@ public static void main(String[] args) throws InterruptedException {
 }
 ```
 
-（ Disruptor 在创建的时候就需要指定时间类型以及队列大小，后续指定消费者之后，还需要手动开启。
+
+
+每个 Disruptor 实例都对应一种事件类型，并且需要启动之后才可以使用（本身就是一套本地化的 MQ 系统。
 
 
 
@@ -66,35 +73,53 @@ public static void main(String[] args) throws InterruptedException {
 
 （Disruptor 最开始听说的是一个高性能无锁队列，但是实际上它不仅仅是队列。
 
-Disruptor 类似于一套本地的 MQ 系统（Message Queue，消息队列），也可以看做是一套生产者/消费者模型，它包含了 Producer，Consumer 以及 Queue（中间队列），在开始前（调用 start() 前）就需要指定创建消费者以及中间队列。
+Disruptor 类似于一套本地的 MQ 系统（Message Queue，消息队列），也可以看做是一套生产者/消费者模型。
 
-Disruptor 支持**单生产者和多生产者两种模式**，默认支持多消费者，并且消费者之间不共享消费进度（**每个事件会被分发给所有的消费者**。
+它包含了 Producer，Consumer 以及 Queue（中间队列），在开始前（调用 start() 前）就需要指定事件类型，创建消费者以及中间队列。
+
+Disruptor 支持**单生产者和多生产者两种模式**，默认为多消费者，并且消费者之间不共享消费进度（**每个事件会被分发给所有的消费者**。
+
+
 
 <br>
 
-### 相关组件对象
+### 相关组件
 
 #### RingBuffer 
 
-Disruptor 的存储组件，保存发布的事件，使用**环形数组**保存所有数据，RingBuffer 在 Disruptor 创建的时候就指定好大小，并且在之后的流程中保持不变。
+![image-20230523164808847](assets/image-20230523164808847.png)
 
-所谓的环形数组底层就是一个普通数组，**维护了读写两个游标**以此形成一个环，从写游标开始写，从读游标开始读。
+（基于环形数组实现的可重复使用实例对象的存储组件，保存的数据的在事件发生器和事件处理器之间交换。
 
-（游标就是下文的 Sequence，控制游标的就是 Sequencer。
+
+
+RingBuffer 是 Disruptor 的存储组件，类似于 ArrayBlockingQueue 在生产者和消费者中间做数据交换。
+
+底层使用环形数组实现，数组中保存可重复使用的实例对象，对象在 Disruptor 启动的时候创建，发布事件的时候只需要获取对应位置的对象并且修改其属性。
+
+相比于 ArrayBlockQueue，RingBuffer 更加节省内存，并且减少了 GC 的负担。
 
 
 
 #### Sequence 
 
-（相当于是一个并发安全的 Long 类型。
+![image-20230523164830084](assets/image-20230523164830084.png)
 
-表示消费的序列，在 RingBuffer（生产者和消费者都是通过 RingBuffer 获取获取） 会保存该值。
+（同步序列类用于追踪 RingBuffer 和事件处理器的进程，支持多种形式的同步操作，包括 CAS 以及顺序写，另外也尝试使用更加有效率的方式消除伪共享，比如在属性前后增加填充。
 
-对于生产者来说，Sequence 保存了写入的位置，对于消费者来说，Sequence 保存在自身的读取的位置（多个消费者不共享。
+
+
+对于生产者来说，Sequence 保存了写入的位置，保存在 RingBuffer。
+
+对于消费者来说，Sequence 保存在自身的读取的位置，多个消费者不共享。
+
+Sequence 本身使用 Padding 的方式来避免缓存行的伪共享问题（在 JDK1.8之后应该也可以用 @Contended 来实现的。
 
 
 
 ### Sequencer
+
+![image-20230523164736005](assets/image-20230523164736005.png)
 
 Sequence 的管理者，包含了生产者和消费者的相关 Sequence（就是持有了生产者的写入指针和消费者的读取指针。
 
