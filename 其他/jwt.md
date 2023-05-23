@@ -8,11 +8,18 @@
 
 ## 概述
 
-JWT 即 JSON Web Token，是一种基于 Json 格式的信息交换方式。
+```
+// JSON 官网的标语
+JSON Web Tokens are an open, industry standard RFC 7519 method for representing claims securely between two parties.
+```
+
+
+
+JWT 即 JSON Web Token，**是一种基于 Json 格式的信息交换方式。**
 
 <br>
 
-JWT 可以分为 JWS / JWE 两种模式，国内使用的大部分都是 JWS，相对于 JWS 来说 JWE 内容更多，加密流程也更复杂，也更加安全。
+JWT 可以分为 JWS / JWE 两种模式，国内使用的大部分都是 JWS，相对于 JWS 来说 JWE 内容更多，加密流程也更复杂，所以也更加安全。
 
 （但是 JWS 也是可以信任的，因为包含了摘要算法可以防止篡改，但敏感数据不建议放在 JWS 中。
 
