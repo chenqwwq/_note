@@ -277,8 +277,9 @@ private void updateGatingSequencesForNextInChain(final Sequence[] barrierSequenc
 1. 创建对应的 EventProcessor （具体对象为 BatchEventProcessor，包含了ExceptionHandler
 2. 向 ConsumerRepository 注册当前的消费者信息（消费者并未启动，所以此时需要集中管理
 3. 处理 Sequence
-   - 向 RingBuffer 添加当前的消费者的 Sequence
-   - 移除 RingBuffer 中当前消费者依赖的 Sequence（传入的 barrierSequences 参数
+   - 向 RingBuffer 添加当前的消费者的 Sequence（相互协调保证生产者的 Sequence 不超过消费者
+   - 处理具有依赖关系的消费者之间的 Sequence（将传入的 barrierSequences 添加到创建的消费者中，消费者根据依赖的 Sequence
+   - 移除 RingBuffer 中当前消费者依赖的 Sequence（传入的 barrierSequences 参数，
 4. 返回 EventHandlerGroup（EventHandlerGroup 对象包含 after 等方法可以作为顺序处理逻辑的编排方法
 
 
