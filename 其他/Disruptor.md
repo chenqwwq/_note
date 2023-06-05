@@ -8,6 +8,8 @@
 
 ## 总体介绍
 
+> 以下源码基于 3.4.4 版本。
+
 以下是 Disruptor 官网的介绍图，其中包含了所有的相关对象和概念：
 
 ![models](assets/models.png)
@@ -18,9 +20,19 @@
 
 Disruptor 类似于一套本地的 MQ 系统（Message Queue，消息队列），也可以看做是一套较为完整的生产者/消费者模型。
 
-它包含了 Producer，Consumer 以及 Queue（中间队列），在开始前（调用 start() 前）就需要指定事件类型，创建消费者以及中间队列。
 
-Disruptor 支持**单生产者和多生产者两种模式**，默认为多消费者，并且消费者之间不共享消费进度（**每个事件会被分发给所有的消费者**。
+
+其中 RingBuffer 等同于中间队列，保存待消费事件以及协调生产者和消费者之间的依赖关系。
+
+Sequence 表示的就是各类进度包括生产者和消费者的进度，由 RingBuffer 和各消费者持有，期间的依赖关系由 SequenceBarrier 实现。
+
+（Sequence 表示偏移或者说进度，Sequencer 是上层的包装控制类。
+
+生产者由 RingBuffer 统一管理，Disruptor 支持**单生产者和多生产者两种模式**，在多生产者模式下就需要注册 Sequence 的并发安全。
+
+消费者则由各个消费者各自管理（因此各个消费者会分别消费事件，不会互相影响，类似 Kafka 的消费者组。
+
+
 
 
 
@@ -87,21 +99,56 @@ public static void main(String[] args) throws InterruptedException {
 
 <br>
 
-## 相关组件
+## Disruptor 的创建流程
 
-Disruptor 实现的是生产者/消费者模型，所以在组件上也可以对比划分。
+Disruptor 是整个框架的核心，负责协调生产者和队列，队列和消费者之间的关系，对外提供`start()`	、`shutdown()`、`handleEventsWith`、`publishEvent`
+
+等基础 API。
+
+（先通过创建过程来了解 Disruptor 整个对象的构造。
+
+Disruptor 的创建方法如下：
+
+```java
+public Disruptor(
+  final EventFactory<T> eventFactory,
+  final int ringBufferSize,
+  final ThreadFactory threadFactory,
+  final ProducerType producerType,
+  final WaitStrategy waitStrategy)
+{
+  this(
+    RingBuffer.create(producerType, eventFactory, ringBufferSize, waitStrategy),
+    new BasicExecutor(threadFactory));
+}
+
+/**
+     * Private constructor helper
+     */
+private Disruptor(final RingBuffer<T> ringBuffer, final Executor executor)
+{
+  this.ringBuffer = ringBuffer;
+  this.executor = executor;
+}
+```
+
+Disruptor 创建最终只要求 RingBuffer 和 Executor，传入的类似 EventFactory 都是为了创建 RingBuffer。
+
+**RingBuffer 是在启动前就创建好的（具体创建流程可以参考下文的 RingBuffer**
+
+| 参数名称       | 含义                                                         |
+| -------------- | ------------------------------------------------------------ |
+| eventFactory   | 事件工厂（RingBuffer 会调用该接口方法，创建 RingBufferSize 个对象重复使用 |
+| ringBufferSize | RingBuffer 的大小                                            |
+| threadFactory  | 线程工厂（用于创建消费者所需要的线程，可以指定线程池         |
+| producerType   | 生产者类型（单生产者还是多生产者会使用不同的并发策略         |
+| waitStrategy   | 等待策略（生产者的等待策略，消费者的等待策略在指定消费者的时候决定 |
 
 
 
-#### Disruptor
+### RingBuffer 的作用和创建流程
 
-Disruptor 是整个框架的核心，负责协调生产者和队列，队列和消费者之间的关系。
-
-可以像 Disruptor 注册消费者，也可以通过 Disruptor 发布事件供消费，角色可以类比为 EventBus。
-
-
-
-#### RingBuffer
+以下是 3.4.4 版本中 RingBuffer 的定义注释：
 
 ![image-20230523164808847](assets/image-20230523164808847.png)
 
@@ -109,85 +156,38 @@ Disruptor 是整个框架的核心，负责协调生产者和队列，队列和�
 
 
 
-RingBuffer 是 Disruptor 的存储组件，类似于 ArrayBlockingQueue 在生产者和消费者中间做数据交换。
-
-底层使用环形数组实现，数组中保存可重复使用的实例对象，对象在 Disruptor 启动的时候创建，发布事件的时候只需要获取对应位置的对象并且修改其属性。
-
-相比于 ArrayBlockQueue，RingBuffer 更加节省内存，并且减少了 GC 的负担。
-
-
-
-
-
-
-
-#### EventFactory
-
-Event 就是 RingBuffer 中保存的数据类型，EventFactory 的作用就是创建这些实例对象。
-
-在创建 RingBuffer 的时候传入， 初始化的时候预创建所有的对象。
+RingBuffer 对外提供的创建方法如下：
 
 ```java
-// RingBufferFields 是 RingBuffer 的父类
-// 单独定义了 RingBuffer 的内部属性
-RingBufferFields(EventFactory<E> eventFactory,Sequencer sequencer)
+public static <E> RingBuffer<E> create(
+  ProducerType producerType,	// 生产者类型
+  EventFactory<E> factory,		// 事件工厂
+  int bufferSize,							// Buffer 的大小
+  WaitStrategy waitStrategy)	// 生产者的等待策略
 {
-  this.sequencer = sequencer;
-  this.bufferSize = sequencer.getBufferSize();
-	// 相关属性校验
-  // 创建待填充的固定大小的数组
-  this.entries = new Object[sequencer.getBufferSize() + 2 * BUFFER_PAD];
-  // 填充对应数组
-  fill(eventFactory);
-}
-
-private void fill(EventFactory<E> eventFactory){
-  for (int i = 0; i < bufferSize; i++){
-    // 最开始的两个对象不做赋值
-    entries[BUFFER_PAD + i] = eventFactory.newInstance();
+  // 根据生产类型调用不同的创建方法
+  // （其实最终创建的都是 RingBuffer，但是创建的生产者 Sequencer 不同
+  switch (producerType)
+  {
+    case SINGLE:
+      // 对应创建的是 SingleProducerSequencer
+      return createSingleProducer(factory, bufferSize, waitStrategy);
+    case MULTI:
+      // 对应创建的是 MultiProducerSequencer
+      return createMultiProducer(factory, bufferSize, waitStrategy);
+    default:
+      throw new IllegalStateException(producerType.toString());
   }
 }
 ```
 
-##### WaitStrategy
-
-等待策略，表示消费者在等待事件发布的时候采取的动作。
-
-#### Sequence 
-
-![image-20230523164830084](assets/image-20230523164830084.png)
-
-（同步序列类用于追踪 RingBuffer 和事件处理器的进程，支持多种形式的同步操作，包括 CAS 以及顺序写，另外也尝试使用更加有效率的方式消除伪共享，比如在属性前后增加填充。
 
 
+RingBuffer 在创建的过程中间就会调用 EventFactory#newInstance 方法创建所需要的所有对象，为了后续的重复使用。
 
-对于生产者来说，Sequence 保存了写入的位置，保存在 RingBuffer。
-
-对于消费者来说，Sequence 保存在自身的读取的位置，多个消费者不共享。
-
-Sequence 本身使用 Padding 的方式来避免缓存行的伪共享问题（在 JDK1.8之后应该也可以用 @Contended 来实现的。
+（该部分逻辑在 RingBufferFields 中。
 
 
-
-##### Sequencer
-
-![image-20230523164736005](assets/image-20230523164736005.png)
-
-Sequence 的管理者，包含了生产者和消费者的相关 Sequence（就是持有了生产者的写入指针和消费者的读取指针。
-
-根据生产者的个数分为 SingleProducerSequencer 和 MutilProducerSequencer。
-
-如果消费者有多个，Single 就是保存单生产者和消费者的关系，而 Mutil 保证的就是多生产者和消费者的关系，以及多生产者之间的并发安全。
-
-
-
-
-
-### EventHandler
-
-##### EventProcessor
-
-##### EventHandlerGroup
 
 
 
@@ -195,7 +195,9 @@ Sequence 的管理者，包含了生产者和消费者的相关 Sequence（就�
 
 ## 消费者
 
-Disruptor 在启动前就需要指定消费者，同时也可以指定各消费者之间的依赖关系。
+Disruptor 在启动前就需要指定消费者，同时也可以指定各消费者之间的依赖关系（也就是层级消费。
+
+消费者的依赖关系也就是层级消费，以 EventHandlerGroup 作为基本单位进行依赖关系的编排，GroupA 可以根据 GroupB 的消费进度进行事件消费。
 
 
 
@@ -203,9 +205,9 @@ Disruptor 在启动前就需要指定消费者，同时也可以指定各消费�
 
 Disruptor 提供了多种方式来进行注册：（消费者是想 Disruptor 对象注册的
 
-1. EventHandler
-2. EventProcessorFactory
-3. EventProcessor
+1. EventHandler（最终会被包装为 EventProcessor 进行注册，当前 Disruptor 所持有的 RingBuffer 会作为 DataProvider 传入。
+2. EventProcessorFactory（会使用工厂类直接创建 EventProcessor 进行消费者的注册
+3. EventProcessor（继承了 Runnable，在启动时执行
 4. WorkHandler
 
 
@@ -274,33 +276,22 @@ private void updateGatingSequencesForNextInChain(final Sequence[] barrierSequenc
 
 注册消费主要流程如下：
 
-1. 创建对应的 EventProcessor （具体对象为 BatchEventProcessor，包含了ExceptionHandler
-2. 向 ConsumerRepository 注册当前的消费者信息（消费者并未启动，所以此时需要集中管理
-3. 处理 Sequence
+1. 检查 Disruptor 是否已经开启
+2. 创建对应的 EventProcessor （具体对象为 BatchEventProcessor，包含了ExceptionHandler 和当前的 RingBuffer。
+3. 向 ConsumerRepository 注册当前的消费者信息（消费者并未启动，所以此时需要集中管理
+4. 处理 Sequence
    - 向 RingBuffer 添加当前的消费者的 Sequence（相互协调保证生产者的 Sequence 不超过消费者
    - 处理具有依赖关系的消费者之间的 Sequence（将传入的 barrierSequences 添加到创建的消费者中，消费者根据依赖的 Sequence
    - 移除 RingBuffer 中当前消费者依赖的 Sequence（传入的 barrierSequences 参数，
-4. 返回 EventHandlerGroup（EventHandlerGroup 对象包含 after 等方法可以作为顺序处理逻辑的编排方法
+5. 返回 EventHandlerGroup（EventHandlerGroup 对象包含 after 等方法可以作为顺序处理逻辑的编排方法
 
+**消费者最终的实例对象为 BatchEventProcessor，通过 RingBuffer 获取事件以及调用对应处理方法的逻辑都在该类中实现。**
 
-
-
-
-
-
-**消费者最终的实例对象为 BatchEventProcessor。**
-
-
-
-每个消费者都会将自身的 Sequence 保存到 ringBuffer 的 gatingSequences（参考 kafka 的 offset，ringBuffer 中只有所有的消费者都消费过才会将数据清除。
-
-Disruptor 通过 ConsumerRepository 来保存所有的 BatchEventProcessor。
-
-很关键的是，Disruptor 不允许在运行过程中添加消费者。
+很关键的是，Disruptor 不允许在运行过程中添加消费者，所以在  `Disruptor#start()` 前就需要注册全部的消费者。
 
 <br>
 
-另外可以看一下 ConsumerRepository 的功能，ConsumerRepository 用于持有所有的 EventHandler 以及对应的 Sequence 信息（算是一个辅助类，用于完成一些相对独立的逻辑。
+Disruptor 的 ConsumerRepository 对象用于持有所有的 EventHandler 以及对应的 Sequence 信息（算是一个辅助类，用于完成一些相对独立的逻辑。
 
 ConsumerRepository 中包含以下三个成员变量，分别从不同用维度保存映射关系。
 
@@ -322,15 +313,42 @@ public void add(
 }
 ```
 
-（暂时不是很清楚这个玩意儿的作用。
-
-
-
-
-
 
 
 ### 启动流程
+
+启动流程对应的是 `Disruptor#start` 方法，在启动之前所有的消费者都以 EventProcessor 的形式保存在 ConsumerRepository 中。
+
+方法的源码如下：
+
+```java
+public RingBuffer<T> start(){
+  // 只能启动一次
+  checkOnlyStartedOnce();
+  // 遍历所有注册的消费者并启动
+  for (final ConsumerInfo consumerInfo : consumerRepository){
+    consumerInfo.start(executor);
+  }
+	// 返回 RingBuffer
+  return ringBuffer;
+}
+```
+
+启动的过程就是创建并启动所有消费者对象的过程，EventProcessor 继承了 Runnable 方法可以直接使用线程池执行该类。
+
+
+
+> Disruptor 的启动流程主要就是启动所有的消费者。
+>
+> （消费者的执行线程由传入的线程池控制，一般情况下创建一个固定大小的线程池数量较为合适。
+
+
+
+
+
+### 消费流程
+
+
 
 
 
@@ -738,6 +756,38 @@ public long waitFor(final long sequence)
   return sequencer.getHighestPublishedSequence(sequence, availableSequence);
 }
 ```
+
+
+
+
+
+#### Sequence 
+
+![image-20230523164830084](assets/image-20230523164830084.png)
+
+（同步序列类用于追踪 RingBuffer 和事件处理器的进程，支持多种形式的同步操作，包括 CAS 以及顺序写，另外也尝试使用更加有效率的方式消除伪共享，比如在属性前后增加填充。
+
+
+
+对于生产者来说，Sequence 保存了写入的位置，保存在 RingBuffer。
+
+对于消费者来说，Sequence 保存在自身的读取的位置，多个消费者不共享。
+
+Sequence 本身使用 Padding 的方式来避免缓存行的伪共享问题（在 JDK1.8之后应该也可以用 @Contended 来实现的。
+
+
+
+##### Sequencer
+
+![image-20230523164736005](assets/image-20230523164736005.png)
+
+Sequence 的管理者，包含了生产者和消费者的相关 Sequence（就是持有了生产者的写入指针和消费者的读取指针。
+
+根据生产者的个数分为 SingleProducerSequencer 和 MutilProducerSequencer。
+
+如果消费者有多个，Single 就是保存单生产者和消费者的关系，而 Mutil 保证的就是多生产者和消费者的关系，以及多生产者之间的并发安全。
+
+
 
 
 
