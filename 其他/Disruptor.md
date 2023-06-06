@@ -99,11 +99,17 @@ public static void main(String[] args) throws InterruptedException {
 
 <br>
 
-## Disruptor 的创建流程
+## Disruptor 
 
 Disruptor 是整个框架的核心，负责协调生产者和队列，队列和消费者之间的关系，对外提供`start()`	、`shutdown()`、`handleEventsWith`、`publishEvent`
 
 等基础 API。
+
+
+
+
+
+### 创建流程
 
 （先通过创建过程来了解 Disruptor 整个对象的构造。
 
@@ -146,6 +152,12 @@ Disruptor 创建最终只要求 RingBuffer 和 Executor，传入的类似 EventF
 
 
 
+**Disruptor 的创建流程主要就是创建了对应的 RingBuffer 对象。**
+
+
+
+
+
 ### RingBuffer 的作用和创建流程
 
 以下是 3.4.4 版本中 RingBuffer 的定义注释：
@@ -183,11 +195,68 @@ public static <E> RingBuffer<E> create(
 
 
 
+以 SINGLE 生产者类型为例：
+
+```java
+public static <E> RingBuffer<E> createMultiProducer(EventFactory<E> factory, int bufferSize){
+  // 默认等待策略为阻塞等待 BlockingWaitStrategy
+  return createMultiProducer(factory, bufferSize, new BlockingWaitStrategy());
+}
+
+public static <E> RingBuffer<E> createSingleProducer( EventFactory<E> factory,int bufferSize, WaitStrategy waitStrategy){
+  // 对应 SingleProducerSequencer
+  SingleProducerSequencer sequencer = new SingleProducerSequencer(bufferSize, waitStrategy);
+  return new RingBuffer<E>(factory, sequencer);
+}
+```
+
+SINGLE 对应的 Sequencer 类型为 SingleProducerSequencer，而 MULTI 对应的则是 MultiProducerSequencer。
+
+最后就是 RingBuffer 的构造函数的调用:
+
+```java
+RingBufferFields(EventFactory<E> eventFactory,Sequencer sequencer){
+  this.sequencer = sequencer;
+  this.bufferSize = sequencer.getBufferSize();
+  // 参数检查
+  // 大小不能小于1
+  if (bufferSize < 1){
+    throw new IllegalArgumentException("bufferSize must not be less than 1");
+  }
+  // 大小必须要2次幂
+  if (Integer.bitCount(bufferSize) != 1){
+    throw new IllegalArgumentException("bufferSize must be a power of 2");
+  }
+  // indexMask 用于 & 求对应下标
+  this.indexMask = bufferSize - 1;
+  // 创建对应数组（数组需要加上对齐填充
+  this.entries = new Object[sequencer.getBufferSize() + 2 * BUFFER_PAD];
+  // 使用工厂方法填充数组
+  fill(eventFactory);
+}
+
+private void fill(EventFactory<E> eventFactory){
+  // 只填充有效个数
+  for (int i = 0; i < bufferSize; i++){
+    entries[BUFFER_PAD + i] = eventFactory.newInstance();
+  }
+}
+```
+
+
+
 RingBuffer 在创建的过程中间就会调用 EventFactory#newInstance 方法创建所需要的所有对象，为了后续的重复使用。
 
-（该部分逻辑在 RingBufferFields 中。
+RingBuffer 的大小必须为2次幂，为了使用 k & (n-1) 求对应数组下标。
+
+RingBuffer 中为了避免伪共享，做了很多的填充，例如整个的数组会多创建一些填充对象。
 
 
+
+**RingBuffer 的创建流程主要完成以下几件事情：**
+
+1. **创建环形数组并且创建所有 Event 对象**
+2. **根据生产者类型创建对应的 Sequencer**
 
 
 
@@ -446,6 +515,164 @@ private void processEvents(){
   }
 }
 ```
+
+
+
+整体的处理逻辑细节较多，但是大体的就是以下五个流程：
+
+1. 执行 LifecycleAware#onStart() 方法（无任何参数传入
+2. 获取可用的序号（此时可能会阻塞等待
+3. 执行 BatchStartAware#onBatchStart 方法（传入本次批量处理的数量
+4. 遍历序号内的事件并执行（执行完后回到步骤2
+5. 执行 LifecycleAware#onShutdown() 方法
+
+
+
+整体流程如下：
+
+```mermaid
+flowchart TD
+  	A("Runnable#run(整个流程的起点") --> B[/"更新当前状态(IDEL -> RUNNING"/]
+  	B --更新成功--> C["清空告警(clearAlert"]
+  	C --> D["执行 LifecycleAware#onStart"]
+  	D --> E[/"判断当前状态(RUNNING"/]
+  	E --> F
+    subgraph 事件处理
+    F["获取可用序号(sequenceBarrier#waitFor"]
+    F --有可用事件,返回可用的最大序号--> G["执行 batchStartAware#onBatchStart"]
+    G --> H["获取 nextSequence 对应事件"]
+    H --> I["处理事件（处理完 nextSequence++"]
+    I --> H
+    I --> J["设置当前消费序号(nextSequence"]
+    J --> F
+    F --状态改变,抛出 AlertExceotion--> K["break(跳出循环"]
+    
+    F --等待超时--> M["执行 TimeoutHandler#onTimeout"]
+    M --> F
+    end
+    K --> L["执行 LifecycleAware#onShutdown"]
+    L --> N("更新状态到 IDEL（可以重新启动")
+```
+
+
+
+清空告警流程中设置的告警状态是由 halt() 方法设置的，保存在 SequenceBarrier 中。
+
+上层可以使用 Disruptor#halt 触发，表示一个中断的信号，在 SequenceBarrier#waitFor 中会多次检查该状态，状态为 true 则抛出 AlterException。
+
+
+
+在 Disruptor#shutdown 之后，是可以重新直接 Disruptor#start 的，生产者/消费者的序号没有清空。
+
+
+
+
+
+### 状态流转
+
+```mermaid
+stateDiagram-v2
+		state "IDLE(空闲)" as I
+		state "HALTED(停止)" as H
+		state "RUNNING(运行中)" as R
+		
+		[*] --> I
+		I --> R: Disruptor#start（EventProcessor 被送入 Executor 执行
+		R --> H: Disruptor#halt（修改状态并设置告警
+		R --> H: Disruptor#shutdown（等待所有事件都被消费完,再调用 halt
+		H --> I: 感知到告警,跳出循环后修改
+  
+```
+
+
+
+
+
+
+
+
+
+## 生产者
+
+生产者不在 Disruptor 的控制范围之内，任何持有 Disruptor 对象的都可以作为生产者，调用 Disruptor#pushlishEvent 发布事件。
+
+生产的形式可以分为以下几种（Disruptor 的方法声明：
+
+![image-20230606201619355](assets/image-20230606201619355.png)
+
+最终都是调用 RingBuffer 的对应方法，以第一个 EventTranslator 为例，其实现如下：
+
+![image-20230606201849222](assets/image-20230606201849222.png)
+
+该类主要的功能就是往参数传递的 event 中塞入新数据并完成发布，具体的使用场景（RingBuffer 的具体发布流程）如下：
+
+```java
+public void publishEvent(EventTranslator<E> translator){
+  // 获取下次发布的事件序号
+  final long sequence = sequencer.next();
+  // 转换并发布事件
+  translateAndPublish(translator, sequence);
+}
+
+private void translateAndPublish(EventTranslator<E> translator, long sequence){
+  try{
+    // get 方法就是获取 RingBuffer 中对应位置的事件对象
+    // 使用传入的 lambda，修改了对应对象的属性（其实怎么改都随你,不改都行
+    translator.translateTo(get(sequence), sequence);
+  }finally{
+    // 对序号进行一个发布
+    sequencer.publish(sequence);
+  }
+}
+```
+
+生产者本身不保存任何 Sequence，而是由 RingBuffer 统一持有，根据生产者数目的不同又分为 SingleProducerSequencer 和 MultiProducerSequencer（包括获取可用序号和发布对应序号。
+
+事件的发布过程不需要创建新的事件对象，而是先获取环形队列中的对象然后赋值。
+
+
+
+发布的流程简述如下：
+
+1. 先获取目前哪个序号的事件可以发布（环形数组中哪个位置的事件对象可用，已经被消费或未发布
+2. 获取该序号的对象，并进行修改
+3. 发布该序号下的事件
+
+（区分单生产者和多生产者，第1、3流程的分别实现逻辑。
+
+
+
+以下是单生产者的下个可用序号获取流程：
+
+```java
+public long next(int n){
+  if (n < 1){
+    throw new IllegalArgumentException("n must be > 0");
+  }
+
+  long nextValue = this.nextValue;
+  long nextSequence = nextValue + n;
+  long wrapPoint = nextSequence - bufferSize;
+  long cachedGatingSequence = this.cachedValue;
+
+  if (wrapPoint > cachedGatingSequence || cachedGatingSequence > nextValue){
+    cursor.setVolatile(nextValue);  // StoreLoad fence
+    long minSequence;
+    while (wrapPoint > (minSequence = Util.getMinimumSequence(gatingSequences, nextValue))){
+      LockSupport.parkNanos(1L); // TODO: Use waitStrategy to spin?
+    }
+    this.cachedValue = minSequence;
+  }
+  this.nextValue = nextSequence;
+  return nextSequence;
+}
+```
+
+
+
+
+
+
 
 
 
