@@ -348,6 +348,105 @@ public RingBuffer<T> start(){
 
 ### 消费流程
 
+启动过程中 EvnetProcessor 就作为 Runnable 被放入线程池执行，所以消费的主题逻辑也实现在继承的 run() 方法中。
+
+Disruptor 的 EvnetProcessor 的主要实现包含以下两种：
+
+1. WorkProcessor
+2. BatchEventProcessor
+
+
+
+以下是 BatchEventProcessor 的处理逻辑：
+
+```java
+@Override
+public void run(){
+	// 更新当前的状态，启动处理器
+  // 状态是从 IDLE 到 RUNNING
+  if (running.compareAndSet(IDLE, RUNNING)){
+    // 清除警告
+    sequenceBarrier.clearAlert();
+    // 如果继承了 LifecycleAware，则执行 onStart 方法
+    // onStart 方法是每次从 IDLE 转变到 RUNNING 状态的时候都会执行的，而不是创建的时候一次
+    notifyStart();
+    try{
+      // 在判断一次是否启动成功
+      if (running.get() == RUNNING){
+        // 实际的处理逻辑
+        processEvents();
+      }
+    }finally{
+      // 如果继承了 LifecycleAware，则执行 onShutdown 方法
+      notifyShutdown();
+      // 正常退出,标记处理器为空闲状态
+      running.set(IDLE);
+    }
+  }else{
+		// 可能是已经启动（那本次就是重复启动
+    if (running.get() == RUNNING){
+      throw new IllegalStateException("Thread is already running");
+    }else{
+			// 未启动成功并且当前状态部位 RUNNING
+      // 可能是当前处于 HALTED 状态
+      // 该方法就是执行一遍 onStart 和 onShutdown
+      earlyExit();
+    }
+  }
+}
+```
+
+事件的轮询处理逻辑都在 processEvents 方法中，run 方法中包含的主要还是处理流程中生命周期的处理。
+
+通过实现 LifecycleAware 接口，来实现启动和关闭的周期方法。
+
+以下是 processEvents 的处理逻辑：
+
+```java
+private void processEvents(){
+  T event = null;
+  long nextSequence = sequence.get() + 1L;
+  // 死循环了,没有break别想走
+  while (true){
+    try{
+      // 等待下一个可用序号（waitFor 里面就包含了消费者和生产者之间通过序号协调的逻辑
+      // 返回最大可用序号
+      final long availableSequence = sequenceBarrier.waitFor(nextSequence);
+      // 在事件的批量处理之前,会有一个前置方法
+      if (batchStartAware != null){
+        // 当前批次的大小
+        batchStartAware.onBatchStart(availableSequence - nextSequence + 1);
+      }
+      // 循环遍历所有可用序号
+      while (nextSequence <= availableSequence){
+        // 获取对应序号下的事件
+        event = dataProvider.get(nextSequence);
+        // 调用实际方法处理获取的事件
+        eventHandler.onEvent(event, nextSequence, nextSequence == availableSequence);
+        nextSequence++;
+      }
+      sequence.set(availableSequence);
+    }catch (final TimeoutException e){
+      // 处理超时异常
+      notifyTimeout(sequence.get());
+    }catch (final AlertException ex){
+      // AlertException 应该是状态变更的时候爆的
+      // 如果不是运行中状态就退出
+      if (running.get() != RUNNING){
+        break;
+      }
+    }catch (final Throwable ex){
+      // 处理异常
+      handleEventException(ex, nextSequence, event);
+      // 记录处理的序号（nextSequence 就是处理失败的序号
+      sequence.set(nextSequence);
+      // 接下来的序号（直接忽略了出现异常的这次事件处理
+      nextSequence++;
+    }
+  }
+}
+```
+
 
 
 
