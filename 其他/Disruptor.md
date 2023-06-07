@@ -642,21 +642,39 @@ private void translateAndPublish(EventTranslator<E> translator, long sequence){
 
 
 
-以下是单生产者的下个可用序号获取流程：
+
+
+对于单生产者模式，不需要对生产的序号作并发控制，但是需要与消费者的序号协调：
+
+**生产者的序号不能超过消费者的序号。**
+
+> 因为是环形队列，所以生产的速度不能赶上消费者的速度（覆盖了未消费的事件。
+>
+> 在序号中的表示就是：生产者的序号不能超过消费者的最低序号。
+
+
+
+以下是单生产者的下个可用序号获取流程：（感觉整个脑回路有点怪
 
 ```java
 public long next(int n){
+  // 获取的序号必须大于1（n表示希望获取几个序号
   if (n < 1){
     throw new IllegalArgumentException("n must be > 0");
   }
-
+  // 下一个值（初始为-1
   long nextValue = this.nextValue;
+  // 加上希望获取的个数（此时相加可能会超过环形数组大小
   long nextSequence = nextValue + n;
+  // 减去环形数组大小（如果下标越界，此时就是正常的，否则为0
   long wrapPoint = nextSequence - bufferSize;
+	// 缓存的最小依赖值（初始为-1
   long cachedGatingSequence = this.cachedValue;
-
+	// 这里应该是代表生产的速度已经超过消费的速度了
   if (wrapPoint > cachedGatingSequence || cachedGatingSequence > nextValue){
+    // cursor 又是啥东西？？？
     cursor.setVolatile(nextValue);  // StoreLoad fence
+    // 这里应该是循环等消费进度,等待消费进度赶上生产速度
     long minSequence;
     while (wrapPoint > (minSequence = Util.getMinimumSequence(gatingSequences, nextValue))){
       LockSupport.parkNanos(1L); // TODO: Use waitStrategy to spin?
@@ -670,7 +688,13 @@ public long next(int n){
 
 
 
+gatingSequences 就是各个消费者的序号，在注册消费者的时候添加（通过 AtomicReferenceFieldUpdater 添加的。
 
+（我一直以为是没有更新的空数组，日。
+
+
+
+如果希望生产的速度不要超过消费的速度，那么生产者的下一个序号(nextValue)一定要小于
 
 
 
