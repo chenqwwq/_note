@@ -28,7 +28,7 @@ Sequence 表示的就是各类进度包括生产者和消费者的进度，由 R
 
 （Sequence 表示偏移或者说进度，Sequencer 是上层的包装控制类。
 
-生产者由 RingBuffer 统一管理，Disruptor 支持**单生产者和多生产者两种模式**，在多生产者模式下就需要注册 Sequence 的并发安全。
+生产者的 Sequence 由 RingBuffer 统一管理，Disruptor 支持**单生产者和多生产者两种模式**，在多生产者模式下就需要注册 Sequence 的并发安全。
 
 消费者则由各个消费者各自管理（因此各个消费者会分别消费事件，不会互相影响，类似 Kafka 的消费者组。
 
@@ -138,7 +138,7 @@ private Disruptor(final RingBuffer<T> ringBuffer, final Executor executor)
 }
 ```
 
-Disruptor 创建最终只要求 RingBuffer 和 Executor，传入的类似 EventFactory 都是为了创建 RingBuffer。
+Disruptor 创建最终只要求 RingBuffer 和 Executor，传入的类似 EventFactory 都是为了创建 RingBuffer 所需要的所有对象。
 
 **RingBuffer 是在启动前就创建好的（具体创建流程可以参考下文的 RingBuffer**
 
@@ -152,7 +152,9 @@ Disruptor 创建最终只要求 RingBuffer 和 Executor，传入的类似 EventF
 
 
 
-**Disruptor 的创建流程主要就是创建了对应的 RingBuffer 对象。**
+ThreadFactory 被 BasicExecutor 封装了一层之后以 Executor 的形式保存，会在后面启动流程中用到。
+
+**Disruptor 的创建流程主要就是创建了对应的 RingBuffer 对象，并且指定消费者所用的线程。**
 
 
 
@@ -260,7 +262,7 @@ RingBuffer 中为了避免伪共享，做了很多的填充，例如整个的数
 
 
 
-
+<br>
 
 ## 消费者
 
@@ -268,7 +270,7 @@ Disruptor 在启动前就需要指定消费者，同时也可以指定各消费�
 
 消费者的依赖关系也就是层级消费，以 EventHandlerGroup 作为基本单位进行依赖关系的编排，GroupA 可以根据 GroupB 的消费进度进行事件消费。
 
-
+<br>
 
 ### 注册流程
 
@@ -279,7 +281,7 @@ Disruptor 提供了多种方式来进行注册：（消费者是想 Disruptor �
 3. EventProcessor（继承了 Runnable，在启动时执行
 4. WorkHandler
 
-
+<br>
 
 以下是通过 EventHandler 创建消费者的过程：
 
@@ -298,14 +300,16 @@ public final EventHandlerGroup<T> handleEventsWith(final EventHandler<? super T>
 EventHandlerGroup<T> createEventProcessors(final Sequence[] barrierSequences,final EventHandler<? super T>[] eventHandlers){
   // 只能在未开始的时候添加消费者
   checkNotStarted();
-	// 每个 Handler 对应一个 Sequence，这里对应的就是每个 EventHandler 的消费进度
+  // 注册的消费者的 Sequence
   final Sequence[] processorSequences = new Sequence[eventHandlers.length];
-  // 创建 Barrier（是当前消费者依赖的 Barrier
+  // 创建 Barrier（是当前消费者依赖的 Barrier，由 RingBuffer 创建
+  // ！！！消费者对于生产者的依赖是此时创建的，在后续创建 BatchEventProcessor 的时候添加进消费者
+  // 此时创建的对象是 ProcessingSequenceBarrier，包含了依赖的 Sequence 和 RingBuffer 的 Sequence
   final SequenceBarrier barrier = ringBuffer.newBarrier(barrierSequences);
 	// 遍历创建 BatchEventProcessor
   for (int i = 0, eventHandlersLength = eventHandlers.length; i < eventHandlersLength; i++){
     final EventHandler<? super T> eventHandler = eventHandlers[i];
-    // ！！important  创建的最终消费实例好似 BatchEventProcessor
+    // ！！important  创建的最终消费实例是 BatchEventProcessor 添加了依赖的 barrier
     final BatchEventProcessor<T> batchEventProcessor = new BatchEventProcessor<>(ringBuffer, barrier, eventHandler);
     // 异常处理，这个是 Disruptor 确定的
     if (exceptionHandler != null){
@@ -335,7 +339,7 @@ private void updateGatingSequencesForNextInChain(final Sequence[] barrierSequenc
     for (final Sequence barrierSequence : barrierSequences){
       ringBuffer.removeGatingSequence(barrierSequence);
     }
-    // barrierSequences 代表的的是当前消费者集的依赖，需要取消 endOfChain 的标记
+    // barrierSequences 代表的的是当前消费者集的依赖，需要取消 endOfChain 的标记,因为他的下层还有当前的消费者
     consumerRepository.unMarkEventProcessorsAsEndOfChain(barrierSequences);
   }
 }
@@ -346,17 +350,25 @@ private void updateGatingSequencesForNextInChain(final Sequence[] barrierSequenc
 注册消费主要流程如下：
 
 1. 检查 Disruptor 是否已经开启
-2. 创建对应的 EventProcessor （具体对象为 BatchEventProcessor，包含了ExceptionHandler 和当前的 RingBuffer。
+2. 创建对应的 EventProcessor （具体对象为 BatchEventProcessor，包含了ExceptionHandler 和 RingBuffer。
 3. 向 ConsumerRepository 注册当前的消费者信息（消费者并未启动，所以此时需要集中管理
-4. 处理 Sequence
-   - 向 RingBuffer 添加当前的消费者的 Sequence（相互协调保证生产者的 Sequence 不超过消费者
-   - 处理具有依赖关系的消费者之间的 Sequence（将传入的 barrierSequences 添加到创建的消费者中，消费者根据依赖的 Sequence
-   - 移除 RingBuffer 中当前消费者依赖的 Sequence（传入的 barrierSequences 参数，
+4. 处理 Sequence（非常重要，依赖关系都靠这个协调
+   - 向 RingBuffer 添加当前的消费者的 Sequence（保证生产者的 Sequence 不超过消费者
+   - 处理具有依赖关系的消费者之间的 Sequence（当前消费者的依赖，只有传入的 Sequence 到
+   - 移除 RingBuffer 中当前消费者依赖的 Sequence（传入的 barrierSequences 参数
 5. 返回 EventHandlerGroup（EventHandlerGroup 对象包含 after 等方法可以作为顺序处理逻辑的编排方法
 
 **消费者最终的实例对象为 BatchEventProcessor，通过 RingBuffer 获取事件以及调用对应处理方法的逻辑都在该类中实现。**
 
 很关键的是，Disruptor 不允许在运行过程中添加消费者，所以在  `Disruptor#start()` 前就需要注册全部的消费者。
+
+<br>
+
+在 Sequence 的处理中，向 RingBuffer 中添加当前消费者的 Sequence 很好理解，因为需要保证生产者不能覆盖掉当前消费者未消费的部分。
+
+向当前消费者添加的 Sequence 则是对层级消费的实现，当前消费者只能消费依赖消费者处理过的事件，所以对 RingBuffer 只是间接依赖，
+
+
 
 <br>
 
