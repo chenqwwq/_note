@@ -1,5 +1,7 @@
 # Disruptor
 
+> 以下源码基于 3.4.4 版本。
+
 ---
 
 [TOC]
@@ -8,9 +10,7 @@
 
 ## 总体介绍
 
-> 以下源码基于 3.4.4 版本。
-
-以下是 Disruptor 官网的介绍图，其中包含了所有的相关对象和概念：
+以下是 Disruptor 官网的介绍图：
 
 ![models](assets/models.png)
 
@@ -18,92 +18,33 @@
 
 （Disruptor 最开始听说的是一个高性能无锁队列，但是实际上它不仅仅是队列。
 
-Disruptor 类似于一套本地的 MQ 系统（Message Queue，消息队列），也可以看做是一套较为完整的生产者/消费者模型。
+Disruptor 更像是一套本地的 MQ 系统（Message Queue，消息队列），作为中间组件**保存消息，并协调生产者和消费者**。
 
 <br>
 
-其中 RingBuffer 等同于中间队列，保存待消费事件以及协调生产者和消费者之间的依赖关系。
+**其中 RingBuffer 就是最重要的组件，等同于中间队列，保存待消费事件以及协调生产者和消费者之间的依赖关系。**
 
-Sequence 表示的就是各类进度包括生产者和消费者的序号（或者说偏移量？），**由 RingBuffer 和各消费者持有**，期间的依赖关系由 SequenceBarrier 实现。
+Sequence 表示的就是各类进度包括生产者和消费者的序号（或者说偏移量？），而 Sequencer 是上层的包装控制类，封装了各种对于 Sequence 的操作。
 
-而 Sequencer 是上层的包装控制类，封装了各种对于 Sequence 的操作。
+**生产者的 Sequence 由 RingBuffer 统一管理**，Disruptor 支持**单生产者和多生产者两种模式**，在多生产者模式下就需要注册 Sequence 的并发安全。
 
-生产者的 Sequence 由 RingBuffer 统一管理，Disruptor 支持**单生产者和多生产者两种模式**，在多生产者模式下就需要注册 Sequence 的并发安全。
-
-消费者则由各个消费者各自管理（因此各个消费者会分别消费事件，不会互相影响，类似 Kafka 的消费者组，所以消息会被每个消费者都处理一次。
+**消费者则由各个消费者各自管理**（因此各个消费者会分别消费事件，不会互相影响，类似 Kafka 的消费者组，所以消息会被每个消费者都处理一次。
 
 
 
 
 
-> 某些层面上 Disruptor 和 Guava 的 EventBus 有点像，后续可以对比一下两者的实现。
+> 某些层面上 Disruptor 和 Guava 的 EventBus 有点像（后续可以对比一下两者的实现。
 >
 > EventBus 是监听器模型，而 Disruptor 则是生产者/消费者模型，相对来说 Disruptor 的实现更加复杂也更加灵活高效。
 
-
-
-## 使用示例
-
-```java
-/**
- * 定义的事件类型
- */
-static class DateEvent {
-  private Date value;
-  public void setValue(Date value) {
-    this.value = value;
-  }
-  
-  /**
-   *  创建事件工厂
-   */
-  public static EventFactory<DateEvent> factory() {
-    return DateEvent::new;
-  }
-  
-  @Override
-  public String toString() {
-    return "DateEvent{" +
-      "value=" + value +
-      '}';
-  }
-}
-/**
- * 事件处理器
- */
-static class LongEventHandler implements EventHandler<DateEvent> {
-
-  @Override
-  public void onEvent(DateEvent event, long sequence, boolean endOfBatch) throws Exception {
-    System.out.println("Event:" + event + ",sequence:" + sequence + ",endOfBatch:" + endOfBatch);
-  }
-
-}
-
-public static void main(String[] args) throws InterruptedException {
-  Disruptor<DateEvent> disruptor = new Disruptor<>(DateEvent.factory(), 4, DaemonThreadFactory.INSTANCE);
-  disruptor.handleEventsWith(new LongEventHandler());
-  // ！！！需要开启整个队列
-  disruptor.start();
-  for(int i= 0;i < 100;i++){
-    TimeUnit.SECONDS.sleep(3);
-    //	创建 Event 的时候也可以获取到 sequence
-    disruptor.publishEvent((event, sequence) -> event.setValue(new Date()));
-  }
-}
-```
-
-每个 Disruptor 实例都对应一种事件类型，通过泛型指定，并且需要启动之后才可以使用，在定义好 EventHandler 之后，持有 Disruptor 的对象都可以发布事件。
-
-
-
-<br>
-
 ## Disruptor 
 
-Disruptor 是整个框架的核心，负责协调生产者和队列、队列和消费者之间的关系，对外提供`start()`	、`shutdown()` 等状态控制方法，以及 `handleEventsWith`、`publishEvent` 等基础 API。
+Disruptor 是整个框架的核心，**负责协调生产者和队列、队列和消费者之间的关系，并对外提供基础 API。**
 
+Disruptor 主要持有 RingBuffer 的对象引用，以及所有的消费者信息（生产者的信息并不需要保存，谁持有该对象都可以成为生产者。
 
+![image-20230617上午125120720](assets/image-20230617上午125120720.png)
 
 
 
@@ -136,9 +77,11 @@ private Disruptor(final RingBuffer<T> ringBuffer, final Executor executor)
 }
 ```
 
-Disruptor 创建最初只要求 RingBuffer 和 Executor。
+**Disruptor 的创建流程主要就是创建了对应的 RingBuffer 对象，并且指定消费者所用的线程。**
 
-**RingBuffer 是在启动前就创建好的（具体创建流程可以参考下文的 RingBuffer**
+<br>
+
+整体的参数含义如下：
 
 | 参数名称       | 含义                                                         |
 | -------------- | ------------------------------------------------------------ |
@@ -148,25 +91,33 @@ Disruptor 创建最初只要求 RingBuffer 和 Executor。
 | producerType   | 生产者类型（根据单生产者还是多生产者会使用不同的并发策略     |
 | waitStrategy   | 等待策略（生产者的等待策略，而消费者的等待策略在指定消费者的时候决定 |
 
-<br>
-
-ThreadFactory 被 BasicExecutor 封装了一层之后以 Executor 的形式保存，会在后面启动流程中用于执行每个消费者任务（以 Runnable 的形式。
-
-**Disruptor 的创建流程主要就是创建了对应的 RingBuffer 对象，并且指定消费者所用的线程。**
+（以上参数基本就是 Disruptor 的所有控制参数了，接下来在看 RingBuffer 的创建流程。
 
 <br>
 
+<br>
 
+### RingBuffer 创建流程
 
-### RingBuffer 的作用和创建流程
-
-以下是 3.4.4 版本中 RingBuffer 的定义注释：
+以下是 3.4.4 版本中 RingBuffer 的定义注释以及继承图：
 
 ![image-20230523164808847](assets/image-20230523164808847.png)
 
 （基于环形数组实现的可重复使用实例对象的存储组件，保存的数据的在事件发生器和事件处理器之间交换。
 
+<br>
 
+![image-20230617上午125656652](assets/image-20230617上午125656652.png)
+
+
+
+RingBufferFields 、RingBufferPad 是 RingBuffer 做数据填充，避免缓存行的伪共享的实现。
+
+EventSink 和 DataProvider 是 RingBuffer 的两个角色，对于生产者来说是事件的接受者，对于消费者来说又是数据的提供者。
+
+Sequenced 等接口表示这 RingBuffer 对 Sequence 的操作角色。
+
+<br>
 
 RingBuffer 对外提供的创建方法如下：
 
@@ -193,9 +144,11 @@ public static <E> RingBuffer<E> create(
 }
 ```
 
+RingBuffer 的大小是固定的，并且创建的时候就需要传入 EventFactory，Buffer 中所有的事件对象都是通过该工厂创建的。
 
+<br>
 
-以 SINGLE 生产者类型为例：
+另外为了更好地做并发控制， **RingBuffer 也区分了生产者类型**，以 SINGLE 生产者类型为例：
 
 ```java
 public static <E> RingBuffer<E> createMultiProducer(EventFactory<E> factory, int bufferSize){
@@ -211,6 +164,10 @@ public static <E> RingBuffer<E> createSingleProducer( EventFactory<E> factory,in
 ```
 
 SINGLE 对应的 Sequencer 类型为 SingleProducerSequencer，而 MULTI 对应的则是 MultiProducerSequencer。
+
+（两种 Sequencer 的并发控制是完全不一样的，毕竟单一生产者咩有并发
+
+<br>
 
 最后就是 RingBuffer 的构造函数的调用:
 
@@ -243,17 +200,17 @@ private void fill(EventFactory<E> eventFactory){
 }
 ```
 
+需要注意的就是以下几个点：
+
+- RingBuffer 在创建的过程中间就会调用 EventFactory#newInstance 方法创建所需要的所有对象，为了后续的重复使用。
+
+- RingBuffer 的大小必须为2次幂，为了使用 k & (n-1) 求对应数组下标。
+
+- RingBuffer 中为了避免伪共享，做了很多的填充，例如整个的数组会多创建一些填充对象。
 
 
-RingBuffer 在创建的过程中间就会调用 EventFactory#newInstance 方法创建所需要的所有对象，为了后续的重复使用。
 
-RingBuffer 的大小必须为2次幂，为了使用 k & (n-1) 求对应数组下标。
-
-RingBuffer 中为了避免伪共享，做了很多的填充，例如整个的数组会多创建一些填充对象。
-
-
-
-**RingBuffer 的创建流程主要完成以下几件事情：**
+总结来说，**RingBuffer 的创建流程主要完成以下几件事情：**
 
 1. **创建环形数组并且创建所有 Event 对象**
 2. **根据生产者类型创建对应的 Sequencer**
@@ -270,9 +227,13 @@ Disruptor 在启动前就需要指定消费者，同时也可以指定各消费�
 
 <br>
 
-### 注册流程
+### 注册和启动流程
 
-Disruptor 提供了多种方式来进行注册：（消费者是想 Disruptor 对象注册的
+Disruptor 中的消费者需要提前注册，然后随着框架的启动而开始执行。
+
+<br>
+
+Disruptor 提供了多种方式来进行注册：（消费者是向 Disruptor 对象注册的
 
 1. EventHandler（最终会被包装为 EventProcessor 进行注册，当前 Disruptor 所持有的 RingBuffer 会作为 DataProvider 传入。
 2. EventProcessorFactory（会使用工厂类直接创建 EventProcessor 进行消费者的注册
@@ -374,9 +335,9 @@ EventProcessor 继承了 Runnable 所以可以被 Executor 直接执行。
 
 
 
-<br>
+<b>
 
-### 启动流程
+#### 启动流程
 
 启动流程对应的是 `Disruptor#start` 方法，在启动之前所有的消费者都以 EventProcessor 的形式保存在 ConsumerRepository 中。
 
@@ -409,14 +370,13 @@ public RingBuffer<T> start(){
 
 ### 消费流程
 
-启动过程中 EvnetProcessor 就作为 Runnable 被放入线程池执行，所以消费的主题逻辑也实现在继承的 run() 方法中。
+#### 主体逻辑
 
-Disruptor 的 EvnetProcessor 的主要实现包含以下两种：
+启动过程中 EvnetProcessor 就作为 Runnable 被放入线程池执行，所以消费的主题流程也实现在继承的 run() 方法中。
 
-1. WorkProcessor（还没看呢
-2. BatchEventProcessor
+（以下的实现 BatchEventProcessor 为主，WorkProcessor 还没看呢
 
-
+<br>
 
 以下是 BatchEventProcessor 的处理逻辑：
 
@@ -457,9 +417,25 @@ public void run(){
 }
 ```
 
-事件的轮询处理逻辑都在 **processEvents** 方法中，run 方法中包含的主要还是处理流程中生命周期的处理。
 
-通过实现 LifecycleAware 接口，来实现启动和关闭的周期方法。
+
+在消费者启动和关闭的时候都有对应的回调方法（notifyStart / notifyStart），对应的就是  **LifecycleAware** 接口：
+
+![image-20230619上午122557863](assets/image-20230619上午122557863.png)
+
+> EventHandler 可以通过继承该接口实现前后的回调，在整个生命周期各执行一次。
+
+消费的正常逻辑就是以下几步：
+
+1. CAS 修改状态（IDLE -> RUNNING
+2. 前置回调（LifecycleAware#onStart
+3. 事件处理（processEvents
+4. 后置回调（LifecycleAware#onShutdown
+5. 状态修改 （任何状态 -> IDLE
+
+
+
+#### 事件轮询和阻塞逻辑
 
 以下是 processEvents 的处理逻辑：
 
@@ -510,15 +486,99 @@ private void processEvents(){
 
 
 
-整体的处理逻辑细节较多，但是大体的就是以下五个流程：
+事件的轮训通过一个死循环包括，**不是 AlertEcveption 就无法退出**。
 
-1. 执行 LifecycleAware#onStart 方法（每次启动的时候调用
-2. 获取可用的序号（此时可能会阻塞等待，调用的 SequenceBarrier#waitFor
-3. 执行 BatchStartAware#onBatchStart 方法（在每次获取到一批可以执行的事件的时候回调
-4. 遍历序号内的事件并执行（执行完后回到步骤2
-5. 执行 LifecycleAware#onShutdown 方法（每次退出执行的时候调用
+> 一个消费者是一个无限执行的任务，所以最好不要用线程池去执行消费的 Runnable，或者说线程数最好是 1:1
+
+BatchEventProcessor 并不会直接访问 RingBuffer 获取可用，而是通过 SequenceBarrier 实现（此前是通过 RingBuffer#newBarrier 创建的。
+
+在获取到可用序号后，会先执行批量处理的前置回调 BatchStartAware#onBatchStart。
+
+> BatchStartAware 也是通过 EventHandler 实现的。
+>
+> （Disruptor 这个实现我喜欢，**所有的 Aware 都需要富集到 EventHandler 中统一注册。**
+
+完成回调之后，遍历可用序号逐个从 RingBuffer 中获取事件（DataProvider 就是 RingBuffer。
+
+然后调用 EventHandler#onEvent 完成实际的事件处理。
+
+<br>
+
+对于执行过程中的 TimeoutException（等待的超时，处理过程中的超时），都会触发 TimeoutHandler#onTimeout。
+
+对于 AlterException 则会判断状态，在非运行中状态时跳出循环。
+
+对于其他未知异常则会调用 ExceptionHandler#handleEventException 方法处理。
 
 
+
+
+
+#### 阻塞逻辑
+
+> 在消费速度大于生产速度的时候，就需要消费者阻塞等待生产。
+
+消费者并不会直接访问 RingBuffer，而是通过 SequenceBarrier，以下是对应的 waitFor 方法：
+
+```java
+@Override
+public long waitFor(final long sequence) 
+  		throws AlertException, InterruptedException, TimeoutException{
+  // 检查报警（如果 Disruptor 状态改变会传递到 SequenceBarrier
+  checkAlert();
+  // 等待可用序号（具体的等待逻辑被延迟到了 waitStrategy 实现
+  long availableSequence = waitStrategy .waitFor(sequence, cursorSequence, dependentSequence, this);
+  if (availableSequence < sequence){
+    return availableSequence;
+  }
+  return sequencer.getHighestPublishedSequence(sequence, availableSequence);
+}
+```
+
+
+
+而 SequenceBarrier 也是通过 WaitStrategy 抽象出等待逻辑，在 Disruptor 官方实现中提供了以下几种：
+
+| 实现类                          | 作用                                                    |
+| ------------------------------- | ------------------------------------------------------- |
+| BlockingWaitStrategy            | 使用 ReentrantLock$Condition#await 实现的阻塞等待       |
+| BusySpinWaitStrategy            | 调用 Thread#onSpinWait 实现等待（可能没有，那就是空轮训 |
+| LiteBlockingWaitStrategy        |                                                         |
+| LiteTimeoutBlockingWaitStrategy |                                                         |
+| PhasedBackoffWaitStrategy       |                                                         |
+| SleepingWaitStrategy            |                                                         |
+| TimeoutBlockingWaitStrategy     |                                                         |
+| YieldingWaitStrategy            |                                                         |
+
+（懒得看了，有空再写作用。
+
+
+
+#### 状态流转
+
+```mermaid
+stateDiagram-v2
+		state "IDLE(空闲)" as I
+		state "HALTED(停止)" as H
+		state "RUNNING(运行中)" as R
+		
+		[*] --> I
+		I --> R: Disruptor#start（EventProcessor 被送入 Executor 执行
+		R --> H: Disruptor#halt（修改状态并设置告警
+		R --> H: Disruptor#shutdown（等待所有事件都被消费完,再调用 halt
+		H --> I: 感知到告警,跳出循环后修改
+  
+```
+
+
+
+Disruptor#halt 方法除了修改当前 **EventProcessor** 的状态，还会在依赖的 **SequenceBarrier** 中记录一个告警状态，并且唤醒所有等待中消费者。
+
+重新执行的过程中感知到告警状态就会抛出 AlertException，从而跳出整个 BatchEventProcessor#processEvents 的处理循环，而后在外层 BatchEventProcessor#run 中修改为 IDLE 状态。
+
+
+
+### 总结
 
 整体流程如下：
 
@@ -546,37 +606,29 @@ flowchart TD
     L --> N("更新状态到 IDEL（可以重新启动")
 ```
 
-在 Disruptor#shutdown 之后，是可以重新直接 Disruptor#start 的，生产者/消费者的序号没有清空。
+（在 Disruptor#shutdown 之后，是可以重新直接 Disruptor#start 的，生产者/消费者的序号没有清空。
 
 
 
 
 
-### 状态流转
 
-```mermaid
-stateDiagram-v2
-		state "IDLE(空闲)" as I
-		state "HALTED(停止)" as H
-		state "RUNNING(运行中)" as R
-		
-		[*] --> I
-		I --> R: Disruptor#start（EventProcessor 被送入 Executor 执行
-		R --> H: Disruptor#halt（修改状态并设置告警
-		R --> H: Disruptor#shutdown（等待所有事件都被消费完,再调用 halt
-		H --> I: 感知到告警,跳出循环后修改
-  
-```
+
+### 消费者的线程模型
 
 
 
-Disruptor#halt 方法除了修改当前 **EventProcessor** 的状态，还会在依赖的 **SequenceBarrier** 中记录一个告警状态，并且唤醒所有等待中消费者。
+Disruptor 的构造函数中已经表明，作者不建议使用 Evecutor 来执行消费者的任务。
 
-重新执行的过程中感知到告警状态就会抛出 AlertException，从而跳出整个 BatchEventProcessor#processEvents 的处理循环，而后在外层 BatchEventProcessor#run 中修改为 IDLE 状态。
+因为从上文可知，消费者的线程需要循环去获取事件，Runnable 主流程在 Disruptor 关闭前就不会退出，也就是说他会独占一个线程。
+
+另外在生产者端，发布事件的时候，生产速度是受限于所有消费者组中的最慢消费速度的。
+
+因此在使用 Disruptor 的实现，都需要尽可能使用单个线程处理消费者逻辑。
 
 
 
-
+例如在一个【用户注册】的场景，需要在注册后进行【发送欢迎短信】、【赠送注册积分】等逻辑，就可以由单个线程去接收用户注册事件，然后外接线程池去完成对应业务。
 
 
 
@@ -683,6 +735,28 @@ gatingSequences 就是各个消费者的序号，在注册消费者的时候添�
 
 
 如果希望生产的速度不要超过消费的速度，那么生产者的下一个序号(nextValue)一定要小于
+
+
+
+
+
+
+
+
+
+## 
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
