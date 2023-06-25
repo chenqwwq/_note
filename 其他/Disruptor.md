@@ -632,23 +632,51 @@ Disruptor 的构造函数中已经表明，作者不建议使用 Evecutor 来执
 
 
 
+
+
+
+
 ## 生产者
 
 生产者不在 Disruptor 的控制范围之内，任何持有 Disruptor 对象的都可以作为生产者，调用 Disruptor#pushlishEvent 发布事件。
+
+上文提到过，Disruptor 使用的环形队列保存待消费的事务，并且 RingBuffer 在一开始就会创建所有的 Event 对象。
+
+所以生产者的流程简单来说就是如下流程：
+
+1. 获取可用的序号，并获取序号对应的 Event（该序号表示的 Event 可以使用
+2. 重新赋值 Event（不需要重新创建对象
+3. 更新生产者序号
+
+<br>
+
+然后在看一下这些流程在 Disruptor 的实现。
+
+<br>
 
 生产的形式可以分为以下几种（Disruptor 的方法声明：
 
 ![image-20230606201619355](assets/image-20230606201619355.png)
 
-最终都是调用 RingBuffer 的对应方法，以第一个 EventTranslator 为例，其接口声明如下：
+EventTranslator 就是对应的事件赋值接口，相关定义如下：
 
 ![image-20230606201849222](assets/image-20230606201849222.png)
 
-该类主要的功能就是往参数传递的 event 中塞入新数据并完成发布，具体的使用场景（RingBuffer 的具体发布流程）如下：
+接口参数【event】表示当前需要赋值的事件对象，而【sequence】表示事件对应的序号。
+
+方法接收一个 EventTranslator 的 Lambda 实现，**对于获取的事件会通过【translateTo】方法重新赋值并且重新发布**。
+
+最终都是调用 RingBuffer 的对应方法，以第一个 EventTranslator 为例，其方法实现如下：
+
+![image-20230620上午120805316](assets/image-20230620上午120805316.png)
+
+具体的使用场景（RingBuffer 的具体发布流程）如下：
 
 ```java
+// RingBuffer#publishEvent
 public void publishEvent(EventTranslator<E> translator){
   // 获取下次发布的事件序号
+  // 这里的 Sequence 是 RingBuffer 的，已经将所有的消费者添加为 gateSequences
   final long sequence = sequencer.next();
   // 转换并发布事件
   translateAndPublish(translator, sequence);
@@ -666,27 +694,17 @@ private void translateAndPublish(EventTranslator<E> translator, long sequence){
 }
 ```
 
-生产者本身不保存任何 Sequence，而是由 RingBuffer 统一持有，根据生产者数目的不同又分为 SingleProducerSequencer 和 MultiProducerSequencer（包括获取可用序号和发布对应序号。
+根据最开始生产者类型的区别，sequencer 会有不同的实现（这里又是一种策略模式的表现。
 
-事件的发布过程不需要创建新的事件对象，而是先获取环形队列中的对象然后赋值。
+单生产者并不需要并发控制，而多生产者需要在并发的情况下保证生产者的 Sequnce 正确，并且如果出现消费不及时的情况，生产者还需要等待。
 
-
-
-发布的流程简述如下：
-
-1. 先获取目前哪个序号的事件可以发布（环形数组中哪个位置的事件对象可用，已经被消费或未发布
-2. 获取该序号的对象，并进行修改
-3. 发布该序号下的事件
-
-（区分单生产者和多生产者，第1、3流程的分别实现逻辑。
+（等待的逻辑也保存在 【sequencer.next()】中。
 
 
 
+### SingleProducerSequencer
 
-
-对于单生产者模式，不需要对生产的序号作并发控制，但是需要与消费者的序号协调：
-
-**生产者的序号不能超过消费者的序号。**
+对于单生产者模式对应的类型为【SingleProducerSequencer】，不需要对生产的序号作并发控制，但是需要与消费者的序号协调：**生产者的序号不能超过消费者的序号。**
 
 > 因为是环形队列，所以生产的速度不能赶上消费者的速度（覆盖了未消费的事件。
 >
@@ -706,11 +724,14 @@ public long next(int n){
   long nextValue = this.nextValue;
   // 加上希望获取的个数（此时相加可能会超过环形数组大小
   long nextSequence = nextValue + n;
-  // 减去环形数组大小（如果下标越界，此时就是正常的，否则为0
+  // 减去环形数组大小（如果下标越界，此时就回到环形队列头部
   long wrapPoint = nextSequence - bufferSize;
 	// 缓存的最小依赖值（初始为-1
+  // 这里是会缓存最小值的（cachedValue 表示的就是所有 gatingSequences 的最小值
   long cachedGatingSequence = this.cachedValue;
-	// 这里应该是代表生产的速度已经超过消费的速度了
+	// 分情况判断是否出现消费不及时的情况 
+  // 情况1是表示生产序号越界之后又超出了消费序号
+  // 情况2是表示生产序号已经越界之后消费序号没有跟上的情况
   if (wrapPoint > cachedGatingSequence || cachedGatingSequence > nextValue){
     // cursor 又是啥东西？？？
     cursor.setVolatile(nextValue);  // StoreLoad fence
@@ -730,372 +751,9 @@ public long next(int n){
 
 gatingSequences 就是各个消费者的序号，在注册消费者的时候添加（通过 AtomicReferenceFieldUpdater 添加的。
 
-（我一直以为是没有更新的空数组，日。
+（我一直以为是没有更新的空数组，日。 
 
-
-
-如果希望生产的速度不要超过消费的速度，那么生产者的下一个序号(nextValue)一定要小于
-
-
-
-
-
-
-
-
-
-## 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## 事件生产流程
-
-RingBuffer 回预先创建所有的事件对象，所以后续的发布流程就是获取指定对象，填充属性并且发布。
-
-过程中主要控制生产者的生产速度，不能把没消费完的事件覆盖了。
-
-
-
-### 获取可写入位置
-
-RingBuffer 是一个环形数组，所以就需要读写两个指针表示进度（emm，因为先学的 InnoDb 的 Redo Log 所以感觉 write point 和 checkpoint 两个还挺好理解的。
-
-**因为是个一对多或者多对多的场景，并且消费者各自保存自己的消费进度，所以写入的场景都需要考虑多个消费者的最低消费速度，而写入的速度保存在 RingBuffer**
-
-RingBuffer 中使用 Sequencer#next 确定下一个写入的位置，Sequencer  都继承了 AbstractSequencer，因此也保存了以下几个变量：
-
-```java
-protected final int bufferSize;		// 	RingBuffer 的大小
-protected final WaitStrategy waitStrategy;    // 等待策略
-protected final Sequence cursor = new Sequence(Sequencer.INITIAL_CURSOR_VALUE);   // 当前写入的位置
-protected volatile Sequence[] gatingSequences = new Sequence[0];		// gatingSequences 就是所有消费者的 Sequence
-// 在注册流程中会将消费者的 Sequence 全部添加进来
-```
-
-<br>
-
-根据消费者的个数可以分为 SingleProducerSequencer 以及 MultiProducerSequencer。
-
-（SingleProduceSequencer 中不存在争用，所以实现相对简单。
-
-<br>
-
-**SingleProducerSequencer** 
-
-```java
-@Override
-public long next(int n)
-{
-  if (n < 1){
-    throw new IllegalArgumentException("n must be > 0");
-  }
-
-  // 下次的可用槽位
-  long nextValue = this.nextValue;
-	// 一共需要n个槽位
-  long nextSequence = nextValue + n;
-  // 可能会超过，一般情况下都是负数，超过表示需要重头开始填充
-  // 比如当前 bufferSize = 16，但是 nextSequence = 19，wrapPoint = 3 表示已经过了一轮了
-  long wrapPoint = nextSequence - bufferSize;
-  // cacheValue 是所有消费者的最小的下标（最慢的速度
-  long cachedGatingSequence = this.cachedValue;
-
-  // 主要是 cacheValue = 5，但是 wrapPoint = 6 的时候，此时说明生产的速度已经要大于消费的速度了
-  // 所以需要进循环等待
-  if (wrapPoint > cachedGatingSequence || cachedGatingSequence > nextValue) {
-    cursor.setVolatile(nextValue);  // StoreLoad fence
-    long minSequence;
-    // 等待直到消费赶上
-    while (wrapPoint > (minSequence = Util.getMinimumSequence(gatingSequences, nextValue))){
-      LockSupport.parkNanos(1L); // TODO: Use waitStrategy to spin?
-    }
-	  // 重新设置最小消费槽位
-    this.cachedValue = minSequence;
-  }
-	// 下次的消费槽位
-  this.nextValue = nextSequence;
-  return nextSequence;
-}
-```
-
-单线程并没有并发和伪共享问题，所以直接使用的一个 long 类型的 nextValue 保存写指针（读指针保存在各个消费者那，会在 gatingSequences 中保存。
-
-**MultiProducerSequencer**
-
-MultiProducerSequencer 表示多个生产者，所以会存在写入位置并发写入的问题，该类中使用 CAS 实现并发更新的安全性。
-
-```java
-// MultiProducerSequencer#next
-public long next(int n){
-  if (n < 1){
-    throw new IllegalArgumentException("n must be > 0");
-  }
-  long current;
-  long next;
-  do{
-    // cursor 是 Sequence 实现
-    // 不再和 Single 一样单纯的 long 了
-    current = cursor.get();
-    // 后续的判断都差不多
-    next = current + n;
-    long wrapPoint = next - bufferSize;
-    long cachedGatingSequence = gatingSequenceCache.get();
-    if (wrapPoint > cachedGatingSequence || cachedGatingSequence > current){
-      long gatingSequence = Util.getMinimumSequence(gatingSequences, current);
-      if (wrapPoint > gatingSequence){
-        LockSupport.parkNanos(1); // TODO, should we spin based on the wait strategy?
-        continue;
-      }
-      gatingSequenceCache.set(gatingSequence);
-      // 更新的时候使用的 CSA，外层套了个自旋
-    }else if (cursor.compareAndSet(current, next))]{
-      break;
-    }
-  }
-  while (true);
-  return next;
-}
-```
-
-
-
-如果是一个无限长的序列，可写入的位置必须小于多生产者的最小为止，因为是环形数组所以需要额外判断超出的情况。
-
-ProducerSequencer 中保存了所有消费者的 Sequence，每次都会获取最小的消费下标，写入不能超过这个下标，在 Sequencer 中另外有缓存避免每次遍历消费者（感觉多此一举，消费者能有多少。
-
-### 获取指定下标对象
-
-```java
-// RingBuffer#get
-public E get(long sequence){
-  return elementAt(sequence);
-}
-
-// RingBufferFields#elementAt
-protected final E elementAt(long sequence){
-  return (E) UNSAFE.getObject(entries, REF_ARRAY_BASE + ((sequence & indexMask) << REF_ELEMENT_SHIFT));
-}
-```
-
-通过 Unsafe 获取数组对象对象指定下标的值。
-
-因为 indexMask 是2此幂，所以 sequence & indexMask 相当于是 sequence % indexMask 了（真就大量优化。
-
-
-
-### 发布事件
-
-发布事件修改的是生产者的写入指针，对于 SingleProducerSequencer 来说就是简单的修改 cursor。
-
-```java
-// SingleProducerSequencer#pushlish
-public void publish(long sequence){
-  // 修改 cursor
-  cursor.set(sequence);
-  // 唤醒所有阻塞的消费者
-  waitStrategy.signalAllWhenBlocking();
-}
-```
-
-主要是多线程生产的时候，因为整个发布顺序是先获取可写位置，赋值，发布，所以后获取的位置（比较靠后）可能先发布，直接替换就不成立了。
-
-MultiProducerSequencer 使用的 availableBuffer 表示每个槽位是否可读。
-
-```java
-// 长度和 RingBuffer 相同，表示每个位置的版本号，每次修改某个位置，该位置的 flag + 1
-private final int[] availableBuffer;
-// availableBuffer 保存的都是每个 sequence >>> indexShift
-private final int indexShift;
-```
-
-MultiProducerSequencer 的发布就是修改每个位置上的 flag:
-
-```java
-// MultiProducerSequencer#publish
-public void publish(final long sequence){
-  setAvailable(sequence);
-  waitStrategy.signalAllWhenBlocking();
-}
-// MultiProducerSequencer#setAvailable
-private void setAvailable(final long sequence){
-  setAvailableBufferValue(calculateIndex(sequence), calculateAvailabilityFlag(sequence));
-}
-
-// MultiProducerSequencer#setAvailableBufferValue
-private void setAvailableBufferValue(int index, int flag){
-  long bufferAddress = (index * SCALE) + BASE;
-  UNSAFE.putOrderedInt(availableBuffer, bufferAddress, flag);
-}
-
-// MultiProducerSequencer#calculateIndex
-// indexMask 可以参考 HashMap，以 & 来实现取余
-private int calculateIndex(final long sequence){
-  return ((int) sequence) & indexMask;
-}
-
-// MultiProducerSequencer#calculateAvailabilityFlag
-// 根据 sequence 确定 flag，sequence 增加 bufferSize 的时候 flag 才会+1
-// bufferSize = 16 的时候，indexShift = 4，懂？
-private int calculateAvailabilityFlag(final long sequence){
-  return (int) (sequence >>> indexShift);
-}
-```
-
-简单的可以理解为 avaliableBuffer 中保存的是每个位置的版本号（从0开始的，因此可以根据 Flag 判断是否可读。
-
-flag 也不需要单独保存，可以根据 sequence 计算。
-
-
-
-```java
-public interface WaitStrategy
-{
-    /**
-     * Wait for the given sequence to be available.  It is possible for this method to return a value
-     * less than the sequence number supplied depending on the implementation of the WaitStrategy.  A common
-     * use for this is to signal a timeout.  Any EventProcessor that is using a WaitStrategy to get notifications
-     * about message becoming available should remember to handle this case.  The {@link BatchEventProcessor} explicitly
-     * handles this case and will signal a timeout if required.
-     *
-     * @param sequence          to be waited on.
-     * @param cursor            the main sequence from ringbuffer. Wait/notify strategies will
-     *                          need this as it's the only sequence that is also notified upon update.
-     * @param dependentSequence on which to wait.
-     * @param barrier           the processor is waiting on.
-     * @return the sequence that is available which may be greater than the requested sequence.
-     * @throws AlertException       if the status of the Disruptor has changed.
-     * @throws InterruptedException if the thread is interrupted.
-     * @throws TimeoutException if a timeout occurs before waiting completes (not used by some strategies)
-     * 等待直到可以消费
-     */
-    long waitFor(long sequence, Sequence cursor, Sequence dependentSequence, SequenceBarrier barrier)
-        throws AlertException, InterruptedException, TimeoutException;
-
-    /**
-     * Implementations should signal the waiting {@link EventProcessor}s that the cursor has advanced.
-     * 唤醒所有等待的线程
-     */
-    void signalAllWhenBlocking();
-}
-
-```
-
-对应的子类实现有如下几种：
-
-| 实现类                          | 作用                                                    |
-| ------------------------------- | ------------------------------------------------------- |
-| BlockingWaitStrategy            | 使用 ReentrantLock$Condition#await 实现的阻塞等待       |
-| BusySpinWaitStrategy            | 调用 Thread#onSpinWait 实现等待（可能没有，那就是空轮训 |
-| LiteBlockingWaitStrategy        |                                                         |
-| LiteTimeoutBlockingWaitStrategy |                                                         |
-| PhasedBackoffWaitStrategy       |                                                         |
-| SleepingWaitStrategy            |                                                         |
-| TimeoutBlockingWaitStrategy     |                                                         |
-| YieldingWaitStrategy            |                                                         |
-
-（懒得看了，有空再写作用。
-
-
-
-### 层级消费实现
-
-如果消费者存在依赖关系，例如A只能消费B消费过的数据，这种时候需要做的就是 A 等待 B 的消费，A甚至不再需要等待生产者（不再直接等待。
-
-类似的依赖关系是通过 SequenceBarrier 来实现的，Barrier 中保存了依赖的消费者的 Sequence，通过对 Sequence 的比较来判断自己的消费下标。
-
-（最上层的消费者根据的是生产者的 Sequence 来判断自己的消费进度，如果存在依赖关系之后，下级的消费者只需要关注上级消费者的 Sequence 就好。
-
-
-
-ProcessingSequenceBarrier 中保存了 WaitStrategy 和依赖的所有消费者的 Sequence。
-
-```java
-// ProcessingSequenceBarrier 构造函数
-ProcessingSequenceBarrier(
-  final Sequencer sequencer,
-  final WaitStrategy waitStrategy,
-  final Sequence cursorSequence,
-  final Sequence[] dependentSequences){			// 依赖的所有 Sequence
-  this.sequencer = sequencer;
-  this.waitStrategy = waitStrategy;
-  this.cursorSequence = cursorSequence;
-  if (0 == dependentSequences.length){
-    dependentSequence = cursorSequence;
-  } else{
-    // 如果是多个会被包装成 Sequence
-    dependentSequence = new FixedSequenceGroup(dependentSequences);
-  }
-}
-```
-
-之后看如何实现的依赖关系：
-
-```java
-// ProcessingSequenceBarrier#waitFor
-// 传入的参数是下次希望消费的位置
-// 返回的是可以消费的位置，可能比传入的大
-public long waitFor(final long sequence)
-  throws AlertException, InterruptedException, TimeoutException{
-  checkAlert();
-  long availableSequence = waitStrategy.waitFor(sequence, cursorSequence, dependentSequence, this);
-  if (availableSequence < sequence){
-    return availableSequence;
-  }
-  return sequencer.getHighestPublishedSequence(sequence, availableSequence);
-}
-```
-
-
-
-
-
-#### Sequence 
-
-![image-20230523164830084](assets/image-20230523164830084.png)
-
-（同步序列类用于追踪 RingBuffer 和事件处理器的进程，支持多种形式的同步操作，包括 CAS 以及顺序写，另外也尝试使用更加有效率的方式消除伪共享，比如在属性前后增加填充。
-
-
-
-对于生产者来说，Sequence 保存了写入的位置，保存在 RingBuffer。
-
-对于消费者来说，Sequence 保存在自身的读取的位置，多个消费者不共享。
-
-Sequence 本身使用 Padding 的方式来避免缓存行的伪共享问题（在 JDK1.8之后应该也可以用 @Contended 来实现的。
-
-
-
-##### Sequencer
-
-![image-20230523164736005](assets/image-20230523164736005.png)
-
-Sequence 的管理者，包含了生产者和消费者的相关 Sequence（就是持有了生产者的写入指针和消费者的读取指针。
-
-根据生产者的个数分为 SingleProducerSequencer 和 MutilProducerSequencer。
-
-如果消费者有多个，Single 就是保存单生产者和消费者的关系，而 Mutil 保证的就是多生产者和消费者的关系，以及多生产者之间的并发安全。
-
-
-
-
+#### MultiProducerSequencer
 
 
 
