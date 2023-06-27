@@ -1,4 +1,4 @@
-# Disruptor
+# Disruptor 框架
 
 > 以下源码基于 3.4.4 版本。
 
@@ -8,7 +8,7 @@
 
 ---
 
-## 总体介绍
+## Introduce
 
 以下是 Disruptor 官网的介绍图：
 
@@ -16,21 +16,29 @@
 
 
 
-（Disruptor 最开始听说的是一个高性能无锁队列，但是实际上它不仅仅是队列。
+Disruptor 是 LMAX 基于 Java 语言实现的**高性能队列**，相比于 Java 的 BlockedQueue，它有以下几个特点：
 
-Disruptor 更像是一套本地的 MQ 系统（Message Queue，消息队列），作为中间组件**保存消息，并协调生产者和消费者**。
+1. 无锁化（后续讲到的等待策略，所选择上所等待
+2. 内存的预分配（队列会实现创建指定数量的对象
+3. 事件广播（通过 Disruptor 发布的事件会被各个消费者分别消费
 
 <br>
 
-**其中 RingBuffer 就是最重要的组件，等同于中间队列，保存待消费事件以及协调生产者和消费者之间的依赖关系。**
+Disruptor 对生产者/消费者的各个模块都进行了抽象（上图中也标注了各个角色），各个角色的作用如下：
 
-Sequence 表示的就是各类进度包括生产者和消费者的序号（或者说偏移量？），而 Sequencer 是上层的包装控制类，封装了各种对于 Sequence 的操作。
+**RingBuffer** 是最重要的中间队列，保存事件对象，也协调生产者和消费者之间的依赖关系。
 
-**生产者的 Sequence 由 RingBuffer 统一管理**，Disruptor 支持**单生产者和多生产者两种模式**，在多生产者模式下就需要注册 Sequence 的并发安全。
+Producer 是生产者，任何持有 RingBuffer 的对象都可以作为生产者。
 
-**消费者则由各个消费者各自管理**（因此各个消费者会分别消费事件，不会互相影响，类似 Kafka 的消费者组，所以消息会被每个消费者都处理一次。
+Consumer 是消费者，消费者需要实现 EventHandler，并且需要向 Disruptor 注册信息。
 
+**Sequence** 表示的是生产/消费的序号（或者说偏移量？）可以类比于 AtomicLong，但是 Sequence 通过内存填充避免了伪共享
 
+> 生产者的 Sequence 由 RingBuffer 统一管理，消费者的 Sequence 则由各个消费者各自管理。
+>
+> 因此各个消费者会分别消费事件，不会互相影响，类似 Kafka 的消费者组，所以消息会被每个消费者都处理一次。
+
+Sequencer 
 
 
 
@@ -38,7 +46,11 @@ Sequence 表示的就是各类进度包括生产者和消费者的序号（或�
 >
 > EventBus 是监听器模型，而 Disruptor 则是生产者/消费者模型，相对来说 Disruptor 的实现更加复杂也更加灵活高效。
 
-## Disruptor 
+
+
+## 源码分析
+
+### Disruptor
 
 Disruptor 是整个框架的核心，**负责协调生产者和队列、队列和消费者之间的关系，并对外提供基础 API。**
 
@@ -48,7 +60,7 @@ Disruptor 主要持有 RingBuffer 的对象引用，以及所有的消费者信�
 
 
 
-### 创建流程
+#### 创建流程
 
 （先通过创建过程来了解 Disruptor 整个对象的构造。
 
@@ -77,7 +89,9 @@ private Disruptor(final RingBuffer<T> ringBuffer, final Executor executor)
 }
 ```
 
-**Disruptor 的创建流程主要就是创建了对应的 RingBuffer 对象，并且指定消费者所用的线程。**
+**Disruptor 的创建流程主要就是创建了对应的 RingBuffer 对象，并且指定消费者所用的线程工厂。**
+
+> 消费者的线程模型非常重要，这是非常容易出问题的一个点。
 
 <br>
 
@@ -97,13 +111,13 @@ private Disruptor(final RingBuffer<T> ringBuffer, final Executor executor)
 
 <br>
 
-### RingBuffer 创建流程
+####  RingBuffer 创建流程
 
 以下是 3.4.4 版本中 RingBuffer 的定义注释以及继承图：
 
 ![image-20230523164808847](assets/image-20230523164808847.png)
 
-（基于环形数组实现的可重复使用实例对象的存储组件，保存的数据的在事件发生器和事件处理器之间交换。
+（基于环形数组实现的可重复使用实例对象的存储组件，保存的数据的在生产者和消费者之间交换。
 
 <br>
 
@@ -112,6 +126,12 @@ private Disruptor(final RingBuffer<T> ringBuffer, final Executor executor)
 
 
 RingBufferFields 、RingBufferPad 是 RingBuffer 做数据填充，避免缓存行的伪共享的实现。
+
+> 伪共享是指相关性较差的数据使用同一缓存行保存，而各自的修改会导致缓存行更频繁的失效，因此导致的性能降低。
+>
+> Disruptor 的处理方法很优雅，直接扩充当前重点数据大小到大于等于缓存行大小为止。
+
+
 
 EventSink 和 DataProvider 是 RingBuffer 的两个角色，对于生产者来说是事件的接受者，对于消费者来说又是数据的提供者。
 
@@ -144,7 +164,9 @@ public static <E> RingBuffer<E> create(
 }
 ```
 
-RingBuffer 的大小是固定的，并且创建的时候就需要传入 EventFactory，Buffer 中所有的事件对象都是通过该工厂创建的。
+RingBuffer **的大小是固定的**，并且创建的时候就需要传入 EventFactory，Buffer 中所有的事件对象都是通过该工厂创建的。
+
+（因为大小是固定的，所以 RingBuffer 更可以类比 ArrayBlockedQueue 实现的生消模型。
 
 <br>
 
@@ -200,15 +222,13 @@ private void fill(EventFactory<E> eventFactory){
 }
 ```
 
-需要注意的就是以下几个点：
-
-- RingBuffer 在创建的过程中间就会调用 EventFactory#newInstance 方法创建所需要的所有对象，为了后续的重复使用。
-
-- RingBuffer 的大小必须为2次幂，为了使用 k & (n-1) 求对应数组下标。
-
-- RingBuffer 中为了避免伪共享，做了很多的填充，例如整个的数组会多创建一些填充对象。
 
 
+RingBuffer 在创建的过程中间就会调用 EventFactory#newInstance 方法创建所需要的所有对象，为了后续的重复使用。
+
+RingBuffer 的大小必须为2次幂，为了使用 k & (n-1) 求对应数组下标。
+
+RingBuffer 中为了避免伪共享，做了很多的填充，例如整个的数组会多创建一些填充对象。
 
 总结来说，**RingBuffer 的创建流程主要完成以下几件事情：**
 
@@ -219,15 +239,15 @@ private void fill(EventFactory<E> eventFactory){
 
 <br>
 
-## 消费者
+### 消费者
 
 Disruptor 在启动前就需要指定消费者，同时也可以指定各消费者之间的依赖关系（也就是层级消费。
 
-消费者的依赖关系也就是层级消费，以 EventHandlerGroup 作为基本单位进行依赖关系的编排，GroupA 可以根据 GroupB 的消费进度进行事件消费。
+**消费者的依赖关系也就是层级消费，以 EventHandlerGroup 作为基本单位进行依赖关系的编排**，GroupA 可以根据 GroupB 的消费进度进行事件消费。
 
 <br>
 
-### 注册和启动流程
+#### 注册和启动流程
 
 Disruptor 中的消费者需要提前注册，然后随着框架的启动而开始执行。
 
@@ -366,11 +386,9 @@ public RingBuffer<T> start(){
 
 
 
+#### 消费流程
 
-
-### 消费流程
-
-#### 主体逻辑
+##### 主体逻辑
 
 启动过程中 EvnetProcessor 就作为 Runnable 被放入线程池执行，所以消费的主题流程也实现在继承的 run() 方法中。
 
@@ -510,11 +528,7 @@ BatchEventProcessor 并不会直接访问 RingBuffer 获取可用，而是通过
 
 对于其他未知异常则会调用 ExceptionHandler#handleEventException 方法处理。
 
-
-
-
-
-#### 阻塞逻辑
+##### 阻塞逻辑
 
 > 在消费速度大于生产速度的时候，就需要消费者阻塞等待生产。
 
@@ -578,8 +592,6 @@ Disruptor#halt 方法除了修改当前 **EventProcessor** 的状态，还会在
 
 
 
-### 总结
-
 整体流程如下：
 
 ```mermaid
@@ -608,13 +620,7 @@ flowchart TD
 
 （在 Disruptor#shutdown 之后，是可以重新直接 Disruptor#start 的，生产者/消费者的序号没有清空。
 
-
-
-
-
-
-
-### 消费者的线程模型
+#### 消费者的线程模型
 
 
 
@@ -632,11 +638,7 @@ Disruptor 的构造函数中已经表明，作者不建议使用 Evecutor 来执
 
 
 
-
-
-
-
-## 生产者
+### 生产者
 
 生产者不在 Disruptor 的控制范围之内，任何持有 Disruptor 对象的都可以作为生产者，调用 Disruptor#pushlishEvent 发布事件。
 
@@ -702,7 +704,7 @@ private void translateAndPublish(EventTranslator<E> translator, long sequence){
 
 
 
-### SingleProducerSequencer
+#### SingleProducerSequencer
 
 对于单生产者模式对应的类型为【SingleProducerSequencer】，不需要对生产的序号作并发控制，但是需要与消费者的序号协调：**生产者的序号不能超过消费者的序号。**
 
