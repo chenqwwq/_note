@@ -1,6 +1,8 @@
 # Disruptor 框架
 
-> 以下源码基于 3.4.4 版本。
+> 以下源码基于 3.4.4 版本，未完待续。
+
+![Disruptor](https://chenqwwq.oss-cn-hangzhou.aliyuncs.com/note/Disruptor%E7%9A%84%E5%89%AF%E6%9C%AC.png)
 
 ---
 
@@ -37,10 +39,6 @@ Consumer 是消费者，消费者需要实现 EventHandler，并且需要向 Dis
 > 生产者的 Sequence 由 RingBuffer 统一管理，消费者的 Sequence 则由各个消费者各自管理。
 >
 > 因此各个消费者会分别消费事件，不会互相影响，类似 Kafka 的消费者组，所以消息会被每个消费者都处理一次。
-
-Sequencer 
-
-
 
 > 某些层面上 Disruptor 和 Guava 的 EventBus 有点像（后续可以对比一下两者的实现。
 >
@@ -91,7 +89,7 @@ private Disruptor(final RingBuffer<T> ringBuffer, final Executor executor)
 
 **Disruptor 的创建流程主要就是创建了对应的 RingBuffer 对象，并且指定消费者所用的线程工厂。**
 
-> 消费者的线程模型非常重要，这是非常容易出问题的一个点。
+> 消费者的线程模型非常重要，这是非常容易出问题的一个点，并且在源码中也建议不要使用线程池实现。
 
 <br>
 
@@ -119,6 +117,8 @@ private Disruptor(final RingBuffer<T> ringBuffer, final Executor executor)
 
 （基于环形数组实现的可重复使用实例对象的存储组件，保存的数据的在生产者和消费者之间交换。
 
+
+
 <br>
 
 ![image-20230617上午125656652](assets/image-20230617上午125656652.png)
@@ -127,7 +127,7 @@ private Disruptor(final RingBuffer<T> ringBuffer, final Executor executor)
 
 RingBufferFields 、RingBufferPad 是 RingBuffer 做数据填充，避免缓存行的伪共享的实现。
 
-> 伪共享是指相关性较差的数据使用同一缓存行保存，而各自的修改会导致缓存行更频繁的失效，因此导致的性能降低。
+> 伪共享是指相关性较差的数据使用同一缓存行保存，而各自的修改会导致缓存行更频繁的失效，从何导致的性能降低。
 >
 > Disruptor 的处理方法很优雅，直接扩充当前重点数据大小到大于等于缓存行大小为止。
 
@@ -224,7 +224,7 @@ private void fill(EventFactory<E> eventFactory){
 
 
 
-RingBuffer 在创建的过程中间就会调用 EventFactory#newInstance 方法创建所需要的所有对象，为了后续的重复使用。
+RingBuffer 在**创建的过程中间就会调用 EventFactory#newInstance 方法创建所需要的所有对象，为了后续的重复使用。**
 
 RingBuffer 的大小必须为2次幂，为了使用 k & (n-1) 求对应数组下标。
 
@@ -245,11 +245,13 @@ Disruptor 在启动前就需要指定消费者，同时也可以指定各消费�
 
 **消费者的依赖关系也就是层级消费，以 EventHandlerGroup 作为基本单位进行依赖关系的编排**，GroupA 可以根据 GroupB 的消费进度进行事件消费。
 
+> 即使在 EventHandlerGroup 中的 EventHandler 对象也不会共享一个 Sequence，会各自消费完整的事件列表。
+
 <br>
 
 #### 注册和启动流程
 
-Disruptor 中的消费者需要提前注册，然后随着框架的启动而开始执行。
+Disruptor 中的消费者需要提前注册（上文中提到的 Disruptor 会保存所有的消费者信息），然后随着框架的启动而开始执行。
 
 <br>
 
@@ -263,6 +265,8 @@ Disruptor 提供了多种方式来进行注册：（消费者是向 Disruptor �
 <br>
 
 以下是通过 EventHandler 创建消费者的过程：
+
+（源码中主要需要注意 Disruptor 对于 Sequence 的处理，因为期间需要相互依赖。
 
 ```java
 // Disruptor#handleEventsWith
@@ -294,7 +298,7 @@ EventHandlerGroup<T> createEventProcessors(final Sequence[] barrierSequences,fin
     if (exceptionHandler != null){
       batchEventProcessor.setExceptionHandler(exceptionHandler);
     }
-    // 消费者注册中心？
+    // 消费者注册中心（会保存几类常用的映射
     consumerRepository.add(batchEventProcessor, eventHandler, barrier);
     // 消费者的 Processor
     processorSequences[i] = batchEventProcessor.getSequence();
@@ -333,29 +337,17 @@ private void updateGatingSequencesForNextInChain(final Sequence[] barrierSequenc
 3. 向 ConsumerRepository 注册当前的消费者信息（消费者并未启动，所以此时需要集中管理
 4. 处理 Sequence（非常重要，依赖关系都靠这个协调
    - 向 RingBuffer 添加当前的消费者的 Sequence（**保证生产者的 Sequence 不超过消费者**
-   - 处理具有依赖关系的消费者之间的 Sequence（**当前消费者的依赖，当前消费者不能超过依赖**
-   - 移除 RingBuffer 中当前消费者依赖的 Sequence（当前消费者的序号肯定小于依赖，所以直接移除
+   - 移除 RingBuffer 中当前消费者依赖的 Sequence（当前消费者的序号肯定小于依赖，所以只需要关注当前消费者的序号就好
+   - 处理具有依赖关系的消费者之间的 Sequence（**当前消费者不能超过依赖目标的序号。**
 5. 返回 EventHandlerGroup（EventHandlerGroup 对象包含 after 等方法可以作为顺序处理逻辑的编排方法
 
-**消费者最终的实例对象为 BatchEventProcessor（后续的消费逻辑，通过 RingBuffer 获取事件以及调用对应处理方法的逻辑都在该类中实现。**
 
-EventProcessor 继承了 Runnable 所以可以被 Executor 直接执行。
 
-很关键的是，Disruptor 不允许在运行过程中添加消费者，所以在  `Disruptor#start()` 前就需要注册全部的消费者。
+消费者最终的实例对象为 BatchEventProcessor（后续的消费逻辑，通过 RingBuffer 获取事件以及调用对应处理方法的逻辑都在该类中实现，EventProcessor 继承了 Runnable 所以可以直接执行。
+
+> 需要注意的是，Disruptor 不允许在运行过程中添加消费者，所以在  `Disruptor#start()` 前就需要注册全部的消费者。
 
 <br>
-
-对于 Sequence 到依赖关系，此处涉及到三种角色类型：当前【Current（当前消费者）】、【Dependent（被依赖者）】、【RingBuffer（生产者】。
-
-三者的 Sequence 关系如下：
-
-
-
-![Sequence间的依赖](assets/Sequence间的依赖-6846467.png)
-
-
-
-<b>
 
 #### 启动流程
 
@@ -376,19 +368,11 @@ public RingBuffer<T> start(){
 }
 ```
 
-启动的过程就是创建并启动所有消费者对象的过程，EventProcessor 继承了 Runnable 方法可以直接使用线程池执行该类。
-
-在 Disruotor 创建的时候传入的 ThreadFactory 参数会被包装为 Executor，此时就用到了。
-
-> Disruptor 的启动流程主要就是启动所有的消费者。
->
-> （消费者的执行线程由传入的线程池控制，一般情况下创建一个固定大小的线程池数量较为合适。
+EventProcessor 继承了 Runnable 方法可以直接使用 Executor 启动该类，在 Disruotor 创建的时候传入的 ThreadFactory 参数会被包装为 Executor，此时就用到了。
 
 
 
 #### 消费流程
-
-##### 主体逻辑
 
 启动过程中 EvnetProcessor 就作为 Runnable 被放入线程池执行，所以消费的主题流程也实现在继承的 run() 方法中。
 
@@ -506,9 +490,11 @@ private void processEvents(){
 
 事件的轮训通过一个死循环包括，**不是 AlertEcveption 就无法退出**。
 
-> 一个消费者是一个无限执行的任务，所以最好不要用线程池去执行消费的 Runnable，或者说线程数最好是 1:1
+> 一个消费者是一个无限执行的任务，所以最好不要用线程池去执行消费的 Runnable，或者说线程数和消费者数量最好是 1:1
 
-BatchEventProcessor 并不会直接访问 RingBuffer 获取可用，而是通过 SequenceBarrier 实现（此前是通过 RingBuffer#newBarrier 创建的。
+BatchEventProcessor 并不会直接访问 RingBuffer 获取可用事件，而是通过 SequenceBarrier 实现（此前是通过 RingBuffer#newBarrier 创建的。
+
+> 消费者通过 SequenceBarrier 来实现对生产者和上层消费者的依赖。
 
 在获取到可用序号后，会先执行批量处理的前置回调 BatchStartAware#onBatchStart。
 
@@ -528,6 +514,8 @@ BatchEventProcessor 并不会直接访问 RingBuffer 获取可用，而是通过
 
 对于其他未知异常则会调用 ExceptionHandler#handleEventException 方法处理。
 
+
+
 ##### 阻塞逻辑
 
 > 在消费速度大于生产速度的时候，就需要消费者阻塞等待生产。
@@ -535,21 +523,25 @@ BatchEventProcessor 并不会直接访问 RingBuffer 获取可用，而是通过
 消费者并不会直接访问 RingBuffer，而是通过 SequenceBarrier，以下是对应的 waitFor 方法：
 
 ```java
+// sequence 表示的是需要等待的序号
 @Override
-public long waitFor(final long sequence) 
-  		throws AlertException, InterruptedException, TimeoutException{
-  // 检查报警（如果 Disruptor 状态改变会传递到 SequenceBarrier
+public long waitFor(final long sequence)
+  throws AlertException, InterruptedException, TimeoutException{
+  // 检查是否有告警信息
   checkAlert();
-  // 等待可用序号（具体的等待逻辑被延迟到了 waitStrategy 实现
-  long availableSequence = waitStrategy .waitFor(sequence, cursorSequence, dependentSequence, this);
+  // cursorSequence 表示的是生产者当前的序号
+  // dependentSequence 是上层消费者的序号
+  // this 就是当前的消费者
+  long availableSequence = waitStrategy.waitFor(sequence, cursorSequence, dependentSequence, this);
+  // 如果获取的消费者小雨 sequence，表示咩没有货渠到可用的事件
+  // 直接返回最大可用事件
   if (availableSequence < sequence){
     return availableSequence;
   }
+  // 存在可用的事件，获取最大的可用序号
   return sequencer.getHighestPublishedSequence(sequence, availableSequence);
 }
 ```
-
-
 
 而 SequenceBarrier 也是通过 WaitStrategy 抽象出等待逻辑，在 Disruptor 官方实现中提供了以下几种：
 
@@ -564,11 +556,63 @@ public long waitFor(final long sequence)
 | TimeoutBlockingWaitStrategy     |                                                         |
 | YieldingWaitStrategy            |                                                         |
 
-（懒得看了，有空再写作用。
+
+
+以 BlockingWaitStrategy 为例子：
+
+```java
+// cursorSequence 表示的是生产者当前的序号
+// dependentSequence 是上层消费者的序号
+@Override
+public long waitFor(long sequence, Sequence cursorSequence, Sequence dependentSequence, SequenceBarrier barrier)
+  throws AlertException, InterruptedException {
+  long availableSequence;
+  // 如果当前序号小于需要的序号则直接使用 lock 上锁，并使用 condition 挂起当前线程
+  if (cursorSequence.get() < sequence){
+    lock.lock();
+    try{
+      while (cursorSequence.get() < sequence){
+        barrier.checkAlert();
+        // condition 直接挂起
+        processorNotifyCondition.await();
+      }
+    }finally{
+      lock.unlock();
+    }
+  }
+  while ((availableSequence = dependentSequence.get()) < sequence){
+    barrier.checkAlert();
+    // 调用的 Thread#onSpinWait
+    // 类似于 Thread#sleep(0)，但是性能相对好一点
+    ThreadHints.onSpinWait();
+  }
+  return availableSequence;
+}
+```
 
 
 
-#### 状态流转
+**消费者对于生产者的依赖是直接使用 ReentreLock 上锁，并使用 Condition 阻塞的，但是对于上层消费者，只有使用空轮询等待**
+
+如果上层消费者有多个，dependentSequence 就是被包装的 FixedSequenceGroup，获取对应的序号就是获取一组 Sequence 中最小的序号。
+
+
+
+参考了其他的实现，对于上层消费者的等待实现基本都是空轮询，所以对于同类消费者分层的时候需要保证消费的高效，如果上层消费者阻塞会直接拉爆下层消费者所在工作线程。
+
+
+
+#### 层级消费的实现
+
+上面消费的流程已经说明了大部分的实现了，下层的消费者必须要持有上层消费者的 Sequence。
+
+
+
+
+
+#### 总结
+
+##### 状态流转
 
 ```mermaid
 stateDiagram-v2
@@ -580,7 +624,7 @@ stateDiagram-v2
 		I --> R: Disruptor#start（EventProcessor 被送入 Executor 执行
 		R --> H: Disruptor#halt（修改状态并设置告警
 		R --> H: Disruptor#shutdown（等待所有事件都被消费完,再调用 halt
-		H --> I: 感知到告警,跳出循环后修改
+		H --> I: 感知到告警（checkAlert,跳出循环后修改
   
 ```
 
@@ -620,11 +664,11 @@ flowchart TD
 
 （在 Disruptor#shutdown 之后，是可以重新直接 Disruptor#start 的，生产者/消费者的序号没有清空。
 
-#### 消费者的线程模型
+##### 消费者的线程模型
 
 
 
-Disruptor 的构造函数中已经表明，作者不建议使用 Evecutor 来执行消费者的任务。
+Disruptor 的构造函数中已经表明，作者不建议使用 Executor 来执行消费者的任务。
 
 因为从上文可知，消费者的线程需要循环去获取事件，Runnable 主流程在 Disruptor 关闭前就不会退出，也就是说他会独占一个线程。
 
@@ -756,6 +800,59 @@ gatingSequences 就是各个消费者的序号，在注册消费者的时候添�
 （我一直以为是没有更新的空数组，日。 
 
 #### MultiProducerSequencer
+
+```java
+@Override
+public long next(int n){
+  if (n < 1){
+    throw new IllegalArgumentException("n must be > 0");
+  }
+
+  long current;
+  long next;
+
+  do{
+    current = cursor.get();
+    next = current + n;
+
+    long wrapPoint = next - bufferSize;
+    long cachedGatingSequence = gatingSequenceCache.get();
+
+    if (wrapPoint > cachedGatingSequence || cachedGatingSequence > current){
+      long gatingSequence = Util.getMinimumSequence(gatingSequences, current);
+
+      if (wrapPoint > gatingSequence) {
+        LockSupport.parkNanos(1); // TODO, should we spin based on the wait strategy?
+        continue;
+      }
+		  gatingSequenceCache.set(gatingSequence);
+    } else if (cursor.compareAndSet(current, next)){
+      break;
+    }
+  }while (true);
+  return next;
+}
+```
+
+
+
+## 相关实现
+
+
+
+### Disruptor 中对象间引用关系
+
+### Disruptor 如何实现依赖关系
+
+Disruptor 中的依赖关系根据角色划分可以简单理解为以下几种：
+
+1. 生产者对于消费者的依赖（生产者不能覆盖掉未被消费的事件
+2. 消费者对于生产者的依赖（消费者不能消费旧事件
+3. 下层消费者对于上层消费者的依赖（下层消费者只能消费上层消费过的事件
+
+
+
+
 
 
 
