@@ -1,4 +1,6 @@
 > 个人笔记，就是胡咧咧。
+>
+> （希望能尽快找回学习的状态 - 20231217
 
 ## Ing
 
@@ -9,12 +11,36 @@
 
 
 
+## Review 
+
+- Java 基础
+- Redis
+- Spring（Spring Core，Spring Boot，Spring Cloud
+- Sentinel（阿里开源的限流组建
+- Tomcat
+- MySQL
+- Kafka/RabbitMq（其实想学个新的用 Go 实现的 mq Pulsar
+- Dubbo（这个算是学习，不是复习
+- Netty（IM 或者 RPC 实现
+- 分布式（ZAB 协议，Raft 协议，BASE/CAS 原则
+- 算法（跟着 ACW 学
+- 单点登录相关（因为本次是在用户中心多少得学点，JWT，AUTH2 之类的
+
+
+
 ## Todo
 
 - [Kakfa 的消费组重平衡]()
+
 - [Zookeeper 残酷学习版本]()
+
 - [CompletableFuture源码分析]()
+
 - [ForkJoinPool]()（这是写给人看的？
+
+- Es 学习
+
+  
 
 
 

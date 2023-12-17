@@ -239,4 +239,4 @@ Consul 的服务注册非常简单，就是在 ConsulAutoServiceRegistrationList
 
 收集相关服务信息（NewService），向 Consul 注册，并且维护心跳就好了。
 
-注册前后会分别发布 InstancePreRegisteredEvent 和 InstanceRegisteredEvent。
+注册前后会分别发布 InstancePreRegisteredEvent 和 InstanceRegisteredEvent。看斤斤计较斤斤计较斤斤计较斤斤计较斤斤计较，，87777777
