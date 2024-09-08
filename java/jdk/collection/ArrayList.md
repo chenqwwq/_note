@@ -10,12 +10,10 @@
 
 ## 概述
 
--  `ArrayList` 是最常用的一个集合类，提供随机访问的特性。
--  `ArrayList` 的底层结构是`数组`，初始化大小为**10**，每次扩容为原来的1.5倍。
-   -  具体的代码为：`newCapacity = oldCapacity + (oldCapacity >> 1)`。
--  `ArrayList`是**非线程安全，且允许空值**。
-
-
+-  ArrayList  是最常用的一个集合类，提供随机访问的特性（所以它继承了 RandomAccess 接口。
+-  ArrayList  的底层结构是【数组】，初始化大小为 10 ，每次扩容为原来的1.5倍。
+   > 新大小计算的代码为：`newCapacity = oldCapacity + (oldCapacity >> 1)`。
+-  ArrayList 是**非线程安全的，且允许空值**。
 
 总的来说`ArrayList`就是一个`自动扩容的动态数组`。
 
@@ -41,23 +39,23 @@
   ```java
   // 根据指定的数组大小初始化底层数组
   public ArrayList(int initialCapacity) {
-          if (initialCapacity > 0) {
-              this.elementData = new Object[initialCapacity];
-          } else if (initialCapacity == 0) {
-              this.elementData = EMPTY_ELEMENTDATA;
-          } else {
-              throw new IllegalArgumentException("Illegal Capacity: "+
-                                                 initialCapacity);
-          }
-      }
+    if (initialCapacity > 0) {
+      this.elementData = new Object[initialCapacity];
+    } else if (initialCapacity == 0) {
+      this.elementData = EMPTY_ELEMENTDATA;
+    } else {
+      throw new IllegalArgumentException("Illegal Capacity: "+
+                                         initialCapacity);
+    }
+  }
   ```
 
   ```java
   // 使用默认的空数组初始化底层数组
-      public ArrayList() {
-          // 此处可能会奇怪 明明初始的是空数组，为什么会说初始容量为10m，看扩容相关的代码
-          this.elementData = DEFAULTCAPACITY_EMPTY_ELEMENTDATA;
-      }
+  public ArrayList() {
+    // 此处可能会奇怪 明明初始的是空数组，为什么会说初始容量为10，看扩容相关的代码
+    this.elementData = DEFAULTCAPACITY_EMPTY_ELEMENTDATA;
+  }
   ```
 
   ```java

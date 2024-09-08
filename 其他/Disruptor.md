@@ -1,6 +1,6 @@
 # Disruptor 框架
 
-> 以下源码基于 3.4.4 版本，未完待续。
+> 以下源码基于 3.4.4 版本。
 
 ![Disruptor](https://chenqwwq.oss-cn-hangzhou.aliyuncs.com/note/Disruptor%E7%9A%84%E5%89%AF%E6%9C%AC.png)
 
@@ -20,7 +20,7 @@
 
 Disruptor 是 LMAX 基于 Java 语言实现的**高性能队列**，相比于 Java 的 BlockedQueue，它有以下几个特点：
 
-1. 无锁化（后续讲到的等待策略，所选择上所等待
+1. 无锁化（对于并发场景并没有使用悲观锁
 2. 内存的预分配（队列会实现创建指定数量的对象
 3. 事件广播（通过 Disruptor 发布的事件会被各个消费者分别消费
 
@@ -60,7 +60,7 @@ Disruptor 主要持有 RingBuffer 的对象引用，以及所有的消费者信�
 
 #### 创建流程
 
-（先通过创建过程来了解 Disruptor 整个对象的构造。
+先通过创建过程来了解 Disruptor 整个对象的构造。
 
 Disruptor 的创建方法如下：
 
@@ -78,8 +78,8 @@ public Disruptor(
 }
 
 /**
-     * Private constructor helper
-     */
+  * Private constructor helper
+  */
 private Disruptor(final RingBuffer<T> ringBuffer, final Executor executor)
 {
   this.ringBuffer = ringBuffer;
@@ -89,7 +89,7 @@ private Disruptor(final RingBuffer<T> ringBuffer, final Executor executor)
 
 **Disruptor 的创建流程主要就是创建了对应的 RingBuffer 对象，并且指定消费者所用的线程工厂。**
 
-> 消费者的线程模型非常重要，这是非常容易出问题的一个点，并且在源码中也建议不要使用线程池实现。
+> 消费者的线程模型非常重要，这是非常容易出问题的一个点，并且在源码中也建议了不要使用线程池实现。
 
 <br>
 
@@ -129,7 +129,7 @@ RingBufferFields 、RingBufferPad 是 RingBuffer 做数据填充，避免缓存�
 
 > 伪共享是指相关性较差的数据使用同一缓存行保存，而各自的修改会导致缓存行更频繁的失效，从何导致的性能降低。
 >
-> Disruptor 的处理方法很优雅，直接扩充当前重点数据大小到大于等于缓存行大小为止。
+> Disruptor 的处理方法很暴力，直接扩充当前重点数据大小到大于等于缓存行大小为止。
 
 
 
@@ -239,7 +239,7 @@ RingBuffer 中为了避免伪共享，做了很多的填充，例如整个的数
 
 <br>
 
-### 消费者
+### Consumer（消费者
 
 Disruptor 在启动前就需要指定消费者，同时也可以指定各消费者之间的依赖关系（也就是层级消费。
 
@@ -488,7 +488,7 @@ private void processEvents(){
 
 
 
-事件的轮训通过一个死循环包括，**不是 AlertEcveption 就无法退出**。
+事件的轮询通过一个死循环包括，**不是 AlertEcveption 就无法退出**。
 
 > 一个消费者是一个无限执行的任务，所以最好不要用线程池去执行消费的 Runnable，或者说线程数和消费者数量最好是 1:1
 
@@ -682,7 +682,7 @@ Disruptor 的构造函数中已经表明，作者不建议使用 Executor 来执
 
 
 
-### 生产者
+### Producer（生产者
 
 生产者不在 Disruptor 的控制范围之内，任何持有 Disruptor 对象的都可以作为生产者，调用 Disruptor#pushlishEvent 发布事件。
 
@@ -752,13 +752,10 @@ private void translateAndPublish(EventTranslator<E> translator, long sequence){
 
 对于单生产者模式对应的类型为【SingleProducerSequencer】，不需要对生产的序号作并发控制，但是需要与消费者的序号协调：**生产者的序号不能超过消费者的序号。**
 
-> 因为是环形队列，所以生产的速度不能赶上消费者的速度（覆盖了未消费的事件。
+> 因为是环形队列，所以生产的速度不能赶上消费者的速度（覆盖了未消费的事件，在序号中的表示就是：生产者的序号不能超过消费者的最低序号。
 >
-> 在序号中的表示就是：生产者的序号不能超过消费者的最低序号。
 
-
-
-以下是单生产者的下个可用序号获取流程：（感觉整个脑回路有点怪
+以下是单生产者的下个可用序号获取流程：
 
 ```java
 public long next(int n){
@@ -793,11 +790,9 @@ public long next(int n){
 }
 ```
 
-
-
 gatingSequences 就是各个消费者的序号，在注册消费者的时候添加（通过 AtomicReferenceFieldUpdater 添加的。
 
-（我一直以为是没有更新的空数组，日。 
+
 
 #### MultiProducerSequencer
 
@@ -833,26 +828,6 @@ public long next(int n){
   return next;
 }
 ```
-
-
-
-## 相关实现
-
-
-
-### Disruptor 中对象间引用关系
-
-### Disruptor 如何实现依赖关系
-
-Disruptor 中的依赖关系根据角色划分可以简单理解为以下几种：
-
-1. 生产者对于消费者的依赖（生产者不能覆盖掉未被消费的事件
-2. 消费者对于生产者的依赖（消费者不能消费旧事件
-3. 下层消费者对于上层消费者的依赖（下层消费者只能消费上层消费过的事件
-
-
-
-
 
 
 
